@@ -1,4 +1,4 @@
-﻿# ES-FA: A Parameterizable Event-Driven Spiking Neural Network Accelerator with On-Chip STDP Learning and Banked Synaptic Memory for Edge Physical Intelligence
+# ES-FA: A Parameterizable Event-Driven Spiking Neural Network Accelerator with On-Chip STDP Learning and Banked Synaptic Memory for Edge Physical Intelligence
 
 **Author:** Yagnesh Kumar Koduru  
 **Affiliation:** Esthien Labs  
@@ -124,8 +124,9 @@ $$P_{\text{conflict}}(M, B) = 1 - \prod_{k=0}^{M-1} \left(1 - \frac{k}{B}\right)
 1. **[`hardware/top/snn_accelerator_generic.v`](hardware/top/snn_accelerator_generic.v)**: Technology-independent multi-core array with parameterizable dimensions (`NUM_CORES`, `NEURONS_PER_CORE`), AXI4-Lite control, and AXI4-Stream event bus.
 2. **[`hardware/compute/lif_neuron_pe.v`](hardware/compute/lif_neuron_pe.v)**: 4-stage pipeline isolating state latching, leaky integration, threshold comparison, and write-back.
 3. **[`hardware/compute/adaptive_leak_engine.v`](hardware/compute/adaptive_leak_engine.v)**: Homeostatic firing rate stabilizer adjusting $V_{\text{th}}[t]$ and leak shift without multipliers.
-4. **[`hardware/compute/stdp_learning_engine.v`](hardware/compute/stdp_learning_engine.v)**: Hardware plasticity unit updating synapses in a single clock cycle.
-5. **[`hardware/memory/weight_bram_bank.v`](hardware/memory/weight_bram_bank.v)**: Dual-banked memory with parity interleaving.
+4. **[`hardware/compute/spike_driven_flash_attention.v`](hardware/compute/spike_driven_flash_attention.v)**: Multi-head Spike-Driven FlashAttention accelerator eliminating $O(N^2)$ Softmax and floating-point multipliers via event-driven ternary coincidence accumulation.
+5. **[`hardware/compute/stdp_learning_engine.v`](hardware/compute/stdp_learning_engine.v)**: Hardware plasticity unit updating synapses in a single clock cycle.
+6. **[`hardware/memory/weight_bram_bank.v`](hardware/memory/weight_bram_bank.v)**: Dual-banked memory with parity interleaving.
 
 ---
 

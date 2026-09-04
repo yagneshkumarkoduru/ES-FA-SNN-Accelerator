@@ -1,4 +1,4 @@
-﻿"""
+"""
 Comprehensive Benchmarking Suite for ES-FA Neuromorphic SNN Accelerator.
 Executes sweeps across network dimensions, event sparsity, and on-chip STDP adaptation.
 Generates publication figures for IEEE TVLSI manuscript.

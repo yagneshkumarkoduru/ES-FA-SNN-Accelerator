@@ -1,0 +1,134 @@
+\documentclass[12pt]{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{listings}
+
+\definecolor{esfablue}{RGB}{28,68,135}
+\definecolor{esfagreen}{RGB}{28,120,78}
+\definecolor{lightgray}{RGB}{245,246,248}
+
+\newcommand{\heading}[1]{\vspace{0.8em}\noindent{\Large\bfseries\color{esfablue}#1}\par\vspace{0.3em}}
+\newcommand{\smallheading}[1]{\vspace{0.6em}\noindent{\bfseries\color{esfablue}#1}\par}
+\lstset{breaklines=true,basicstyle=\ttfamily\small,columns=fullflexible}
+
+\title{\textbf{ES-FA / BTP Presentation Report}\\
+\large Event-Driven SNN FPGA Accelerator}
+\author{Local smoke-run summary}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\fcolorbox{esfablue}{lightgray}{
+\begin{minipage}{0.92\linewidth}
+\textbf{Current status:} software pipeline completed locally. Hardware/Vivado
+execution was skipped in the latest smoke run. KV260 board measurement is the
+main pending step.
+\end{minipage}}
+\end{center}
+
+\heading{1. Project Idea}
+ES-FA studies an event-driven FPGA execution path for spiking neural networks.
+The basic idea is to use spike sparsity to reduce unnecessary memory access and
+compute work. Instead of reporting only model accuracy, the project also tracks
+hardware-facing metrics such as memory access, energy proxy, latency proxy, and
+hardware validation outputs.
+
+\heading{2. What Runs Now}
+\begin{itemize}[leftmargin=*]
+\item Baseline LIF SNN training runs locally.
+\item Hardware-aware and adaptive experiments run locally.
+\item Analysis generates ranking tables, evidence comparisons, and plots.
+\item CLI demo works for control, math, and SNN-style classification queries.
+\item Output sections are generated under \texttt{output/}.
+\item Hardware RTL and validation scripts exist, but were skipped in this smoke run.
+\end{itemize}
+
+\heading{3. Current Architecture}
+\begin{center}
+\small
+\begin{tabular}{p{0.25\linewidth}p{0.63\linewidth}}
+\toprule
+Layer & Current role \\
+\midrule
+\texttt{p1\_training/} & SNN model, training loop, baseline run, INT8/spike exports \\
+\texttt{p2\_hardware\_model/} & spike, memory, energy, and latency proxy estimators \\
+\texttt{experiments/} & hardware-aware loss and adaptive dataflow experiments \\
+\texttt{analysis/} & ranking table, plots, evidence reports \\
+\texttt{hardware/} & Verilog router, scheduler, event queue, memories, LIF PE \\
+\texttt{hardware\_validation/} & xsim and Vivado flow for KV260-oriented validation \\
+\texttt{deployment/} & CLI and adaptive execution policy \\
+\texttt{output/} & report, paper, and presentation-ready artifacts \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+
+\heading{4. Latest Smoke-Run Result}
+\begin{center}
+\small
+\begin{tabular}{p{0.33\linewidth}rrrr}
+\toprule
+Run & Accuracy & Sparsity & Energy proxy & Score \\
+\midrule
+\texttt{exp1\_hardware\_aware\_loss} & 0.9570 & 0.5648 & 4,592,863.17 & 0.7699 \\
+\texttt{baseline\_paper1} & 0.9570 & 0.5648 & 22,604,295.76 & 0.7387 \\
+\texttt{exp5\_dataflow\_adaptation} & 0.9570 & 0.5648 & 45,016,894.73 & 0.6699 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+
+\smallheading{Main point}
+The best current software run is \texttt{exp1\_hardware\_aware\_loss}. It keeps
+95.70\% accuracy and gives a 79.68\% lower energy proxy compared with the dense
+baseline estimate. This is a software proxy result, not measured board power.
+
+\heading{5. Demo Commands}
+\begin{lstlisting}
+.\scripts\run_esfa_pipeline.ps1 -PythonExe .\.venv312\Scripts\python.exe `
+  -Mode smoke -SkipVivado -SkipHardware
+
+python deployment/cli_interface/main.py --query "hi"
+python deployment/cli_interface/main.py --query "strike rate 167.55 balls 39"
+python deployment/cli_interface/main.py --query "classify results/runtime/sample_signal.bin"
+\end{lstlisting}
+
+\heading{6. Hardware/Vivado Status}
+The current RTL and validation stack are present, but the latest completed run
+skipped hardware using \texttt{-SkipVivado -SkipHardware}. Existing local
+hardware evidence rows are still available in the results folder, but the fresh
+presentation result should be described as a software smoke run. Final hardware
+claims should wait for:
+\begin{itemize}[leftmargin=*]
+\item xsim-only validation refresh;
+\item full Vivado synthesis/implementation refresh;
+\item physical KV260 board measurements.
+\end{itemize}
+
+\heading{7. What To Say In Presentation}
+\begin{quote}
+``The software and analysis side is running end-to-end locally. The best
+hardware-aware run preserves 95.70\% validation accuracy and reduces the energy
+proxy by 79.68\% compared with the dense baseline estimate. The RTL and
+KV260-oriented validation scripts are in the repo, but fresh Vivado execution
+and physical KV260 board measurements are the remaining hardware tasks.''
+\end{quote}
+
+\heading{8. Next Steps}
+\begin{enumerate}[leftmargin=*]
+\item Run xsim validation without the \texttt{-SkipHardware} flag.
+\item Run Vivado validation when build time is available.
+\item Boot KV260 and collect physical board measurements.
+\item Compare board measurements with software estimators.
+\item Tune estimator constants and rerun the report.
+\end{enumerate}
+
+\end{document}

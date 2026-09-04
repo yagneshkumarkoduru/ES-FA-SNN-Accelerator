@@ -1,109 +1,109 @@
-\IfFileExists{neurips_2024.sty}{
-  \documentclass{article}
-  \usepackage[final]{neurips_2024}
-}{
-  \documentclass[11pt]{article}
-  \usepackage[margin=1in]{geometry}
-}
-\usepackage[utf8]{inputenc}
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
 \usepackage[T1]{fontenc}
-\usepackage{hyperref}
-\usepackage{url}
+\usepackage[utf8]{inputenc}
 \usepackage{booktabs}
-\usepackage{amsfonts}
-\usepackage{nicefrac}
-\usepackage{microtype}
-\title{ES-FA: Event-Driven Spiking Neural Network Acceleration with Adaptive Execution and FPGA-Grounded Validation}
-\author{Anonymous Authors}
+\usepackage{url}
+\title{ES-FA: Event-Driven SNN Acceleration with Local Software-Hardware Evidence}
+\author{BTP Progress Draft}
+\date{\today}
 \begin{document}
 \maketitle
 
 \begin{abstract}
-We present an evolved ES-FA framework that unifies hardware-aware SNN training, estimator-guided co-design, local FPGA implementation validation, and adaptive runtime execution. The system preserves the original ES-FA foundation while introducing reproducible manifests, local xsim and Vivado Tcl-driven evidence generation, and explicit static-vs-adaptive execution comparisons. The framework emits standardized software and hardware artifacts for baseline-vs-optimized analysis, dense-vs-event scheduling analysis, estimator-vs-hardware correlation, and adaptive-vs-static evaluation.
+This draft summarizes the current ES-FA implementation after the latest local
+smoke run. The software pipeline ran successfully with baseline training,
+hardware-aware loss, adaptive dataflow, analysis, evidence tables, and output
+section generation. The best current software result is
+\texttt{exp1\_hardware\_aware\_loss}, which keeps 95.70\% validation accuracy
+while reducing the energy proxy by 79.68\% compared with the dense baseline
+estimate. Fresh hardware/Vivado execution was skipped in this run; existing
+local hardware-validation rows remain available for reference, while KV260 board
+measurements are still pending.
 \end{abstract}
 
-\section{Introduction}
-Energy-limited edge inference needs sparse, event-driven compute paths aligned with neuromorphic principles. ES-FA targets this by co-optimizing SNN training and hardware proxies, then validating design choices through FPGA-centered reporting.
+\section{Motivation}
+Edge FPGA inference needs models that are not only accurate but also efficient.
+Spiking neural networks are useful for this direction because sparse spike
+activity can potentially reduce memory traffic and compute operations. ES-FA
+uses a small SNN and tracks both ML metrics and hardware-facing proxy metrics.
 
-\section{Background}
-Directly trained SNNs offer sparsity-driven efficiency but require robust training methods and hardware mapping methodology. ES-FA combines surrogate-gradient training with software estimators and FPGA scheduler comparisons.
-
-\section{Method}
-The method integrates:
+\section{Current Implementation}
+The repository is organized around the renamed project layout:
 \begin{itemize}
-\item config-driven SNN training with run manifests and exportable INT8 artifacts,
-\item estimator APIs for spike, memory, energy, and latency proxies,
-\item experiment and iteration loops with stable logging.
+\item \texttt{p1\_training/}: SNN model, training core, baseline runner, exports.
+\item \texttt{p2\_hardware\_model/}: spike, memory, energy, and latency estimators.
+\item \texttt{experiments/}: hardware-aware and adaptive dataflow experiments.
+\item \texttt{analysis/}: ranking, plots, and evidence generation.
+\item \texttt{hardware/}: Verilog RTL blocks and testbenches.
+\item \texttt{hardware\_validation/}: KV260-oriented xsim/Vivado validation flow.
+\item \texttt{deployment/} and \texttt{system\_layer/}: CLI and adaptive routing.
+\item \texttt{output/}: generated report and presentation material.
 \end{itemize}
 
-\section{System Architecture}
-ES-FA includes:
-\begin{itemize}
-\item software layer: training, experiments, analysis;
-\item hardware layer: dense/event scheduler RTL and top-level integration;
-\item runtime layer: intent engine, task router, adaptive policy, CLI.
-\end{itemize}
-Adaptive execution selects dense or event scheduling from workload sparsity and logs every decision.
+\section{Model and Estimator}
+The current SNN is a compact feed-forward model:
+\[
+784 \rightarrow 128 \rightarrow 64 \rightarrow 10
+\]
+with LIF hidden neurons and a default temporal window of 16 time steps. During
+training, ES-FA records spike activity, sparsity, memory-access estimates, energy
+proxy, and latency proxy.
 
-\section{Experiments}
-Experiments cover baseline training, hardware-aware loss shaping, sparsity control, temporal multiplexing effects, quantization impacts, and adaptive dataflow. Iterations v1--v3 refine combinations under a fixed metrics schema.
-
-\section{Results}
-Results are emitted as:
-\begin{itemize}
-\item raw software tables (\texttt{raw\_software\_metrics.csv}),
-\item raw hardware tables (\texttt{raw\_hardware\_metrics.csv}),
-\item percentage-change comparisons (\texttt{percentage\_change\_table.csv}),
-\item short interpretations (\texttt{interpretations.md}).
-\end{itemize}
-The reporting enforces absolute baseline and optimized values with percentage change for each claim.
-
-\subsection{Mandatory Baseline Comparisons}
+\section{Latest Smoke-Run Results}
 \begin{table}[h]
 \centering
-\begin{tabular}{lccc}
+\begin{tabular}{lrrrr}
 \toprule
-Comparison & Baseline & Optimized & \% Change \\
+Run & Accuracy & Sparsity & Energy proxy & Score \\
 \midrule
-Baseline SNN vs HW-aware (Accuracy) & 0.957 & 0.957 & 0.00\% \\
-Baseline SNN vs HW-aware (Energy proxy) & 22,604,295.76 & 4,592,863.17 & -79.68\% \\
-Dense vs Event (Latency, baseline model) & 5760 ns & 5760 ns & 0.00\% \\
-Static vs Adaptive (Latency proxy) & 0.6167 & 1.2333 & +100.00\% \\
-Static vs Adaptive (Energy proxy) & 4,592,863.17 & 45,016,894.73 & +880.15\% \\
-Estimator vs Measured Latency (MAPE) & --- & 33.33\% & --- \\
+\texttt{exp1\_hardware\_aware\_loss} & 0.9570 & 0.5648 & 4,592,863.17 & 0.7699 \\
+\texttt{baseline\_paper1} & 0.9570 & 0.5648 & 22,604,295.76 & 0.7387 \\
+\texttt{exp5\_dataflow\_adaptation} & 0.9570 & 0.5648 & 45,016,894.73 & 0.6699 \\
 \bottomrule
 \end{tabular}
-\caption{Evidence-backed comparison summary from current local runs.}
+\caption{Current software ranking from the latest local smoke run.}
 \end{table}
 
-\section{Hardware Validation}
-Hardware validation follows:
-\begin{enumerate}
-\item xsim regression for dense and event scheduler modes,
-\item Vivado batch builds (\texttt{vivado -mode batch -source build.tcl}),
-\item synthesis/implementation/timing report parsing into normalized JSON.
-\end{enumerate}
-All \texttt{.rpt} and \texttt{.log} files are persisted per model and mode under \texttt{results/hardware\_validation}.
+The current best run is \texttt{exp1\_hardware\_aware\_loss}. It matches the
+baseline accuracy and sparsity in this smoke run, but the energy proxy is much
+lower. The proxy reduction compared with the dense baseline is:
+\[
+\frac{4{,}592{,}863.17 - 22{,}604{,}295.76}{22{,}604{,}295.76}
+= -79.68\%.
+\]
 
-\subsection{Current Local FPGA Metrics}
-For the validated model matrix (baseline + adaptive run variants at 100 MHz target), the local implementation reports yield:
+\section{Hardware Status}
+The hardware side contains RTL blocks and a KV260-centered validation flow. The
+latest smoke run used \texttt{-SkipVivado -SkipHardware}, so no fresh hardware
+build was executed during this run. Existing local evidence rows still include
+simulation/report data such as 5760 ns active-window latency and 576 cycles, but
+these should be described as previous local validation evidence, not a new board
+measurement.
+
+\section{Presentation Claim Boundary}
+The safe claim for the current presentation is:
+\begin{quote}
+The local software and analysis pipeline is working end-to-end. The best
+hardware-aware software experiment preserves 95.70\% accuracy and reduces the
+energy proxy by 79.68\% against the dense baseline estimate. Hardware RTL and
+validation scripts are present, but fresh Vivado hardware execution and KV260
+physical measurements remain pending for final hardware claims.
+\end{quote}
+
+\section{Next Work}
 \begin{itemize}
-\item Latency: 5760 ns (active window), Cycle count: 576
-\item LUT usage: 22,193; BRAM usage: 0; DSP usage: 0
-\item Worst negative slack (WNS): -0.92 ns; estimated Fmax: 91.58 MHz
+\item Run xsim-only validation after the presentation smoke run.
+\item Run full Vivado validation when build time is available.
+\item Collect physical KV260 board measurements.
+\item Calibrate estimator constants against measured hardware values.
+\item Expand the model/scheduler validation matrix.
 \end{itemize}
 
-These measurements are generated from Vivado implementation reports and xsim traces, and are treated as local hardware evidence prior to final KV260 physical board runs.
-
-\section{Discussion}
-Compatibility-first refactoring preserved working code while adding reproducibility and system-level orchestration. Explicit policy logs and hardware report normalization improved interpretability and auditability.
-
-\section{Limitations and Future Work}
-Current local validation relies on implementation reports and simulation-derived cycle/latency estimates. Final KV260 board measurements are required for full physical characterization and will be integrated into the same schema.
-
 \section{Conclusion}
-The evolved ES-FA framework transitions from isolated components to a research-grade, system-level pipeline with measurable software-hardware evidence, adaptive runtime behavior, and publication-ready documentation.
+ES-FA is now presentation-ready as a local software-hardware research pipeline.
+The project can demonstrate training, hardware-aware metrics, analysis plots,
+evidence tables, and CLI routing. The remaining work is mainly hardware closure:
+fresh Vivado runs, KV260 board measurements, and estimator calibration.
 
-\bibliographystyle{plain}
-\bibliography{references}
 \end{document}

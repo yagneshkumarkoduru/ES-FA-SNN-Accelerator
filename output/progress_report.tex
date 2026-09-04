@@ -30,8 +30,10 @@
 The project has moved beyond the initial proposal stage. At this point, ES-FA is
 a local working pipeline with SNN training, hardware-aware estimates, experiment
 runs, analysis plots, RTL blocks, xsim/Vivado validation scripts, a small CLI
-layer, and LaTeX documentation. The main unfinished item is physical validation
-on the KV260 board. Local xsim/Vivado evidence already exists, but board-level
+layer, and LaTeX documentation. The latest completed run was a software smoke
+run using \texttt{-SkipVivado -SkipHardware}. The main unfinished item is
+physical validation on the KV260 board. Local xsim/Vivado evidence already
+exists from earlier validation output, but fresh Vivado execution and board-level
 measurements still have to be added.
 
 \section{Project Aim}
@@ -158,6 +160,10 @@ The hardware validation path is local and KV260-oriented. It runs:
 \item merging of xsim, Vivado, model, mode, and estimator fields into
 \path{hardware_metrics.json}.
 \end{enumerate}
+
+For the latest completed smoke run, this stage was intentionally skipped. That
+means the software and analysis results are fresh, while the hardware rows should
+be treated as existing local validation evidence.
 
 Current local hardware evidence exists for baseline and adaptive variants in
 dense and event modes. The current parsed results show:

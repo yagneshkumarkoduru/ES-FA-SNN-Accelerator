@@ -17,6 +17,7 @@
   frame=single,
   backgroundcolor=\color{black!3}
 }
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \setlength{\emergencystretch}{3em}
 
 \title{ES-FA / BTP Setup Notes}
@@ -184,6 +185,15 @@ Bash equivalent:
 MODE=smoke SKIP_VIVADO=1 SKIP_HARDWARE=1 ./scripts/run_esfa_pipeline.sh
 \end{lstlisting}
 
+Latest local smoke-run values to expect:
+\begin{itemize}[leftmargin=*]
+\item best run: \texttt{exp1\_hardware\_aware\_loss};
+\item validation accuracy: 95.70\%;
+\item spike sparsity: 56.48\%;
+\item energy-proxy reduction vs baseline: 79.68\%;
+\item hardware/Vivado stages: skipped in smoke mode.
+\end{itemize}
+
 \subsection{Manual software run}
 Use this when you want to see the stages one by one:
 \begin{lstlisting}[style=cmd]
@@ -260,7 +270,7 @@ Expected PDFs:
 
 \section{9. Common Problems}
 \begin{center}
-\begin{tabular}{p{0.38\linewidth}p{0.52\linewidth}}
+\begin{tabular}{L{0.38\linewidth}L{0.52\linewidth}}
 \toprule
 Problem & What I would check first \\
 \midrule

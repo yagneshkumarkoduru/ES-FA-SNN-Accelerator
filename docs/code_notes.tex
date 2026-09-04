@@ -1,51 +1,82 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
-\title{ES-FA Code Notes}
-\author{Engineer-to-Engineer Notes}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\setlength{\emergencystretch}{3em}
+\title{ES-FA / BTP Code Notes}
+\author{Source file notes after latest smoke run}
 \date{\today}
 \begin{document}
 \maketitle
 
-\section{paper1\_training/training\_core.py}
-\textbf{What}: shared training loop for baseline, experiments, and iterations.\\
-\textbf{Why}: keeps software comparisons fair by enforcing one execution path.\\
-\textbf{ES-FA fit}: ties Paper 1 training to Paper 2 estimators each batch.\\
-\textbf{Interfaces}: \texttt{load\_config()}, \texttt{train\_from\_config()}.\\
-\textbf{Tradeoffs}: explicit metrics bookkeeping increases verbosity but improves reproducibility and downstream hardware matching.
+\section{Training Core}
+\textbf{File:} \path{p1_training/training_core.py}.\\
+\textbf{Role:} shared training loop for the baseline and experiments.\\
+\textbf{Why it matters:} all software comparisons pass through the same training
+path, so the current 95.70\% accuracy and 56.48\% sparsity numbers are comparable
+across baseline and experiment runs.\\
+\textbf{Key interfaces:} \texttt{load\_config()} and
+\texttt{train\_from\_config()}.
 
-\section{paper2\_hardware\_model/estimators.py}
-\textbf{What}: proxy estimators for spike cost, memory access, energy, latency.\\
-\textbf{Why}: guides hardware-aware training before full FPGA measurement.\\
-\textbf{ES-FA fit}: closes software-hardware co-design loop.\\
-\textbf{Interfaces}: \texttt{estimate\_spike\_cost}, \texttt{estimate\_memory\_access}, \texttt{estimate\_energy\_proxy}, \texttt{estimate\_latency\_proxy}.\\
-\textbf{Tradeoffs}: proxy model is lightweight and interpretable but can underfit hardware non-idealities.
+\section{SNN Model}
+\textbf{File:} \path{p1_training/model.py}.\\
+\textbf{Role:} defines the proposal-aligned SNN model.\\
+\textbf{Model used:} MNIST input flattened to 784, hidden layers of 128 and 64
+LIF neurons, and 10 output classes.\\
+\textbf{Notes:} the model supports temporal spike encoding and fake quantization
+for hardware-oriented experiments.
 
-\section{hardware/ and hardware\_validation/kv260}
-\textbf{What}: RTL datapath + scheduler blocks and new local validation stack.\\
-\textbf{Why}: preserve working RTL while adding research-grade reporting and reproducible build flow.\\
-\textbf{ES-FA fit}: enables dense/event comparisons and estimator-vs-hardware checks.\\
-\textbf{Interfaces}: top module \texttt{snn\_top}; scripts \texttt{run\_xsim\_regression.py}, \texttt{run\_vivado\_build.py}.\\
-\textbf{Tradeoffs}: wrappers avoid risky rewrites, but duplicated orchestration logic must be maintained carefully.
+\section{Hardware Proxy Estimators}
+\textbf{File:} \path{p2_hardware_model/estimators.py}.\\
+\textbf{Role:} provides lightweight hardware proxy estimates.\\
+\textbf{Current use:} the latest run uses these estimators to compare baseline
+energy proxy (22,604,295.76) with the best hardware-aware run
+(4,592,863.17).\\
+\textbf{Key interfaces:}
+\begin{itemize}
+\item \texttt{estimate\_spike\_cost()}
+\item \texttt{estimate\_memory\_access()}
+\item \texttt{estimate\_energy\_proxy()}
+\item \texttt{estimate\_latency\_proxy()}
+\end{itemize}
 
-\section{system\_layer and deployment}
-\textbf{What}: intent engine, task router, SNN/math/control modules, adaptive policy, CLI.\\
-\textbf{Why}: provides a demonstrable system-level contribution beyond isolated kernels.\\
-\textbf{ES-FA fit}: adds adaptive execution with explicit policy logs.\\
-\textbf{Interfaces}: \texttt{TaskRouter.route()}, \texttt{AdaptiveExecutionPolicy.choose\_mode()}, CLI \texttt{main.py}.\\
-\textbf{Tradeoffs}: rule-based intent is easy to debug, but less flexible than learned intent classification.
+\section{Experiments}
+\textbf{Folder:} \path{experiments/}.\\
+\textbf{Role:} holds experiment configs and runners.\\
+\textbf{Latest smoke run:} ran \texttt{exp1\_hardware\_aware\_loss} and
+\texttt{exp5\_dataflow\_adaptation}. The best score came from
+\texttt{exp1\_hardware\_aware\_loss}.
 
-\section{analysis/evidence\_report.py}
-\textbf{What}: produces mandatory evidence tables with absolute/optimized/percent deltas.\\
-\textbf{Why}: enforces measurable claims with standardized reporting format.\\
-\textbf{ES-FA fit}: codifies four required baseline comparisons.\\
-\textbf{Interfaces}: \texttt{generate(results\_root)}.\\
-\textbf{Tradeoffs}: strict table schema improves publication readiness but requires clean run metadata.
+\section{Hardware And Validation}
+\textbf{Folders:} \path{hardware/} and \path{hardware_validation/}.\\
+\textbf{Role:} Verilog RTL and local validation wrappers.\\
+\textbf{Current status:} RTL and validation scripts are present. Fresh hardware
+execution was skipped in the latest smoke run, but the flow is ready for xsim
+and Vivado when those stages are enabled.
 
-\section{paper\_output/final\_paper.tex}
-\textbf{What}: NeurIPS-style full paper scaffold tied to generated evidence artifacts.\\
-\textbf{Why}: avoids drift between implementation and manuscript claims.\\
-\textbf{ES-FA fit}: captures method, architecture, experiments, hardware validation, and limitations in one narrative.\\
-\textbf{Tradeoffs}: manuscript quality depends on continual sync with latest run outputs.
+\section{System And Deployment Layer}
+\textbf{Folders:} \path{system_layer/} and \path{deployment/}.\\
+\textbf{Role:} simple runtime demo layer.\\
+\textbf{Current demo:} the CLI can answer control queries, run a small math
+example, and route a signal classification request through the adaptive policy.
+
+\section{Analysis}
+\textbf{Folder:} \path{analysis/}.\\
+\textbf{Role:} creates ranking tables, plots, and evidence comparisons.\\
+\textbf{Latest output:} 3 software rows, 4 existing hardware rows in the evidence
+schema, and 16 comparison rows in \texttt{results/analysis/evidence/}.
+
+\section{Output Artifacts}
+\textbf{Folder:} \path{output/}.\\
+\textbf{Role:} presentation and report artifacts.\\
+\textbf{Latest generated files:}
+\begin{itemize}
+\item \texttt{method\_section.md}
+\item \texttt{experiment\_section.md}
+\item \texttt{tables.md}
+\item \texttt{key\_findings.md}
+\item \texttt{paper\_draft.md}
+\end{itemize}
 
 \end{document}
-

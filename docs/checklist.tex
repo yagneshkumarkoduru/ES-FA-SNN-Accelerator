@@ -1,38 +1,59 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{hyperref}
-\title{ES-FA Research Execution Checklist}
-\author{Event-Driven SNN FPGA Accelerator}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{url}
+\setlength{\emergencystretch}{3em}
+\title{ES-FA / BTP Run Checklist}
+\author{Local smoke run status}
 \date{\today}
 \begin{document}
 \maketitle
 
-\section*{Phase 1 (\textasciitilde 40\%)}
+\section*{Latest Local Run}
+The latest smoke run completed locally from the project root with the wrapper
+\path{scripts/run_esfa_pipeline.ps1}. This run used \texttt{-SkipVivado} and
+\texttt{-SkipHardware}, so fresh hardware/Vivado execution is still pending.
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Item & Status \\
+\midrule
+Python environment & working from \texttt{.venv312} \\
+Vivado path bootstrap & detected Vivado/xvlog installation \\
+Baseline training & completed \\
+Experiment: hardware-aware loss & completed \\
+Experiment: adaptive dataflow & completed \\
+Analysis plots/tables & completed \\
+Evidence table generation & completed \\
+Paper/output section generation & completed in \texttt{output/} \\
+Fresh Vivado hardware build & skipped in this smoke run \\
+KV260 physical board measurement & still pending \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Current Numbers to Show}
 \begin{itemize}
-\item \texttt{[x]} Training core preserved and modularized with config-driven runs.
-\item \texttt{[x]} Baseline + experiment workflow retained with reproducible metadata.
-\item \texttt{[x]} Run manifest standardized (\texttt{run\_manifest.json}).
-\item \texttt{[x]} INT8 export + spike stats + layer activity export integrated.
-\item \texttt{[x]} Smoke/full pipeline hooks defined.
+\item Best run: \texttt{exp1\_hardware\_aware\_loss}.
+\item Validation accuracy: 95.70\%.
+\item Spike sparsity: 56.48\%.
+\item Best energy proxy: 4,592,863.17.
+\item Baseline energy proxy: 22,604,295.76.
+\item Energy-proxy change vs baseline: -79.68\%.
+\item Latest ranking compared 3 software runs.
 \end{itemize}
 
-\section*{Phase 2 (\textasciitilde 40\%)}
+\section*{Before Presentation}
 \begin{itemize}
-\item \texttt{[x]} Hardware estimator APIs preserved and reused.
-\item \texttt{[x]} Structured experiment + iteration pipeline preserved.
-\item \texttt{[x]} Local xsim + Vivado Tcl stack added under \texttt{hardware\_validation/kv260}.
-\item \texttt{[x]} Report parser for utilization/timing/cycle/latency added.
-\item \texttt{[x]} Evidence table generator (absolute + percent deltas) added.
-\item \texttt{[x]} Full local Vivado report set generated for selected model matrix.
-\end{itemize}
-
-\section*{Phase 3 (\textasciitilde 20\%)}
-\begin{itemize}
-\item \texttt{[x]} System layer added: intent engine, task router, snn/math/control modules.
-\item \texttt{[x]} CLI runtime added with execution metadata and diagnostics.
-\item \texttt{[x]} Adaptive policy implemented with decision logging.
-\item \texttt{[ ]} KV260 board-level physical measurements integrated into same schema.
-\item \texttt{[x]} NeurIPS-style final paper scaffold and code notes generated.
+\item Confirm \texttt{results/ranking\_table.md} exists.
+\item Confirm plots exist in \texttt{results/plots/}.
+\item Confirm evidence files exist in \texttt{results/analysis/evidence/}.
+\item Confirm generated markdown exists in \texttt{output/}.
+\item Confirm presentation PDF exists: \texttt{output/presentation\_ready\_report.pdf}.
+\item Be clear that fresh hardware/Vivado execution was skipped in the smoke run.
 \end{itemize}
 
 \end{document}

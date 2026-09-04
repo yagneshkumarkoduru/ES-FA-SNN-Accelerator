@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.5.5)  5 MAY 2026 11:03
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.5.5)  5 MAY 2026 12:05
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -160,24 +160,23 @@ tex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count300
 )
-(C:\Users\kodur\Desktop\BTP\project\paper_output\first_time_user_setup_guide.au
-x)
+(C:\Users\kodur\Desktop\BTP\project\output\first_time_user_setup_guide.aux)
 \openout1 = `first_time_user_setup_guide.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -231,49 +230,36 @@ ii
 )
 \c@lstlisting=\count307
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 27.
+(Font)              <12> on input line 28.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 27.
+(Font)              <8> on input line 28.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 27.
+(Font)              <6> on input line 28.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <10.95> on input line 38.
+(Font)              <10.95> on input line 39.
  [1
 
 {C:/Users/kodur/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <14.4> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 122.
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 123.
  [2]
-[3] [4]
-Underfull \hbox (badness 2229) in paragraph at lines 268--269
-[]|\T1/cmr/m/n/10.95 Activate $\T1/cmtt/m/n/10.95 .venv312$\T1/cmr/m/n/10.95 , 
-then re-run \T1/cmtt/m/n/10.95 python -m pip
- []
-
-
-Underfull \hbox (badness 2903) in paragraph at lines 271--272
-[]|\T1/cmr/m/n/10.95 Open $\T1/cmtt/m/n/10.95 results / hardware _ validation /
- . . . / logs /
- []
-
-[5]
+[3] [4] [5]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 298.
+(Font)              <7> on input line 308.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 298.
+(Font)              <5> on input line 308.
  [6]
-(C:\Users\kodur\Desktop\BTP\project\paper_output\first_time_user_setup_guide.au
-x)
+(C:\Users\kodur\Desktop\BTP\project\output\first_time_user_setup_guide.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 4471 strings out of 467871
- 65817 string characters out of 5418377
- 641179 words of memory out of 5000000
- 33338 multiletter control sequences out of 15000+600000
+ 4473 strings out of 467871
+ 65796 string characters out of 5418377
+ 615184 words of memory out of 5000000
+ 33340 multiletter control sequences out of 15000+600000
  639155 words of font info for 65 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  57i,9n,65p,231b,1241s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -290,10 +276,10 @@ l\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1095.pk> <C:\Users\kodur\AppDat
 a\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\kodur\
 AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\
 kodur\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1728.pk>
-Output written on C:\Users\kodur\Desktop\BTP\project\paper_output\first_time_us
-er_setup_guide.pdf (6 pages, 148593 bytes).
+Output written on C:\Users\kodur\Desktop\BTP\project\output\first_time_user_set
+up_guide.pdf (6 pages, 149677 bytes).
 PDF statistics:
- 452 PDF objects out of 1000 (max. 8388607)
+ 454 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

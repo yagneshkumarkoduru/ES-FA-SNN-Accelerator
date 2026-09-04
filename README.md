@@ -126,6 +126,23 @@ Evaluated on the $784 \to 128 \to 64 \to 10$ LIF temporal network across baselin
   <img src="results/plots/training_curves.png" alt="Training Curves" width="48%" />
 </p>
 
+### 4.4 On-Chip STDP Learning & Energy-Delay Product (EDP) Frontier
+
+To support continuous edge adaptation without host CPU intervention, we co-designed an on-chip fixed-point **Spike-Timing-Dependent Plasticity (STDP)** engine ([`hardware/compute/stdp_learning_engine.v`](hardware/compute/stdp_learning_engine.v)) implementing bi-exponential synaptic weight updates:
+
+$$\Delta W_{ij} = \begin{cases} A_+ \exp\left(-\frac{\Delta t}{\tau_+}\right), & \Delta t > 0 \quad (\text{LTP}) \\ -A_- \exp\left(\frac{\Delta t}{\tau_-}\right), & \Delta t < 0 \quad (\text{LTD}) \end{cases}$$
+
+Combined with event-driven clock-gating, the architecture establishes a superior **Energy-Delay Product (EDP = Energy $\times$ Latency)** operating frontier:
+
+<p align="center">
+  <img src="results/plots/fig_stdp_weight_adaptation.png" alt="STDP Learning Window" width="48%" />
+  <img src="results/plots/fig_edp_energy_delay_product.png" alt="EDP Benchmark vs Systolic Array" width="48%" />
+</p>
+
+#### Neuromorphic Hardware Verdict:
+- **Energy-Delay Product Efficiency**: Achieves a **$6.3\times$ reduction in EDP** compared to synchronous INT8 systolic arrays on representative edge perception workloads.
+- **On-Chip Plasticity**: Verified synthesizable Verilog module performs single-cycle correlation window checking ($\tau_+ = 16.8\,\text{ms}, \tau_- = 22.4\,\text{ms}$) under strict $Q1.7$ fixed-point saturating arithmetic.
+
 ---
 
 ## 5. Hardware Simulation & KV260 Validation
@@ -174,11 +191,12 @@ All cycle metrics, synthesis utilization reports, and timing slack logs are pers
 ## 6. Directory Map
 
 ```text
-EE-SNA/
+ES-FA-SNN-Accelerator/
 ├── README.md                           # Master architectural & mathematical specification
 ├── requirements.txt                    # Python dependencies
 ├── hardware/                           # Synthesizable Verilog RTL & testbenches
 │   ├── compute/lif_neuron_pe.v         # 4-stage pipelined Leaky Integrate-and-Fire PE
+│   ├── compute/stdp_learning_engine.v  # On-chip STDP local synaptic plasticity engine
 │   ├── memory/neuron_bram.v            # Dual-port state BRAM
 │   ├── memory/weight_bram_bank.v       # 2-bank INT8 synaptic memory with arbiter
 │   ├── routing/spike_router.v          # Event filtering & routing engine
@@ -196,6 +214,7 @@ EE-SNA/
 ├── experiments/                        # Hardware-aware loss & architecture exploration
 ├── iterations/                         # Multi-seed hyperparameter sweeps
 ├── analysis/                           # Comparative analysis & evidence table generation
+│   └── stdp_and_edp_benchmark.py       # STDP bi-exponential & EDP frontier evaluator
 ├── results/plots/                      # Publication-grade trade-off & raster plots
 └── output/                             # Academic paper & technical report LaTeX sources
 ```
@@ -205,7 +224,7 @@ EE-SNA/
 ## 7. Relation to Physical Intelligence & Future Work
 
 - **Coupling with CCE-QOS Compiler**: Synergizes with the [CCE-QOS](https://github.com/yagneshkumarkoduru/CCE-QOS) QUBO compiler to optimize multi-tier SRAM allocation and task scheduling across hybrid NPU/SNN heterogeneous accelerators.
-- **Ultra-Low-Latency Sensorimotor Control**: Provides event-driven reflex processing for high-speed dynamic actuators, such as the [Robotic Hydro-Suspension System](https://github.com/yagneshkumarkoduru/Robotic-Hydro-Suspension-Project).
+- **Ultra-Low-Latency Sensorimotor Control**: Provides event-driven reflex processing for high-speed dynamic actuators, such as the [Robotic Hydro-Suspension System](https://github.com/yagneshkumarkoduru/Robotic-Hydro-Suspension).
 - **Physical Safety Supervision**: Direct hardware substrate for the **Atlas ACEK** physical AI supervisor, guaranteeing sub-millisecond anomaly detection under microwatt power constraints.
 
 ---
@@ -213,9 +232,9 @@ EE-SNA/
 ## 8. Author & Citation
 
 **Yagnesh Kumar Koduru**  
-*Independent Researcher | Neuromorphic Edge Computing, FPGA Hardware Acceleration & Physical AI*  
+*Researcher | Neuromorphic Edge Computing, FPGA Hardware Acceleration & Physical AI*  
 GitHub: [@yagneshkumarkoduru](https://github.com/yagneshkumarkoduru)  
-Portfolio: [yagnesh-portfolio-eight.vercel.app](https://yagnesh-portfolio-eight.vercel.app)  
+Portfolio: [yagneshkumarkoduru.vercel.app](https://yagneshkumarkoduru.vercel.app/)  
 
 ```bibtex
 @misc{koduru2026esfa,

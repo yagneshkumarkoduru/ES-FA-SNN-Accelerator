@@ -1,9 +1,8 @@
-# ES-FA / BTP
+# ES-FA: Event-Driven Spiking Neural Network FPGA Accelerator for Energy-Efficient Edge AI
 
-This is my BTP project workspace for an event-driven SNN FPGA accelerator
-(ES-FA). The repo is set up to show the full path from a small spiking neural
-network, through hardware-aware estimates, to local FPGA validation scripts and
-a simple CLI demo.
+**Independent Research Project | Neuromorphic Computing & Physical Intelligence Systems**
+
+This repository documents a complete research workflow for **ES-FA** (Event-driven Spiking FPGA Accelerator): an energy-efficient, event-driven SNN inference engine targeting low-power edge control and perception workloads. The project demonstrates the full stack from hardware-aware SNN training, through spike-activity and memory-access modeling, to synthesizable Verilog RTL and KV260 FPGA validation — directly supporting the vision of safe, low-power physical AI and assistive control systems.
 
 The important point for this project is that it runs locally. Training outputs,
 plots, Vivado/xsim reports, runtime logs, and PDFs are written back into this

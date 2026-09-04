@@ -32,6 +32,9 @@ iter_*_CongestedCLBsAndNets.txt
 *.out
 
 # Keep final PDFs, but ignore transient TeX logs unless explicitly needed
-*.blg
-*.bbl
-
+# C and C# build artifacts
+*.exe
+*.o
+*.obj
+bin/
+obj/

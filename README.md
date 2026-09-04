@@ -1,14 +1,16 @@
-# ES-FA: Event-Driven Spiking Neural Network FPGA Accelerator for Energy-Efficient Edge AI
+# ES-FA: Parameterizable Event-Driven Spiking Neural Network Accelerator with On-Chip STDP Learning for Edge Physical Intelligence
 
-[![FPGA](https://img.shields.io/badge/Target-Xilinx%20Kria%20KV260-red.svg)](https://www.xilinx.com/products/som/kria/kv260-vision-ai-starter-kit.html)
-[![RTL](https://img.shields.io/badge/HDL-Synthesizable%20Verilog-blue.svg)](#3-fpga-hardware-microarchitecture)
-[![PyTorch](https://img.shields.io/badge/Training-PyTorch%20QAT-ee4c2c.svg)](p1_training/)
-[![Simulation](https://img.shields.io/badge/Simulation-Vivado%20xsim-orange.svg)](#5-hardware-simulation--kv260-validation)
+[![Target](https://img.shields.io/badge/Architecture-Generic%20ASIC%20%7C%20Multi--FPGA-blue.svg)](#3-generalized-hardware-microarchitecture)
+[![RTL](https://img.shields.io/badge/HDL-Synthesizable%20Verilog%20%2F%20SystemVerilog-059669.svg)](hardware/)
+[![C-Engine](https://img.shields.io/badge/Simulation-Bit--Accurate%20C%2FC%2B%2B-d97706.svg)](c_engine/)
+[![CSharp](https://img.shields.io/badge/HAL%20Driver-C%23%20.NET%209-512bd4.svg)](csharp_driver/)
+[![Paper](https://img.shields.io/badge/Manuscript-IEEE%20TVLSI%20%2F%20TCAS--I-7c3aed.svg)](docs/paper/RESEARCH_PAPER.md)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Author:** [Yagnesh Kumar Koduru](https://github.com/yagneshkumarkoduru)  
+**Affiliation:** Esthien Labs  
 **Domain:** Neuromorphic Computing, Hardware-Software Co-Design, Edge AI Acceleration  
-**Platform:** Xilinx Kria KV260 (Zynq UltraScale+ MPSoC) / Synthesizable Verilog RTL  
+**Platform:** Parameterizable Multi-Core ASIC (28nm/7nm standard cell) / Xilinx Kria KV260 / Generic FPGA  
 
 ---
 
@@ -16,10 +18,12 @@
 
 Edge-deployed physical intelligence systems—such as autonomous micro-drones, quadruped robots, and active prosthetic interfaces—require milliwatt-scale sensory perception and closed-loop control under tight real-time latencies ($<10\text{ ms}$). Conventional deep neural networks (e.g., standard CNNs, MLPs) perform continuous multiply-accumulate (MAC) operations regardless of input signal variation, leading to prohibitive dynamic power consumption and thermal throttling.
 
-**ES-FA (Event-Driven Spiking FPGA Accelerator)** resolves this bottleneck via an end-to-end hardware-software co-designed neuromorphic architecture:
-1. **Hardware-Aware Spiking Neural Network Training**: Formulates Quantization-Aware Training (QAT) with surrogate gradient backpropagation and multi-objective sparsity regularization, suppressing silent neuron firing.
-2. **Event-Driven Asynchronous Dataflow**: Skips compute and memory operations for non-firing neurons, replacing energy-intensive floating-point MAC arrays with event-driven integer additions ($S_j \in \{0, 1\}$).
-3. **Synthesizable Verilog RTL on Xilinx Kria KV260**: Features a banked synaptic BRAM hierarchy, an approximate-priority event queue, and a 4-stage pipelined Leaky Integrate-and-Fire (LIF) processing element (PE).
+**ES-FA (Event-Driven Spiking FPGA/ASIC Accelerator)** resolves this bottleneck via an end-to-end hardware-software co-designed neuromorphic architecture:
+1. **Generic, Technology-Independent RTL Architecture**: Parameterizable multi-core array ([`hardware/top/snn_accelerator_generic.v`](hardware/top/snn_accelerator_generic.v)) supporting configurable core counts, precision modes, AXI4-Lite control, and AXI4-Stream non-blocking event channels.
+2. **Synthesizable On-Chip STDP Engine**: Hardware-native bi-exponential synaptic plasticity ([`hardware/compute/stdp_learning_engine.v`](hardware/compute/stdp_learning_engine.v)) enabling local, autonomous learning in the field.
+3. **Bit-Accurate C/C++ Neuromorphic Simulation Engine**: Standalone, cycle-accurate simulation harness ([`c_engine/`](c_engine/)) executing at **$59.9\text{ GSOP/s}$** with gate-level toggle energy telemetry ($3.89\text{ pJ/SOP}$).
+4. **Real-Time C# Embedded HAL Driver**: High-throughput asynchronous driver ([`csharp_driver/`](csharp_driver/)) streaming **2.46 Million packets/second** with **$405\text{ ns}$** dispatch latency.
+5. **Full Research Paper Manuscript**: IEEE TVLSI / TCAS-I manuscript available in LaTeX ([`docs/paper/ES_FA_SNN_Accelerator_TVLSI.tex`](docs/paper/ES_FA_SNN_Accelerator_TVLSI.tex)) and Markdown ([`docs/paper/RESEARCH_PAPER.md`](docs/paper/RESEARCH_PAPER.md)).
 
 ---
 

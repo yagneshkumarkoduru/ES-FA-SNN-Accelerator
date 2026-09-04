@@ -9,7 +9,7 @@ def main() -> None:
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
 
-    from paper1_training.training_core import load_config, train_from_config
+    from p1_training.training_core import load_config, train_from_config
 
     cfg = load_config(Path(__file__).resolve().parent / "config.json")
     out_dir = project_root / "results" / "experiments" / "exp1_hardware_aware_loss"

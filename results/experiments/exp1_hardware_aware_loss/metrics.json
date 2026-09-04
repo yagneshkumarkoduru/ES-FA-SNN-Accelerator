@@ -5,7 +5,7 @@
   "best_epoch": 1,
   "best_val_accuracy": 0.957,
   "final_val_accuracy": 0.957,
-  "training_time_sec": 32.06712603569031,
+  "training_time_sec": 28.45081090927124,
   "metrics": {
     "accuracy": 0.957,
     "spike_activity": 0.4352427083333334,

@@ -39,7 +39,7 @@ def main() -> None:
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
 
-    from paper1_training.training_core import load_config, train_from_config
+    from p1_training.training_core import load_config, train_from_config
 
     args = parse_args()
     cfg = load_config(args.config)

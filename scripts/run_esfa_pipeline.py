@@ -34,7 +34,7 @@ def _train_job(config_path: Path, out_dir: Path, epochs: int) -> None:
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     try:
-        from paper1_training.training_core import load_config, train_from_config
+        from p1_training.training_core import load_config, train_from_config
     except ModuleNotFoundError as exc:
         raise RuntimeError(
             "Training dependencies are missing. Install requirements with a Python version "
@@ -89,7 +89,7 @@ def run(mode: str, clock_mhz: float, skip_vivado: bool, skip_hardware: bool) -> 
     _append_checkpoint(project_root, "Phase 0", "ok", "Mapping file validated")
 
     # Phase 1: preserve + modularize (training baseline)
-    baseline_cfg = project_root / "paper1_training" / "config_baseline.json"
+    baseline_cfg = project_root / "p1_training" / "config_baseline.json"
     _train_job(
         config_path=baseline_cfg,
         out_dir=project_root / "results" / "baseline",
@@ -154,7 +154,7 @@ def run(mode: str, clock_mhz: float, skip_vivado: bool, skip_hardware: bool) -> 
     _append_checkpoint(project_root, "Phase 8", "ok", "Visualization and evidence outputs generated")
 
     # Phase 9: LaTeX and paper output
-    _run_py(project_root / "paper_output" / "generate_paper_output.py", [], cwd=project_root)
+    _run_py(project_root / "output" / "generate_paper_output.py", [], cwd=project_root)
     _append_checkpoint(project_root, "Phase 9", "ok", "Paper output markdown generation completed")
 
     # Phase 10-11: checkpoint update

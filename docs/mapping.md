@@ -1,18 +1,18 @@
-﻿# ES-FA Repository Mapping and Evolution Plan
+# ES-FA Repository Mapping and Evolution Plan
 
 ## Phase 0 Status
 - Repo scanned: completed.
-- LaTeX files scanned: completed (initially no in-repo `.tex`; now `docs/*.tex` and `paper_output/final_paper.tex` are present and reviewed).
+- LaTeX files scanned: completed (initially no in-repo `.tex`; now `docs/*.tex` and `output/final_paper.tex` are present and reviewed).
 - Working components identified: completed.
 - Mapping file created: completed.
 
 ## Current File-to-Role Mapping (Preserve)
-- `paper1_training/`: config-driven SNN training core, baseline run, INT8 export helpers.
-- `paper2_hardware_model/estimators.py`: energy, memory, latency, spike-cost estimators.
+- `p1_training/`: config-driven SNN training core, baseline run, INT8 export helpers.
+- `p2_hardware_model/estimators.py`: energy, memory, latency, spike-cost estimators.
 - `experiments/`: experiment configs + runners (`exp1`..`exp5`) aligned to proposal themes.
 - `iterations/`: iterative v1/v2/v3 refinement on top of experiment outputs.
 - `analysis/compare.py`: ranking + plots + best-model selection.
-- `paper_output/generate_paper_output.py`: draft markdown paper sections.
+- `output/generate_output.py`: draft markdown paper sections.
 - `hardware/`: RTL modules (LIF PE, memory, router, basic/advanced schedulers, top-level).
 - `hardware/tb/`: per-module and top-level testbenches.
 - `scripts/`: env setup + pipeline runners.
@@ -49,16 +49,16 @@
 - `deployment/cli_interface/`: runtime CLI with execution metadata.
 - `deployment/runtime/`: adaptive policy and runtime helpers.
 - `docs/*.tex`: checklist, manual, code notes.
-- `paper_output/final_paper.tex`: NeurIPS-style full paper draft.
+- `output/final_paper.tex`: NeurIPS-style full paper draft.
 - `docs/checkpoints.md`: concise progress ledger.
 
 ## Current -> Target Path Mapping
-- Existing `paper1_training` -> retained as target `paper1_training`.
-- Existing `paper2_hardware_model` -> retained as target `paper2_hardware_model`.
+- Existing `p1_training` -> retained as target `p1_training`.
+- Existing `p2_hardware_model` -> retained as target `p2_hardware_model`.
 - Existing `hardware/` -> source RTL retained; wrapped by `hardware_validation/kv260/verilog` filelists and build scripts.
 - Existing `analysis/` -> retained and extended with evidence generators.
-- Existing `paper_output/` -> retained and extended with `final_paper.tex`.
-- New target additions: `paper3_extension`, `system_layer`, `deployment`, `hardware_validation`.
+- Existing `output/` -> retained and extended with `final_paper.tex`.
+- New target additions: `p3`, `system_layer`, `deployment`, `hardware_validation`.
 
 ## Toolchain Flow Mapping (xsim -> Vivado -> KV260)
 1. Local simulation: run `xvlog/xelab/xsim` regressions for dense/event mode and gather cycle/latency logs.

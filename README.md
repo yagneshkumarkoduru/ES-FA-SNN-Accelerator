@@ -7,7 +7,7 @@ a simple CLI demo.
 
 The important point for this project is that it runs locally. Training outputs,
 plots, Vivado/xsim reports, runtime logs, and PDFs are written back into this
-repo under `results/`, `paper_output/`, and `docs/`.
+repo under `results/`, `output/`, and `docs/`.
 
 ## Current State
 
@@ -24,7 +24,7 @@ What works right now:
 - KV260-oriented local validation scripts for xsim and Vivado batch runs;
 - a small system layer and CLI demo for control, math, and SNN-style classify
   requests;
-- LaTeX setup/progress documents in `docs/` and `paper_output/`.
+- LaTeX setup/progress documents in `docs/` and `output/`.
 
 What is still pending:
 
@@ -35,8 +35,8 @@ What is still pending:
 ## Folder Map
 
 ```text
-paper1_training/          Current training code and model exports
-paper2_hardware_model/    Hardware proxy estimators used during training
+p1_training/          Current training code and model exports
+p2_hardware_model/    Hardware proxy estimators used during training
 experiments/              Proposal experiments, one folder per idea
 iterations/               Follow-up refinement runs
 analysis/                 Ranking, plots, evidence tables
@@ -48,7 +48,7 @@ software/                 Earlier train/export/bank-mapping scripts
 scripts/                  Setup and pipeline entry points
 results/                  Local generated metrics, plots, reports, logs
 docs/                     Human-readable notes, setup guide, manual
-paper_output/             Paper/report sources and compiled PDFs
+output/             Paper/report sources and compiled PDFs
 ```
 
 The repo may contain local Vivado/XSim files after a run. They are generated
@@ -82,7 +82,7 @@ Or use the helper script:
 Quick import check:
 
 ```powershell
-python -c "import torch, torchvision, matplotlib; import paper1_training.training_core; print('ok')"
+python -c "import torch, torchvision, matplotlib; import p1_training.training_core; print('ok')"
 ```
 
 ## Demo Run
@@ -96,7 +96,7 @@ For a quick local demo without Vivado:
 For software-only manual steps:
 
 ```powershell
-python paper1_training/train_baseline.py
+python p1_training/train_baseline.py
 python experiments/run_first2.py
 python experiments/run_remaining.py
 python iterations/run_all.py
@@ -137,14 +137,14 @@ results/hardware_validation/<model-id>/<mode>/<run-id>/
 Main project documents:
 
 - `docs/first_time_user_setup_guide.tex`
-- `paper_output/progress_report.tex`
-- `paper_output/final_paper.tex`
+- `output/progress_report.tex`
+- `output/final_paper.tex`
 - `docs/architecture.md`
 - `docs/checkpoints.md`
 
 Compile the two presentation-facing PDFs locally with `pdflatex`:
 
 ```powershell
-pdflatex -interaction=nonstopmode -halt-on-error -output-directory=paper_output docs/first_time_user_setup_guide.tex
-pdflatex -interaction=nonstopmode -halt-on-error -output-directory=paper_output paper_output/progress_report.tex
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=output docs/first_time_user_setup_guide.tex
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=output output/progress_report.tex
 ```

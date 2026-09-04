@@ -35,7 +35,7 @@ and generate the reports/plots/PDFs inside the local repo.
 No project step here assumes cloud execution. Internet access is only needed to
 download official installers/images or to clone/pull the GitHub repository. All
 training outputs, Vivado/xsim logs, plots, runtime logs, and PDFs should stay
-under local repo folders such as \path{results/}, \path{paper_output/}, and
+under local repo folders such as \path{results/}, \path{output/}, and
 \path{docs/}.
 
 \section{1. Prepare the KV260 SD Card First}
@@ -168,7 +168,7 @@ PYTHON_EXE=python ./scripts/setup_env.sh
 
 \subsection{Quick sanity check}
 \begin{lstlisting}[style=cmd]
-python -c "import torch, torchvision, matplotlib; import paper1_training.training_core; print('imports ok')"
+python -c "import torch, torchvision, matplotlib; import p1_training.training_core; print('imports ok')"
 \end{lstlisting}
 
 \section{5. Run the Local Demo}
@@ -187,7 +187,7 @@ MODE=smoke SKIP_VIVADO=1 SKIP_HARDWARE=1 ./scripts/run_esfa_pipeline.sh
 \subsection{Manual software run}
 Use this when you want to see the stages one by one:
 \begin{lstlisting}[style=cmd]
-python paper1_training/train_baseline.py
+python p1_training/train_baseline.py
 python experiments/run_first2.py
 python experiments/run_remaining.py
 python iterations/run_all.py
@@ -236,7 +236,7 @@ Folder & What to look for \\
 \path{results/analysis/evidence/} & raw metric tables and percentage comparisons \\
 \path{results/hardware_validation/} & xsim logs, Vivado reports, parsed hardware JSON \\
 \path{results/runtime/} & CLI sample signal and adaptive decision logs \\
-\path{paper_output/} & LaTeX report sources and compiled PDFs \\
+\path{output/} & LaTeX report sources and compiled PDFs \\
 \path{docs/} & setup notes, architecture notes, manual, checkpoints \\
 \bottomrule
 \end{tabular}
@@ -246,16 +246,16 @@ Folder & What to look for \\
 Install a local LaTeX distribution such as MiKTeX or TeX Live. Then compile from
 the repository root:
 \begin{lstlisting}[style=cmd]
-pdflatex -interaction=nonstopmode -halt-on-error -output-directory=paper_output docs/first_time_user_setup_guide.tex
-pdflatex -interaction=nonstopmode -halt-on-error -output-directory=paper_output docs/first_time_user_setup_guide.tex
-pdflatex -interaction=nonstopmode -halt-on-error -output-directory=paper_output paper_output/progress_report.tex
-pdflatex -interaction=nonstopmode -halt-on-error -output-directory=paper_output paper_output/progress_report.tex
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=output docs/first_time_user_setup_guide.tex
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=output docs/first_time_user_setup_guide.tex
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=output output/progress_report.tex
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=output output/progress_report.tex
 \end{lstlisting}
 
 Expected PDFs:
 \begin{itemize}[leftmargin=*]
-\item \path{paper_output/first_time_user_setup_guide.pdf}
-\item \path{paper_output/progress_report.pdf}
+\item \path{output/first_time_user_setup_guide.pdf}
+\item \path{output/progress_report.pdf}
 \end{itemize}
 
 \section{9. Common Problems}
@@ -287,7 +287,7 @@ exist.
 \item Plots exist under \path{results/plots/}.
 \item CLI examples return JSON output.
 \item Hardware validation output exists if Vivado/xsim was available.
-\item The setup guide and progress report PDFs are in \path{paper_output/}.
+\item The setup guide and progress report PDFs are in \path{output/}.
 \end{enumerate}
 
 \section{References Used for Board Setup}

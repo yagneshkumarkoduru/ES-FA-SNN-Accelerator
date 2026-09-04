@@ -44,7 +44,7 @@ def _table_md(rows: List[Dict[str, Any]]) -> str:
 
 def generate_sections(project_root: Path) -> None:
     results_root = project_root / "results"
-    paper_dir = project_root / "paper_output"
+    paper_dir = project_root / "output"
     paper_dir.mkdir(parents=True, exist_ok=True)
 
     analysis_path = results_root / "analysis_summary.json"

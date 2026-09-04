@@ -11,7 +11,7 @@ def main() -> None:
         sys.path.insert(0, str(project_root))
 
     from iterations.common import build_v3_config, compare_metric_sets
-    from paper1_training.training_core import load_config, train_from_config
+    from p1_training.training_core import load_config, train_from_config
 
     results_root = project_root / "results"
     output_dir = results_root / "iterations" / "v3"

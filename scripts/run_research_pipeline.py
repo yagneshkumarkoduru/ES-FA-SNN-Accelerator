@@ -17,7 +17,7 @@ def main() -> None:
 
     run_step(
         "1) Baseline model",
-        project_root / "paper1_training" / "train_baseline.py",
+        project_root / "p1_training" / "train_baseline.py",
         project_root,
     )
     run_step(
@@ -42,7 +42,7 @@ def main() -> None:
     )
     run_step(
         "8) Paper output generation",
-        project_root / "paper_output" / "generate_paper_output.py",
+        project_root / "output" / "generate_paper_output.py",
         project_root,
     )
 
@@ -52,4 +52,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

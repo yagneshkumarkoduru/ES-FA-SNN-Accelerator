@@ -15,9 +15,9 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-from paper1_training.export_utils import export_int8_weights, export_spike_stats
-from paper1_training.model import ProposalAlignedSNN
-from paper2_hardware_model.estimators import (
+from p1_training.export_utils import export_int8_weights, export_spike_stats
+from p1_training.model import ProposalAlignedSNN
+from p2_hardware_model.estimators import (
     estimate_energy_proxy,
     estimate_latency_proxy,
     estimate_memory_access,

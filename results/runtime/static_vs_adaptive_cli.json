@@ -14,7 +14,7 @@
       }
     },
     "execution_type": "hybrid",
-    "latency_ms": 14.3428,
+    "latency_ms": 18.012,
     "diagnostics": {
       "intent": "snn_execution",
       "intent_confidence": 0.95,
@@ -40,7 +40,7 @@
       }
     },
     "execution_type": "hybrid",
-    "latency_ms": 14.6019,
+    "latency_ms": 15.6946,
     "diagnostics": {
       "intent": "snn_execution",
       "intent_confidence": 0.95,
@@ -66,7 +66,7 @@
       }
     },
     "execution_type": "hybrid",
-    "latency_ms": 14.3484,
+    "latency_ms": 17.2804,
     "diagnostics": {
       "intent": "snn_execution",
       "intent_confidence": 0.95,

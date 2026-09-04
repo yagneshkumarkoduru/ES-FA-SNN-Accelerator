@@ -72,9 +72,9 @@ Docs & Setup guide, manual, architecture notes, checkpoints, paper source, and t
 The project was not rebuilt from scratch. The following parts were kept because
 they were already useful and working:
 \begin{itemize}[leftmargin=*]
-\item \path{paper1_training/}: current SNN model, training core, baseline script,
+\item \path{p1_training/}: current SNN model, training core, baseline script,
 and export utilities.
-\item \path{paper2_hardware_model/estimators.py}: hardware proxy functions.
+\item \path{p2_hardware_model/estimators.py}: hardware proxy functions.
 \item \path{experiments/}: proposal experiment folders and configs.
 \item \path{iterations/}: refinement runs.
 \item \path{analysis/compare.py}: ranking and plotting workflow.
@@ -94,7 +94,7 @@ builds, report parsing, and hardware metric collection;
 \item \path{analysis/evidence_report.py} was added for baseline-vs-optimized
 tables and interpretations;
 \item presentation-facing LaTeX documents were added under \path{docs/} and
-\path{paper_output/}.
+\path{output/}.
 \end{itemize}
 
 \section{Current Architecture}
@@ -200,8 +200,8 @@ The documentation now has a more usable shape:
 \item \path{docs/architecture.md}: current architecture notes;
 \item \path{docs/checkpoints.md}: milestone and run-history ledger;
 \item \path{docs/manual.tex}: short operating manual;
-\item \path{paper_output/progress_report.tex}: this report;
-\item \path{paper_output/final_paper.tex}: paper-style draft source.
+\item \path{output/progress_report.tex}: this report;
+\item \path{output/final_paper.tex}: paper-style draft source.
 \end{itemize}
 
 \section{Open Work}

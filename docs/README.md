@@ -29,7 +29,7 @@ tables and plots, which go under `results/`.
 - `code_notes.tex`  
   Notes on important source files and responsibilities.
 
-The progress report source lives in `paper_output/progress_report.tex` because
+The progress report source lives in `output/progress_report.tex` because
 its PDF is also generated there.
 
 ## How I Keep This Folder

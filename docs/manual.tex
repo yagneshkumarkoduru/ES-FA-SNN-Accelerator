@@ -32,12 +32,12 @@ powershell -File scripts/toolchain/bootstrap_xilinx.ps1
 
 Import sanity check:
 \begin{lstlisting}[language=bash]
-python -c "import torch, paper1_training.training_core, analysis.compare, analysis.evidence_report"
+python -c "import torch, p1_training.training_core, analysis.compare, analysis.evidence_report"
 \end{lstlisting}
 
 \section{Training Workflow}
 \begin{lstlisting}[language=bash]
-python paper1_training/train_baseline.py
+python p1_training/train_baseline.py
 python experiments/run_all.py
 python iterations/run_all.py
 \end{lstlisting}

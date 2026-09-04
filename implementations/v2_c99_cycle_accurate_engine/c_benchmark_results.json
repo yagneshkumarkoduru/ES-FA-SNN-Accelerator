@@ -1,0 +1,30 @@
+{
+  "cores": 4,
+  "neurons_per_core": 128,
+  "timesteps": 10000,
+  "sparsity_pct": 85.00,
+  "clock_freq_mhz": 250.00,
+  "basic": {
+    "cycles": 10000,
+    "dynamic_energy_nj": 13414.4000,
+    "static_energy_nj": 592.0000,
+    "total_energy_nj": 14006.4000,
+    "edp_js": 5.602560e-010
+  },
+  "es_fa_event": {
+    "cycles": 10000,
+    "dynamic_energy_nj": 10622.2648,
+    "static_energy_nj": 592.0000,
+    "total_energy_nj": 11214.2648,
+    "edp_js": 4.485706e-010,
+    "energy_savings_pct": 20.81,
+    "edp_reduction_x": 1.25
+  },
+  "es_fa_stdp": {
+    "cycles": 10000,
+    "dynamic_energy_nj": 9257.9691,
+    "static_energy_nj": 592.0000,
+    "total_energy_nj": 9849.9691,
+    "edp_js": 3.939988e-010
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "model_id": "exp5_dataflow_adaptation",
+  "modes": [
+    "dense",
+    "event"
+  ],
+  "clock_mhz": 100.0,
+  "skip_vivado": false,
+  "run_id": "20260505_034543",
+  "run_dirs": [
+    "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\hardware_validation\\exp5_dataflow_adaptation\\dense\\20260505_034543",
+    "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\hardware_validation\\exp5_dataflow_adaptation\\event\\20260505_034543"
+  ]
+}

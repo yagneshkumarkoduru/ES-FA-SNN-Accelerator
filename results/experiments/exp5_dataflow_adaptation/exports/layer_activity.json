@@ -1,0 +1,18 @@
+{
+  "best_epoch": 1,
+  "best_layer_activity": {
+    "layer1_spike_density": 0.4217537109375,
+    "layer2_spike_density": 0.462220703125,
+    "layer1_spike_sparsity": 0.5782462890625,
+    "layer2_spike_sparsity": 0.537779296875
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "val_layer1_spike_density": 0.4217537109375,
+      "val_layer2_spike_density": 0.462220703125,
+      "val_layer1_spike_sparsity": 0.5782462890625,
+      "val_layer2_spike_sparsity": 0.537779296875
+    }
+  ]
+}

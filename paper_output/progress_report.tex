@@ -1,0 +1,240 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{listings}
+\def\UrlBreaks{\do\/\do-\do\_\do\.\do\?\do\=\do\&}
+
+\lstdefinestyle{plaincmd}{
+  basicstyle=\ttfamily\small,
+  columns=fullflexible,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{black!3}
+}
+\setlength{\emergencystretch}{3em}
+
+\title{ES-FA / BTP Progress Report}
+\author{Event-Driven SNN FPGA Accelerator}
+\date{Updated \today}
+
+\begin{document}
+\maketitle
+
+\section*{Short Summary}
+The project has moved beyond the initial proposal stage. At this point, ES-FA is
+a local working pipeline with SNN training, hardware-aware estimates, experiment
+runs, analysis plots, RTL blocks, xsim/Vivado validation scripts, a small CLI
+layer, and LaTeX documentation. The main unfinished item is physical validation
+on the KV260 board. Local xsim/Vivado evidence already exists, but board-level
+measurements still have to be added.
+
+\section{Project Aim}
+The idea behind ES-FA is to study whether sparse spiking neural network activity
+can be used to reduce the work done by an FPGA accelerator. The project therefore
+tracks both model quality and hardware-facing cost. Accuracy alone is not enough;
+the run also records spike activity, memory-access estimates, energy proxy,
+latency proxy, and hardware validation data where available.
+
+In simple terms, the work asks:
+\begin{itemize}[leftmargin=*]
+\item Can a small SNN be trained and exported in a reproducible way?
+\item Can dense and event-driven execution be compared using the same metrics?
+\item Can the RTL and validation flow produce local evidence for the KV260 path?
+\item Can the project be demonstrated as a runnable system instead of a loose set
+of scripts?
+\end{itemize}
+
+\section{Work Completed So Far}
+\begin{center}
+\begin{tabular}{p{0.24\linewidth}p{0.64\linewidth}}
+\toprule
+Area & Status \\
+\midrule
+Training & Baseline LIF SNN training is available for a \texttt{784 -> 128 -> 64 -> 10} network. \\
+Estimators & Spike cost, memory access, energy proxy, and latency proxy functions are connected to training. \\
+Experiments & Hardware-aware loss and adaptive dataflow runs are present in the current results. \\
+Exports & Metrics, histories, manifests, checkpoints, INT8 weights, spike stats, and raster files are generated. \\
+RTL & Router, scheduler, event queue, BRAM, LIF PE, and top-level Verilog sources were preserved. \\
+Validation & KV260-oriented xsim and Vivado batch scripts generate local logs, reports, and parsed JSON. \\
+System layer & Intent engine, task router, SNN/math/control modules, adaptive policy, and CLI are implemented. \\
+Docs & Setup guide, manual, architecture notes, checkpoints, paper source, and this report are now in the repo. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Existing Work Preserved}
+The project was not rebuilt from scratch. The following parts were kept because
+they were already useful and working:
+\begin{itemize}[leftmargin=*]
+\item \path{paper1_training/}: current SNN model, training core, baseline script,
+and export utilities.
+\item \path{paper2_hardware_model/estimators.py}: hardware proxy functions.
+\item \path{experiments/}: proposal experiment folders and configs.
+\item \path{iterations/}: refinement runs.
+\item \path{analysis/compare.py}: ranking and plotting workflow.
+\item \path{hardware/}: Verilog RTL and testbenches.
+\item \path{software/}: earlier train/export/bank-mapping scripts.
+\end{itemize}
+
+\section{What Was Added or Improved}
+The newer work mainly wraps the existing pieces into a cleaner local pipeline:
+\begin{itemize}[leftmargin=*]
+\item run manifests and layer-activity exports were added so results are easier
+to trace;
+\item \path{hardware_validation/kv260/} was added for xsim regression, Vivado Tcl
+builds, report parsing, and hardware metric collection;
+\item \path{system_layer/} was added for intent classification and routing;
+\item \path{deployment/} was added for the CLI and adaptive runtime policy;
+\item \path{analysis/evidence_report.py} was added for baseline-vs-optimized
+tables and interpretations;
+\item presentation-facing LaTeX documents were added under \path{docs/} and
+\path{paper_output/}.
+\end{itemize}
+
+\section{Current Architecture}
+The current repo has four practical layers:
+\begin{lstlisting}[style=plaincmd]
+Software:
+  SNN training -> hardware estimators -> experiments -> analysis
+
+Hardware:
+  Verilog RTL -> xsim regression -> Vivado build -> parsed reports
+
+Runtime:
+  intent engine -> router -> SNN/math/control module -> adaptive policy
+
+Outputs:
+  metrics -> plots -> evidence tables -> LaTeX reports/PDFs
+\end{lstlisting}
+
+The SNN model used in the current baseline is:
+\begin{lstlisting}[style=plaincmd]
+MNIST image: 28 x 28
+Flattened input: 784
+Hidden layer 1: 128 LIF neurons
+Hidden layer 2: 64 LIF neurons
+Output layer: 10 classes
+Default temporal window: 16 time steps
+\end{lstlisting}
+
+The FPGA-side flow being validated is:
+\begin{lstlisting}[style=plaincmd]
+input events -> spike router -> scheduler/event queue
+  -> weight/neuron memory -> LIF processing element
+  -> writeback and counters
+\end{lstlisting}
+
+\section{Software Results}
+The current local ranking compares the baseline with two experiment outputs:
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+Run & Accuracy & Sparsity & Energy proxy & Score \\
+\midrule
+exp1\_hardware\_aware\_loss & 0.9570 & 0.5648 & 4,592,863.17 & 0.7699 \\
+baseline\_paper1 & 0.9570 & 0.5648 & 22,604,295.76 & 0.7387 \\
+exp5\_dataflow\_adaptation & 0.9570 & 0.5648 & 45,016,894.73 & 0.6699 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The strongest current software result is \path{exp1_hardware_aware_loss}. In the
+current run, it keeps the same accuracy as the baseline while reducing the energy
+proxy by about 79.68 percent against the dense baseline estimate. This is still
+a proxy result, so it should not be presented as measured board power.
+
+\section{Hardware Validation}
+The hardware validation path is local and KV260-oriented. It runs:
+\begin{enumerate}[leftmargin=*]
+\item xsim regression for dense and event scheduler modes;
+\item Vivado synthesis/implementation through \path{hardware_validation/kv260/vivado/build.tcl};
+\item parsing of utilization and timing reports;
+\item merging of xsim, Vivado, model, mode, and estimator fields into
+\path{hardware_metrics.json}.
+\end{enumerate}
+
+Current local hardware evidence exists for baseline and adaptive variants in
+dense and event modes. The current parsed results show:
+\begin{itemize}[leftmargin=*]
+\item latency: 5760 ns in the active validation window;
+\item cycle count: 576 cycles;
+\item LUT usage: 22,193 in the parsed reports;
+\item estimator-vs-measured latency MAPE: 33.33 percent across four hardware runs.
+\end{itemize}
+
+The dense and event modes currently report equal latency/cycle count in the
+generated evidence table. That result is useful because it keeps the comparison
+honest, but it also shows what needs work next: the sparse event path needs
+stronger hardware stimuli and real KV260 board measurements.
+
+\section{System and CLI Layer}
+The system layer was added so the project can be shown through commands, not only
+through training scripts. The CLI currently supports:
+\begin{lstlisting}[style=plaincmd]
+python deployment/cli_interface/main.py --query "hi"
+python deployment/cli_interface/main.py --query "strike rate 167.55 balls 39"
+python deployment/cli_interface/main.py --query "classify results/runtime/sample_signal.bin"
+\end{lstlisting}
+
+Internally, the intent engine classifies a request as control, math, or SNN
+execution. The router sends it to the matching module. For SNN-style requests,
+the adaptive policy estimates signal sparsity and chooses dense or event mode.
+Every adaptive decision is logged in:
+\begin{lstlisting}[style=plaincmd]
+results/runtime/adaptive_decisions.jsonl
+\end{lstlisting}
+
+In the current sample signal, the adaptive path selects dense mode because the
+estimated sparsity is about 0.0039, below the 0.9000 threshold.
+
+\section{Documentation Added}
+The documentation now has a more usable shape:
+\begin{itemize}[leftmargin=*]
+\item \path{docs/first_time_user_setup_guide.tex}: practical setup guide;
+\item \path{docs/architecture.md}: current architecture notes;
+\item \path{docs/checkpoints.md}: milestone and run-history ledger;
+\item \path{docs/manual.tex}: short operating manual;
+\item \path{paper_output/progress_report.tex}: this report;
+\item \path{paper_output/final_paper.tex}: paper-style draft source.
+\end{itemize}
+
+\section{Open Work}
+\begin{itemize}[leftmargin=*]
+\item Run physical KV260 measurements and merge them into the same hardware
+metrics schema.
+\item Tune estimator constants using measured hardware data.
+\item Expand the hardware validation matrix beyond the current baseline and
+\path{exp5_dataflow_adaptation} variants.
+\item Improve event-mode test stimuli so sparse activity is exercised more
+clearly.
+\item Revisit timing closure where Vivado reports negative slack.
+\item Keep generated tool outputs out of the repo root when preparing the GitHub
+version.
+\end{itemize}
+
+\section{Next Steps}
+\begin{enumerate}[leftmargin=*]
+\item Boot the KV260 with the prepared Kria Ubuntu SD card.
+\item Re-run the smoke pipeline before the presentation to refresh visible
+outputs.
+\item Run xsim-only validation if Vivado implementation time is limited.
+\item Run full Vivado validation for baseline and adaptive variants when time is
+available.
+\item Add board-side measurements to \path{results/hardware_validation/}.
+\item Use those measurements to improve the estimator-vs-hardware match.
+\end{enumerate}
+
+\section{Final Note for Review}
+The project is now in a demonstrable state, but it should be described carefully:
+the software pipeline, plots, CLI, RTL, and local validation scripts are working;
+the final board measurement stage is still pending. The current evidence supports
+the ES-FA direction, especially the hardware-aware software result, but the final
+claim should wait for KV260 physical measurements.
+
+\end{document}

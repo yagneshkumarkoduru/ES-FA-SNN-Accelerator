@@ -1,0 +1,110 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\title{ES-FA Project Manual}
+\author{Event-Driven SNN FPGA Accelerator}
+\date{\today}
+\begin{document}
+\maketitle
+
+\section{Overview}
+This manual describes the operational workflow for ES-FA:
+\begin{enumerate}
+\item software training and estimator-aware experiments,
+\item local RTL validation with xsim,
+\item local implementation metrics with Vivado batch Tcl,
+\item system runtime + CLI + adaptive policy,
+\item evidence and paper artifact generation.
+\end{enumerate}
+
+\section{Environment Setup}
+\begin{lstlisting}[language=bash]
+# Recommended Python (3.10-3.12) + venv
+python -m venv .venv312
+.venv312\Scripts\activate   # Windows
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+
+# Optional Xilinx bootstrap
+powershell -File scripts/toolchain/bootstrap_xilinx.ps1
+\end{lstlisting}
+
+Import sanity check:
+\begin{lstlisting}[language=bash]
+python -c "import torch, paper1_training.training_core, analysis.compare, analysis.evidence_report"
+\end{lstlisting}
+
+\section{Training Workflow}
+\begin{lstlisting}[language=bash]
+python paper1_training/train_baseline.py
+python experiments/run_all.py
+python iterations/run_all.py
+\end{lstlisting}
+Each run writes:
+\begin{itemize}
+\item \texttt{metrics.json}
+\item \texttt{history.json}
+\item \texttt{run\_manifest.json}
+\item \texttt{exports/} (INT8 weights, spike stats, layer activity, raster)
+\end{itemize}
+
+\section{Hardware Validation Workflow}
+\subsection{xsim + Vivado Local Validation}
+\begin{lstlisting}[language=bash]
+python hardware_validation/kv260/scripts/run_hw_validation.py \
+  --model-id baseline_paper1 \
+  --scheduler-mode both \
+  --clock-mhz 100
+\end{lstlisting}
+
+\subsection{Direct Vivado Tcl Invocation}
+\begin{lstlisting}[language=bash]
+vivado -mode batch -source hardware_validation/kv260/vivado/build.tcl \
+  -tclargs baseline_paper1 dense <run_dir> xczu3eg-sbva484-1-e snn_top 100
+\end{lstlisting}
+
+\subsection{Expected Hardware Outputs}
+\begin{itemize}
+\item \texttt{reports/*.rpt} (synth/impl utilization and timing)
+\item \texttt{vivado.log}
+\item \texttt{xsim\_metrics.json}
+\item \texttt{vivado\_metrics.json}
+\item \texttt{hardware\_metrics.json}
+\end{itemize}
+
+\section{CLI Usage}
+\begin{lstlisting}[language=bash]
+python deployment/cli_interface/main.py --query "strike rate 167.55 balls 39"
+python deployment/cli_interface/main.py --query "classify signal.bin"
+python deployment/cli_interface/main.py --query "hi"
+\end{lstlisting}
+CLI returns result, execution type, latency, and diagnostics.
+
+\section{Analysis and Evidence}
+\begin{lstlisting}[language=bash]
+python analysis/compare.py
+python analysis/evidence_report.py
+\end{lstlisting}
+Generated artifacts include raw metric tables, percent-delta comparison tables,
+interpretations, and publication-ready plots.
+
+\section{Debugging Guide}
+\begin{itemize}
+\item If Vivado tools are unresolved, run Xilinx bootstrap script and verify \texttt{vivado}, \texttt{xvlog}, \texttt{xsim}.
+\item If xsim compile fails, inspect \texttt{logs/xvlog.log} and confirm RTL paths.
+\item If hardware report parsing is incomplete, check report formatting and rerun parser.
+\item If CLI classification fails, verify file path is readable from project root.
+\end{itemize}
+
+\section{Checkpoint Update Practice}
+After each major phase, update \texttt{docs/checkpoints.md} with:
+\begin{itemize}
+\item completed work,
+\item current status,
+\item next tasks,
+\item blockers.
+\end{itemize}
+Keep entries brief and dated.
+
+\end{document}

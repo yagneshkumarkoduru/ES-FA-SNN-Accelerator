@@ -1,0 +1,27 @@
+{
+  "run_name": "baseline_paper1",
+  "category": "baseline",
+  "proposal_mapping": "Paper 1 baseline: LIF + Poisson encoding + CE loss on 784->128->64->10",
+  "dataset": "MNIST",
+  "seed": 42,
+  "model_id": "paper1_mlp_784_128_64_10",
+  "dataset_split": "mnist_test",
+  "quantization": {
+    "enabled": false,
+    "weight_bits": 8,
+    "act_bits": 8,
+    "mode": "fp32"
+  },
+  "scheduler_mode": "dense",
+  "execution_mode": "cpu",
+  "clock_frequency_mhz": 0,
+  "paths": {
+    "output_dir": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\baseline",
+    "data_root": "C:\\Users\\kodur\\Desktop\\BTP\\project\\data"
+  },
+  "environment": {
+    "device": "cpu",
+    "torch_version": "2.11.0+cpu",
+    "cuda_available": false
+  }
+}

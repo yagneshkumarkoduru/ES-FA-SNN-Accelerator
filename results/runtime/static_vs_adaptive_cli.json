@@ -1,0 +1,80 @@
+{
+  "dense": {
+    "result": {
+      "ok": true,
+      "label": "event_class_A",
+      "score": 0.5,
+      "scheduler_mode_used": "dense",
+      "execution_type": "hybrid",
+      "latency_ns_reference": 5760.0,
+      "diagnostics": {
+        "input_path": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\runtime\\sample_signal.bin",
+        "bytes": 256,
+        "hardware_reference_found": true
+      }
+    },
+    "execution_type": "hybrid",
+    "latency_ms": 14.3428,
+    "diagnostics": {
+      "intent": "snn_execution",
+      "intent_confidence": 0.95,
+      "policy_decision": {
+        "policy_mode": "static_override",
+        "scheduler_mode": "dense",
+        "reason": "forced_static_mode=dense"
+      }
+    }
+  },
+  "event": {
+    "result": {
+      "ok": true,
+      "label": "event_class_A",
+      "score": 0.5,
+      "scheduler_mode_used": "event",
+      "execution_type": "hybrid",
+      "latency_ns_reference": 5760.0,
+      "diagnostics": {
+        "input_path": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\runtime\\sample_signal.bin",
+        "bytes": 256,
+        "hardware_reference_found": true
+      }
+    },
+    "execution_type": "hybrid",
+    "latency_ms": 14.6019,
+    "diagnostics": {
+      "intent": "snn_execution",
+      "intent_confidence": 0.95,
+      "policy_decision": {
+        "policy_mode": "static_override",
+        "scheduler_mode": "event",
+        "reason": "forced_static_mode=event"
+      }
+    }
+  },
+  "adaptive": {
+    "result": {
+      "ok": true,
+      "label": "event_class_A",
+      "score": 0.5,
+      "scheduler_mode_used": "dense",
+      "execution_type": "hybrid",
+      "latency_ns_reference": 5760.0,
+      "diagnostics": {
+        "input_path": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\runtime\\sample_signal.bin",
+        "bytes": 256,
+        "hardware_reference_found": true
+      }
+    },
+    "execution_type": "hybrid",
+    "latency_ms": 14.3484,
+    "diagnostics": {
+      "intent": "snn_execution",
+      "intent_confidence": 0.95,
+      "policy_decision": {
+        "policy_mode": "adaptive",
+        "scheduler_mode": "dense",
+        "reason": "sparsity=0.0039 < threshold=0.9000"
+      }
+    }
+  }
+}

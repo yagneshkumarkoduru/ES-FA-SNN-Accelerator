@@ -1,0 +1,16 @@
+{
+  "model_id": "baseline_paper1",
+  "clock_mhz": 100.0,
+  "xsim": {
+    "dense": {
+      "mode_advanced": 0,
+      "cycle_count": 705.0,
+      "active_window_cycles": 576.0,
+      "latency_ns_active_window": 5760.0,
+      "basic_ops": 256.0,
+      "adv_ops": 0.0,
+      "pe_ops": 256.0,
+      "out_spikes": 0.0
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "run_name": "exp1_hardware_aware_loss",
+  "category": "experiment",
+  "proposal_mapping": "Paper 2: hardware-aware objective using energy proxy regularization",
+  "best_epoch": 1,
+  "best_val_accuracy": 0.957,
+  "final_val_accuracy": 0.957,
+  "training_time_sec": 32.06712603569031,
+  "metrics": {
+    "accuracy": 0.957,
+    "spike_activity": 0.4352427083333334,
+    "spike_sparsity": 0.564757291666667,
+    "energy_proxy": 4592863.1728,
+    "latency_proxy": 0.6166690562633859,
+    "memory_accesses": 17604665.5296
+  },
+  "config": {
+    "run_name": "exp1_hardware_aware_loss",
+    "category": "experiment",
+    "proposal_mapping": "Paper 2: hardware-aware objective using energy proxy regularization",
+    "run_metadata": {
+      "model_id": "paper1_mlp_784_128_64_10",
+      "dataset_split": "mnist_test",
+      "scheduler_mode": "dense",
+      "execution_mode": "cpu",
+      "quantization_mode": "fp32",
+      "clock_frequency_mhz": 0
+    },
+    "seed": 42,
+    "dataset": "MNIST",
+    "device": "auto",
+    "epochs": 1,
+    "batch_size": 64,
+    "num_workers": 2,
+    "learning_rate": 0.001,
+    "time_steps": 16,
+    "encoder": "poisson",
+    "beta": 0.9,
+    "threshold": 1.0,
+    "surrogate_slope": 5.0,
+    "loss_weights": {
+      "hardware": 0.02,
+      "sparsity": 0.0,
+      "latency": 0.0
+    },
+    "sparsity_target": 0.9,
+    "quantization": {
+      "enabled": false,
+      "weight_bits": 8,
+      "act_bits": 8
+    },
+    "hardware_estimator": {
+      "a": 1.0,
+      "b": 0.25,
+      "dataflow_mode": "event",
+      "density_threshold": 0.1,
+      "temporal_multiplexing_factor": 1,
+      "queue_pressure_scale": 0.2
+    }
+  },
+  "weight_export": {
+    "layers": [
+      {
+        "layer": "fc1",
+        "weight_shape": [
+          128,
+          784
+        ],
+        "weight_scale": 0.002351639559492469
+      },
+      {
+        "layer": "fc2",
+        "weight_shape": [
+          64,
+          128
+        ],
+        "weight_scale": 0.002983616665005684
+      },
+      {
+        "layer": "fc3",
+        "weight_shape": [
+          10,
+          64
+        ],
+        "weight_scale": 0.003852811176329851
+      }
+    ]
+  },
+  "artifacts": {
+    "best_checkpoint": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\experiments\\exp1_hardware_aware_loss\\checkpoints\\best_model.pt",
+    "last_checkpoint": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\experiments\\exp1_hardware_aware_loss\\checkpoints\\last_model.pt",
+    "history": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\experiments\\exp1_hardware_aware_loss\\history.json",
+    "run_manifest": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\experiments\\exp1_hardware_aware_loss\\run_manifest.json",
+    "export_dir": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\experiments\\exp1_hardware_aware_loss\\exports"
+  }
+}

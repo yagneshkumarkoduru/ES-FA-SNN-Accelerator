@@ -1,0 +1,60 @@
+{
+  "best": {
+    "best_run_name": "exp1_hardware_aware_loss",
+    "best_category": "experiment",
+    "best_score": 0.7698999999999999,
+    "best_metrics": {
+      "accuracy": 0.957,
+      "spike_activity": 0.4352427083333334,
+      "spike_sparsity": 0.564757291666667,
+      "energy_proxy": 4592863.1728,
+      "latency_proxy": 0.6166690562633859,
+      "memory_accesses": 17604665.5296
+    },
+    "num_runs_compared": 3
+  },
+  "ranking": [
+    {
+      "rank": 1,
+      "run_name": "exp1_hardware_aware_loss",
+      "category": "experiment",
+      "score": 0.7698999999999999,
+      "metrics": {
+        "accuracy": 0.957,
+        "spike_activity": 0.4352427083333334,
+        "spike_sparsity": 0.564757291666667,
+        "energy_proxy": 4592863.1728,
+        "latency_proxy": 0.6166690562633859,
+        "memory_accesses": 17604665.5296
+      }
+    },
+    {
+      "rank": 2,
+      "run_name": "baseline_paper1",
+      "category": "baseline",
+      "score": 0.7387106249540526,
+      "metrics": {
+        "accuracy": 0.957,
+        "spike_activity": 0.4352427083333334,
+        "spike_sparsity": 0.564757291666667,
+        "energy_proxy": 22604295.758720063,
+        "latency_proxy": 0.6166690562633859,
+        "memory_accesses": 112062994.8416
+      }
+    },
+    {
+      "rank": 3,
+      "run_name": "exp5_dataflow_adaptation",
+      "category": "experiment",
+      "score": 0.6698999999999999,
+      "metrics": {
+        "accuracy": 0.957,
+        "spike_activity": 0.4352427083333334,
+        "spike_sparsity": 0.564757291666667,
+        "energy_proxy": 45016894.72704013,
+        "latency_proxy": 1.2333381125267717,
+        "memory_accesses": 224125989.6832
+      }
+    }
+  ]
+}

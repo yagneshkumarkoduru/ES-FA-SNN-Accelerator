@@ -1,0 +1,182 @@
+{
+  "comparisons": [
+    {
+      "comparison": "baseline_snn_vs_hardware_aware_snn",
+      "metric": "accuracy",
+      "baseline_name": "baseline_paper1",
+      "baseline_value": 0.957,
+      "optimized_name": "exp1_hardware_aware_loss",
+      "optimized_value": 0.957,
+      "absolute_delta": 0.0,
+      "percent_change": 0.0,
+      "interpretation": "degradation: exp1_hardware_aware_loss vs baseline_paper1 changes accuracy by 0.00% (0.000000 absolute)."
+    },
+    {
+      "comparison": "baseline_snn_vs_hardware_aware_snn",
+      "metric": "energy_proxy",
+      "baseline_name": "baseline_paper1",
+      "baseline_value": 22604295.758720063,
+      "optimized_name": "exp1_hardware_aware_loss",
+      "optimized_value": 4592863.1728,
+      "absolute_delta": -18011432.585920062,
+      "percent_change": -79.68145868455906,
+      "interpretation": "improvement: exp1_hardware_aware_loss vs baseline_paper1 changes energy_proxy by -79.68% (-18011432.585920 absolute)."
+    },
+    {
+      "comparison": "dense_vs_event_scheduling:baseline_paper1",
+      "metric": "latency_ns",
+      "baseline_name": "dense",
+      "baseline_value": 5760.0,
+      "optimized_name": "event",
+      "optimized_value": 5760.0,
+      "absolute_delta": 0.0,
+      "percent_change": 0.0,
+      "interpretation": "degradation: event vs dense changes latency_ns by 0.00% (0.000000 absolute)."
+    },
+    {
+      "comparison": "dense_vs_event_scheduling:baseline_paper1",
+      "metric": "cycle_count",
+      "baseline_name": "dense",
+      "baseline_value": 576.0,
+      "optimized_name": "event",
+      "optimized_value": 576.0,
+      "absolute_delta": 0.0,
+      "percent_change": 0.0,
+      "interpretation": "degradation: event vs dense changes cycle_count by 0.00% (0.000000 absolute)."
+    },
+    {
+      "comparison": "dense_vs_event_scheduling:exp5_dataflow_adaptation",
+      "metric": "latency_ns",
+      "baseline_name": "dense",
+      "baseline_value": 5760.0,
+      "optimized_name": "event",
+      "optimized_value": 5760.0,
+      "absolute_delta": 0.0,
+      "percent_change": 0.0,
+      "interpretation": "degradation: event vs dense changes latency_ns by 0.00% (0.000000 absolute)."
+    },
+    {
+      "comparison": "dense_vs_event_scheduling:exp5_dataflow_adaptation",
+      "metric": "cycle_count",
+      "baseline_name": "dense",
+      "baseline_value": 576.0,
+      "optimized_name": "event",
+      "optimized_value": 576.0,
+      "absolute_delta": 0.0,
+      "percent_change": 0.0,
+      "interpretation": "degradation: event vs dense changes cycle_count by 0.00% (0.000000 absolute)."
+    },
+    {
+      "comparison": "baseline_vs_optimized_hardware_dense",
+      "metric": "latency_ns",
+      "baseline_name": "baseline_paper1",
+      "baseline_value": 5760.0,
+      "optimized_name": "exp5_dataflow_adaptation",
+      "optimized_value": 5760.0,
+      "absolute_delta": 0.0,
+      "percent_change": 0.0,
+      "interpretation": "degradation: exp5_dataflow_adaptation vs baseline_paper1 changes latency_ns by 0.00% (0.000000 absolute)."
+    },
+    {
+      "comparison": "baseline_vs_optimized_hardware_dense",
+      "metric": "lut_usage",
+      "baseline_name": "baseline_paper1",
+      "baseline_value": 22193.0,
+      "optimized_name": "exp5_dataflow_adaptation",
+      "optimized_value": 22193.0,
+      "absolute_delta": 0.0,
+      "percent_change": 0.0,
+      "interpretation": "degradation: exp5_dataflow_adaptation vs baseline_paper1 changes lut_usage by 0.00% (0.000000 absolute)."
+    },
+    {
+      "comparison": "static_vs_adaptive_execution",
+      "metric": "accuracy",
+      "baseline_name": "exp1_hardware_aware_loss",
+      "baseline_value": 0.957,
+      "optimized_name": "exp5_dataflow_adaptation",
+      "optimized_value": 0.957,
+      "absolute_delta": 0.0,
+      "percent_change": 0.0,
+      "interpretation": "degradation: exp5_dataflow_adaptation vs exp1_hardware_aware_loss changes accuracy by 0.00% (0.000000 absolute)."
+    },
+    {
+      "comparison": "static_vs_adaptive_execution",
+      "metric": "latency_proxy",
+      "baseline_name": "exp1_hardware_aware_loss",
+      "baseline_value": 0.6166690562633859,
+      "optimized_name": "exp5_dataflow_adaptation",
+      "optimized_value": 1.2333381125267717,
+      "absolute_delta": 0.6166690562633859,
+      "percent_change": 100.0,
+      "interpretation": "degradation: exp5_dataflow_adaptation vs exp1_hardware_aware_loss changes latency_proxy by 100.00% (0.616669 absolute)."
+    },
+    {
+      "comparison": "static_vs_adaptive_execution",
+      "metric": "energy_proxy",
+      "baseline_name": "exp1_hardware_aware_loss",
+      "baseline_value": 4592863.1728,
+      "optimized_name": "exp5_dataflow_adaptation",
+      "optimized_value": 45016894.72704013,
+      "absolute_delta": 40424031.55424013,
+      "percent_change": 880.1488316403722,
+      "interpretation": "degradation: exp5_dataflow_adaptation vs exp1_hardware_aware_loss changes energy_proxy by 880.15% (40424031.554240 absolute)."
+    },
+    {
+      "comparison": "estimator_vs_measured_hardware",
+      "metric": "latency_ns",
+      "baseline_name": "estimator_scaled:baseline_paper1:dense",
+      "baseline_value": 3840.0,
+      "optimized_name": "measured:baseline_paper1:dense",
+      "optimized_value": 5760.0,
+      "absolute_delta": 1920.0,
+      "percent_change": 50.0,
+      "interpretation": "degradation: measured:baseline_paper1:dense vs estimator_scaled:baseline_paper1:dense changes latency_ns by 50.00% (1920.000000 absolute)."
+    },
+    {
+      "comparison": "estimator_vs_measured_hardware",
+      "metric": "latency_ns",
+      "baseline_name": "estimator_scaled:baseline_paper1:event",
+      "baseline_value": 3840.0,
+      "optimized_name": "measured:baseline_paper1:event",
+      "optimized_value": 5760.0,
+      "absolute_delta": 1920.0,
+      "percent_change": 50.0,
+      "interpretation": "degradation: measured:baseline_paper1:event vs estimator_scaled:baseline_paper1:event changes latency_ns by 50.00% (1920.000000 absolute)."
+    },
+    {
+      "comparison": "estimator_vs_measured_hardware",
+      "metric": "latency_ns",
+      "baseline_name": "estimator_scaled:exp5_dataflow_adaptation:dense",
+      "baseline_value": 7680.0,
+      "optimized_name": "measured:exp5_dataflow_adaptation:dense",
+      "optimized_value": 5760.0,
+      "absolute_delta": -1920.0,
+      "percent_change": -25.0,
+      "interpretation": "improvement: measured:exp5_dataflow_adaptation:dense vs estimator_scaled:exp5_dataflow_adaptation:dense changes latency_ns by -25.00% (-1920.000000 absolute)."
+    },
+    {
+      "comparison": "estimator_vs_measured_hardware",
+      "metric": "latency_ns",
+      "baseline_name": "estimator_scaled:exp5_dataflow_adaptation:event",
+      "baseline_value": 7680.0,
+      "optimized_name": "measured:exp5_dataflow_adaptation:event",
+      "optimized_value": 5760.0,
+      "absolute_delta": -1920.0,
+      "percent_change": -25.0,
+      "interpretation": "improvement: measured:exp5_dataflow_adaptation:event vs estimator_scaled:exp5_dataflow_adaptation:event changes latency_ns by -25.00% (-1920.000000 absolute)."
+    },
+    {
+      "comparison": "estimator_vs_measured_hardware",
+      "metric": "mean_absolute_percent_error_latency",
+      "baseline_name": "estimator_scaled",
+      "baseline_value": 0.0,
+      "optimized_name": "measured_latency",
+      "optimized_value": 33.33333333333333,
+      "absolute_delta": 33.33333333333333,
+      "percent_change": 33.33333333333333,
+      "interpretation": "Estimator/hardware latency agreement: MAPE=33.33% across 4 hardware runs."
+    }
+  ],
+  "software_runs": 3,
+  "hardware_runs": 4
+}

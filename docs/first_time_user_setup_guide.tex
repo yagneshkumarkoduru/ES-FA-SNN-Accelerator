@@ -1,0 +1,308 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{listings}
+\def\UrlBreaks{\do\/\do-\do\_\do\.\do\?\do\=\do\&}
+
+\lstdefinestyle{cmd}{
+  basicstyle=\ttfamily\small,
+  columns=fullflexible,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{black!3}
+}
+\setlength{\emergencystretch}{3em}
+
+\title{ES-FA / BTP Setup Notes}
+\author{First local setup for the KV260-based demo}
+\date{Updated \today}
+
+\begin{document}
+\maketitle
+
+\section*{Before starting}
+These notes are written as a practical setup record for the ES-FA / BTP project,
+not as a paper. The expected use case is simple: prepare the KV260 boot media,
+set up the local machine once, pull the \texttt{btp} repository, run the project,
+and generate the reports/plots/PDFs inside the local repo.
+
+No project step here assumes cloud execution. Internet access is only needed to
+download official installers/images or to clone/pull the GitHub repository. All
+training outputs, Vivado/xsim logs, plots, runtime logs, and PDFs should stay
+under local repo folders such as \path{results/}, \path{paper_output/}, and
+\path{docs/}.
+
+\section{1. Prepare the KV260 SD Card First}
+\subsection{Image to flash}
+Start with the board, because the rest of the setup is easier to understand once
+the target platform is clear. The KV260 has QSPI boot firmware on the SOM and
+uses the microSD card as the secondary boot device for Linux. For this project,
+flash an official Kria Ubuntu image onto the microSD card.
+
+\begin{itemize}[leftmargin=*]
+\item First choice for a fresh setup: \textbf{Kria Ubuntu 24.04 LTS}.
+\item Use Ubuntu 22.04 only if a specific Kria app or tutorial you need still
+targets 22.04.
+\item For older boards, check boot firmware compatibility before blaming the SD
+card or project code. Newer Ubuntu images may require newer K26 boot firmware.
+\end{itemize}
+
+Download page:
+\begin{lstlisting}[style=cmd]
+https://ubuntu.com/download/amd-xilinx
+\end{lstlisting}
+
+\subsection{Flashing steps}
+\begin{enumerate}[leftmargin=*]
+\item Download the Kria Ubuntu image for KV260/K26.
+\item Install Raspberry Pi Imager or Win32 Disk Imager on the host machine.
+\item Insert a 32 GB or larger microSD card.
+\item Select the downloaded image and write it to the card.
+\item Eject the card safely after the write completes.
+\end{enumerate}
+
+\subsection{First boot checklist}
+\begin{enumerate}[leftmargin=*]
+\item Insert the flashed microSD card into the KV260 carrier.
+\item Connect Ethernet and either HDMI/keyboard or USB-UART serial.
+\item Power the board.
+\item Login with the default Ubuntu account if prompted:
+\begin{lstlisting}[style=cmd]
+username: ubuntu
+password: ubuntu
+\end{lstlisting}
+\item Change the password when Ubuntu asks.
+\item Update the board:
+\begin{lstlisting}[style=cmd]
+sudo apt update
+sudo apt upgrade
+\end{lstlisting}
+\item Keep the serial console available during the first few boots. It is the
+fastest way to see SD-card or firmware boot problems.
+\end{enumerate}
+
+\section{2. Host Machine Requirements}
+The repo has been run from a Windows host, and the scripts also have Bash
+equivalents. For the presentation setup, the host machine should have:
+
+\begin{itemize}[leftmargin=*]
+\item Python 3.10, 3.11, or 3.12;
+\item Git;
+\item AMD Vivado/Vitis if hardware validation is required;
+\item enough free disk space for \path{results/} and Vivado report folders.
+\end{itemize}
+
+Check the Xilinx tools locally:
+\begin{lstlisting}[style=cmd]
+vivado -version
+xvlog -version
+xelab -version
+xsim -version
+vitis -version
+\end{lstlisting}
+
+If these commands are not found, add the Xilinx \path{bin} folder to
+\texttt{PATH}, or set one of the environment variables that the helper scripts
+already search:
+\begin{lstlisting}[style=cmd]
+XILINX_VIVADO
+XILINX_VITIS
+XILINX_HOME
+XILINX_INSTALL
+VIVADO_HOME
+VITIS_HOME
+\end{lstlisting}
+
+\section{3. Get the \texttt{btp} Repository}
+The GitHub repository name is \texttt{btp}. Clone it like this:
+\begin{lstlisting}[style=cmd]
+git clone https://github.com/<your-github-user-or-org>/btp.git
+cd btp
+\end{lstlisting}
+
+For an existing checkout:
+\begin{lstlisting}[style=cmd]
+cd btp
+git status
+git pull
+\end{lstlisting}
+
+If the folder was copied manually and is not a Git checkout, the code can still
+run. For long-term work, clone a clean \texttt{btp} repo and copy only the files
+you intentionally changed.
+
+\section{4. Python Setup}
+\subsection{Windows PowerShell}
+\begin{lstlisting}[style=cmd]
+cd btp
+py -3.12 -m venv .venv312
+.\.venv312\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+\end{lstlisting}
+
+The helper script does the pip part:
+\begin{lstlisting}[style=cmd]
+.\scripts\setup_env.ps1 -PythonExe .\.venv312\Scripts\python.exe
+\end{lstlisting}
+
+\subsection{Linux or KV260 Ubuntu shell}
+\begin{lstlisting}[style=cmd]
+cd btp
+python3 -m venv .venv312
+source .venv312/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+\end{lstlisting}
+
+Helper script:
+\begin{lstlisting}[style=cmd]
+PYTHON_EXE=python ./scripts/setup_env.sh
+\end{lstlisting}
+
+\subsection{Quick sanity check}
+\begin{lstlisting}[style=cmd]
+python -c "import torch, torchvision, matplotlib; import paper1_training.training_core; print('imports ok')"
+\end{lstlisting}
+
+\section{5. Run the Local Demo}
+\subsection{Fast smoke run}
+For a presentation check, run the smoke pipeline first. This gives a quick
+end-to-end run without waiting for full Vivado implementation:
+\begin{lstlisting}[style=cmd]
+.\scripts\run_esfa_pipeline.ps1 -PythonExe .\.venv312\Scripts\python.exe -Mode smoke -SkipVivado -SkipHardware
+\end{lstlisting}
+
+Bash equivalent:
+\begin{lstlisting}[style=cmd]
+MODE=smoke SKIP_VIVADO=1 SKIP_HARDWARE=1 ./scripts/run_esfa_pipeline.sh
+\end{lstlisting}
+
+\subsection{Manual software run}
+Use this when you want to see the stages one by one:
+\begin{lstlisting}[style=cmd]
+python paper1_training/train_baseline.py
+python experiments/run_first2.py
+python experiments/run_remaining.py
+python iterations/run_all.py
+python analysis/compare.py
+python analysis/evidence_report.py
+\end{lstlisting}
+
+\subsection{CLI demo}
+These are the small commands I use to show that the project has a system layer,
+not just training scripts:
+\begin{lstlisting}[style=cmd]
+python deployment/cli_interface/main.py --query "hi"
+python deployment/cli_interface/main.py --query "strike rate 167.55 balls 39"
+python deployment/cli_interface/main.py --query "classify results/runtime/sample_signal.bin"
+\end{lstlisting}
+
+\section{6. Hardware Validation}
+After Vivado/xsim is available, run:
+\begin{lstlisting}[style=cmd]
+python hardware_validation/kv260/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100
+\end{lstlisting}
+
+If you only want simulator-side validation:
+\begin{lstlisting}[style=cmd]
+python hardware_validation/kv260/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100 --skip-vivado
+\end{lstlisting}
+
+The run folder is:
+\begin{lstlisting}[style=cmd]
+results/hardware_validation/<model-id>/<dense-or-event>/<run-id>/
+\end{lstlisting}
+
+The important files to check are \path{xsim_metrics.json},
+\path{vivado_metrics.json}, \path{hardware_metrics.json}, and the logs/reports
+inside the same run folder.
+
+\section{7. Where Outputs Should Appear}
+\begin{center}
+\begin{tabular}{>{\ttfamily}p{0.34\linewidth}p{0.56\linewidth}}
+\toprule
+Folder & What to look for \\
+\midrule
+\path{results/baseline/} & baseline metrics, checkpoints, manifests, exports \\
+\path{results/experiments/} & experiment metrics and exported artifacts \\
+\path{results/plots/} & accuracy/energy/sparsity/latency/raster plots \\
+\path{results/analysis/evidence/} & raw metric tables and percentage comparisons \\
+\path{results/hardware_validation/} & xsim logs, Vivado reports, parsed hardware JSON \\
+\path{results/runtime/} & CLI sample signal and adaptive decision logs \\
+\path{paper_output/} & LaTeX report sources and compiled PDFs \\
+\path{docs/} & setup notes, architecture notes, manual, checkpoints \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{8. Compile the PDFs Locally}
+Install a local LaTeX distribution such as MiKTeX or TeX Live. Then compile from
+the repository root:
+\begin{lstlisting}[style=cmd]
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=paper_output docs/first_time_user_setup_guide.tex
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=paper_output docs/first_time_user_setup_guide.tex
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=paper_output paper_output/progress_report.tex
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=paper_output paper_output/progress_report.tex
+\end{lstlisting}
+
+Expected PDFs:
+\begin{itemize}[leftmargin=*]
+\item \path{paper_output/first_time_user_setup_guide.pdf}
+\item \path{paper_output/progress_report.pdf}
+\end{itemize}
+
+\section{9. Common Problems}
+\begin{center}
+\begin{tabular}{p{0.38\linewidth}p{0.52\linewidth}}
+\toprule
+Problem & What I would check first \\
+\midrule
+\texttt{git} is not recognized & Install Git and reopen the terminal. \\
+\texttt{ModuleNotFoundError: torch} & Activate \path{.venv312}, then rerun \texttt{python -m pip install -r requirements.txt}. \\
+PyTorch install fails & Use Python 3.10--3.12, not a preview Python build. \\
+\texttt{vivado} or \texttt{xsim} not found & Check \texttt{PATH} or set \texttt{XILINX\_VIVADO}/\texttt{XILINX\_VITIS}. \\
+xsim compile fails & Open \path{results/hardware_validation/.../logs/xvlog_*.log}. \\
+Negative Vivado slack & This is a design/timing result, not a failed setup. Save it and use it for timing closure. \\
+KV260 does not boot & Reflash the SD card, check serial output, and confirm boot firmware compatibility. \\
+CLI cannot find signal file & Use a path relative to repo root, for example \path{results/runtime/sample_signal.bin}. \\
+No plots are produced & Rerun \texttt{python analysis/compare.py} after checking that metric JSON files exist. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{10. Presentation Checklist}
+\begin{enumerate}[leftmargin=*]
+\item KV260 SD card is flashed and the board boots Ubuntu.
+\item Python environment is active and the import check passes.
+\item Smoke pipeline completes locally.
+\item \path{results/ranking_table.md} and \path{results/analysis_summary.json}
+exist.
+\item Plots exist under \path{results/plots/}.
+\item CLI examples return JSON output.
+\item Hardware validation output exists if Vivado/xsim was available.
+\item The setup guide and progress report PDFs are in \path{paper_output/}.
+\end{enumerate}
+
+\section{References Used for Board Setup}
+\begingroup
+\small
+\begin{itemize}[leftmargin=*]
+\item AMD KV260 Ubuntu SD-card setup:
+\url{https://xilinx.github.io/kria-apps-docs/kv260/2022.1/linux_boot/ubuntu_24_04/build/html/docs/sdcard.html}
+\item Ubuntu AMD-Xilinx image download:
+\url{https://ubuntu.com/download/amd-xilinx}
+\item AMD Kria SOM and Starter Kit image/firmware matrix:
+\url{https://xilinx-wiki.atlassian.net/wiki/pages/viewpage.action?pageId=3307995140}
+\item AMD KV260 boot device overview:
+\url{https://docs.amd.com/r/en-US/ug1089-kv260-starter-kit/Boot-Devices-and-Firmware-Overview}
+\end{itemize}
+\endgroup
+
+\end{document}

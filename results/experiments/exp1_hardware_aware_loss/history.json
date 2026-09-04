@@ -1,0 +1,39 @@
+{
+  "history": [
+    {
+      "epoch": 1,
+      "train": {
+        "loss": 0.3678741337577502,
+        "ce_loss": 0.3646593762954076,
+        "accuracy": 0.9118166666666667,
+        "energy_proxy": 4537974.5704,
+        "latency_proxy": 0.6116026229373537,
+        "memory_accesses": 17393868.171733335,
+        "total_spikes": 189507.52746666668,
+        "hidden_spike_density": 0.43058898111979194,
+        "hidden_spike_sparsity": 0.5694110188802075,
+        "input_spike_density": 0.13066390438988104,
+        "layer1_spike_density": 0.41754230143229165,
+        "layer2_spike_density": 0.45668234049479167,
+        "layer1_spike_sparsity": 0.5824576985677083,
+        "layer2_spike_sparsity": 0.5433176595052084
+      },
+      "val": {
+        "loss": 0.15816532468795777,
+        "ce_loss": 0.15490832330584525,
+        "accuracy": 0.957,
+        "energy_proxy": 4592863.1728,
+        "latency_proxy": 0.6166690562633859,
+        "memory_accesses": 17604665.5296,
+        "total_spikes": 191696.7904,
+        "hidden_spike_density": 0.4352427083333334,
+        "hidden_spike_sparsity": 0.564757291666667,
+        "input_spike_density": 0.13252002551020406,
+        "layer1_spike_density": 0.4217537109375,
+        "layer2_spike_density": 0.462220703125,
+        "layer1_spike_sparsity": 0.5782462890625,
+        "layer2_spike_sparsity": 0.537779296875
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "run_name": "exp4_quantization_effect",
+  "category": "experiment",
+  "proposal_mapping": "Paper 2: quantization-aware training and INT8 deployment impact",
+  "epochs": 5,
+  "quantization": {
+    "enabled": true,
+    "weight_bits": 8,
+    "act_bits": 8
+  },
+  "loss_weights": {
+    "hardware": 0.01,
+    "sparsity": 0.0,
+    "latency": 0.0
+  },
+  "hardware_estimator": {
+    "a": 1.0,
+    "b": 0.22,
+    "dataflow_mode": "event",
+    "density_threshold": 0.1,
+    "temporal_multiplexing_factor": 1,
+    "queue_pressure_scale": 0.2
+  }
+}

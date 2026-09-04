@@ -1,0 +1,38 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\title{ES-FA Research Execution Checklist}
+\author{Event-Driven SNN FPGA Accelerator}
+\date{\today}
+\begin{document}
+\maketitle
+
+\section*{Phase 1 (\textasciitilde 40\%)}
+\begin{itemize}
+\item \texttt{[x]} Training core preserved and modularized with config-driven runs.
+\item \texttt{[x]} Baseline + experiment workflow retained with reproducible metadata.
+\item \texttt{[x]} Run manifest standardized (\texttt{run\_manifest.json}).
+\item \texttt{[x]} INT8 export + spike stats + layer activity export integrated.
+\item \texttt{[x]} Smoke/full pipeline hooks defined.
+\end{itemize}
+
+\section*{Phase 2 (\textasciitilde 40\%)}
+\begin{itemize}
+\item \texttt{[x]} Hardware estimator APIs preserved and reused.
+\item \texttt{[x]} Structured experiment + iteration pipeline preserved.
+\item \texttt{[x]} Local xsim + Vivado Tcl stack added under \texttt{hardware\_validation/kv260}.
+\item \texttt{[x]} Report parser for utilization/timing/cycle/latency added.
+\item \texttt{[x]} Evidence table generator (absolute + percent deltas) added.
+\item \texttt{[x]} Full local Vivado report set generated for selected model matrix.
+\end{itemize}
+
+\section*{Phase 3 (\textasciitilde 20\%)}
+\begin{itemize}
+\item \texttt{[x]} System layer added: intent engine, task router, snn/math/control modules.
+\item \texttt{[x]} CLI runtime added with execution metadata and diagnostics.
+\item \texttt{[x]} Adaptive policy implemented with decision logging.
+\item \texttt{[ ]} KV260 board-level physical measurements integrated into same schema.
+\item \texttt{[x]} NeurIPS-style final paper scaffold and code notes generated.
+\end{itemize}
+
+\end{document}

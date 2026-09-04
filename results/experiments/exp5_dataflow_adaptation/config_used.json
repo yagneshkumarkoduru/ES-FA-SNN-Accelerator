@@ -1,0 +1,44 @@
+{
+  "run_name": "exp5_dataflow_adaptation",
+  "category": "experiment",
+  "proposal_mapping": "Paper 2: adaptive dataflow (dense vs event) guided by spike density",
+  "run_metadata": {
+    "model_id": "paper1_mlp_784_128_64_10",
+    "dataset_split": "mnist_test",
+    "scheduler_mode": "dense",
+    "execution_mode": "cpu",
+    "quantization_mode": "fp32",
+    "clock_frequency_mhz": 0
+  },
+  "seed": 42,
+  "dataset": "MNIST",
+  "device": "auto",
+  "epochs": 1,
+  "batch_size": 64,
+  "num_workers": 2,
+  "learning_rate": 0.001,
+  "time_steps": 16,
+  "encoder": "poisson",
+  "beta": 0.9,
+  "threshold": 1.0,
+  "surrogate_slope": 5.0,
+  "loss_weights": {
+    "hardware": 0.02,
+    "sparsity": 0.02,
+    "latency": 0.01
+  },
+  "sparsity_target": 0.92,
+  "quantization": {
+    "enabled": false,
+    "weight_bits": 8,
+    "act_bits": 8
+  },
+  "hardware_estimator": {
+    "a": 1.0,
+    "b": 0.2,
+    "dataflow_mode": "adaptive",
+    "density_threshold": 0.09,
+    "temporal_multiplexing_factor": 2,
+    "queue_pressure_scale": 0.2
+  }
+}

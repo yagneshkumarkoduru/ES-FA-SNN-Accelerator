@@ -1,0 +1,27 @@
+{
+  "run_name": "exp1_hardware_aware_loss",
+  "category": "experiment",
+  "proposal_mapping": "Paper 2: hardware-aware objective using energy proxy regularization",
+  "dataset": "MNIST",
+  "seed": 42,
+  "model_id": "paper1_mlp_784_128_64_10",
+  "dataset_split": "mnist_test",
+  "quantization": {
+    "enabled": false,
+    "weight_bits": 8,
+    "act_bits": 8,
+    "mode": "fp32"
+  },
+  "scheduler_mode": "dense",
+  "execution_mode": "cpu",
+  "clock_frequency_mhz": 0,
+  "paths": {
+    "output_dir": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\experiments\\exp1_hardware_aware_loss",
+    "data_root": "C:\\Users\\kodur\\Desktop\\BTP\\project\\data"
+  },
+  "environment": {
+    "device": "cpu",
+    "torch_version": "2.11.0+cpu",
+    "cuda_available": false
+  }
+}

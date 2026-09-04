@@ -1,0 +1,18 @@
+{
+  "models": [
+    {
+      "model_id": "baseline_paper1",
+      "dataset_split": "mnist_test",
+      "quantization_mode": "fp32",
+      "clock_mhz": 100.0
+    },
+    {
+      "model_id": "exp5_dataflow_adaptation",
+      "dataset_split": "mnist_test",
+      "quantization_mode": "int8",
+      "clock_mhz": 100.0
+    }
+  ],
+  "scheduler_modes": ["dense", "event"]
+}
+

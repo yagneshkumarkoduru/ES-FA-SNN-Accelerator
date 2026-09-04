@@ -1,0 +1,19 @@
+{
+  "run_name": "exp1_hardware_aware_loss",
+  "category": "experiment",
+  "proposal_mapping": "Paper 2: hardware-aware objective using energy proxy regularization",
+  "epochs": 5,
+  "loss_weights": {
+    "hardware": 0.02,
+    "sparsity": 0.0,
+    "latency": 0.0
+  },
+  "hardware_estimator": {
+    "a": 1.0,
+    "b": 0.25,
+    "dataflow_mode": "event",
+    "density_threshold": 0.1,
+    "temporal_multiplexing_factor": 1,
+    "queue_pressure_scale": 0.2
+  }
+}

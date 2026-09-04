@@ -1,0 +1,28 @@
+{
+  "layers": [
+    {
+      "layer": "fc1",
+      "weight_shape": [
+        128,
+        784
+      ],
+      "weight_scale": 0.002351639559492469
+    },
+    {
+      "layer": "fc2",
+      "weight_shape": [
+        64,
+        128
+      ],
+      "weight_scale": 0.002983616665005684
+    },
+    {
+      "layer": "fc3",
+      "weight_shape": [
+        10,
+        64
+      ],
+      "weight_scale": 0.003852811176329851
+    }
+  ]
+}

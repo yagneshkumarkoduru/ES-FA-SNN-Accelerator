@@ -1,0 +1,5 @@
+model_name,scheduler_mode,pred_latency_scaled_ns,measured_latency_ns,absolute_error_ns,percent_error
+baseline_paper1,dense,3840.0,5760.0,-1920.0,-33.33333333333333
+baseline_paper1,event,3840.0,5760.0,-1920.0,-33.33333333333333
+exp5_dataflow_adaptation,dense,7680.0,5760.0,1920.0,33.33333333333333
+exp5_dataflow_adaptation,event,7680.0,5760.0,1920.0,33.33333333333333

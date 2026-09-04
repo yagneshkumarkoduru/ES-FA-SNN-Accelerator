@@ -1,0 +1,4 @@
+rank,run_name,category,accuracy,spike_sparsity,energy_proxy,latency_proxy,ranking_score
+1,exp1_hardware_aware_loss,experiment,0.957000,0.564757,4592863.172800,0.616669,0.769900
+2,baseline_paper1,baseline,0.957000,0.564757,22604295.758720,0.616669,0.738711
+3,exp5_dataflow_adaptation,experiment,0.957000,0.564757,45016894.727040,1.233338,0.669900

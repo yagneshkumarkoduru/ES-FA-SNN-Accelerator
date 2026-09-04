@@ -1,0 +1,27 @@
+{
+  "model_name": "baseline_paper1",
+  "dataset_test_subset": "mnist_test",
+  "quantization_bit_width": "fp32",
+  "scheduler_mode": "dense",
+  "execution_mode": "fpga_emulation",
+  "clock_frequency_mhz": 100.0,
+  "measured": {
+    "latency_ns": 5760.0,
+    "cycle_count": 576.0,
+    "lut_usage": 22193.0,
+    "bram_usage": 0.0,
+    "dsp_usage": 0.0,
+    "timing_slack_ns": -0.92,
+    "fmax_mhz_estimated": 91.57509157509158
+  },
+  "estimator_reference": {
+    "latency_proxy": 0.6166690562633859,
+    "energy_proxy": 22604295.758720063,
+    "spike_sparsity": 0.564757291666667
+  },
+  "artifacts": {
+    "xsim_metrics": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\hardware_validation\\baseline_paper1\\dense\\20260505_031330\\xsim_metrics.json",
+    "vivado_metrics": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\hardware_validation\\baseline_paper1\\dense\\20260505_031330\\vivado_metrics.json",
+    "vivado_log": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\hardware_validation\\baseline_paper1\\dense\\20260505_031330\\vivado.log"
+  }
+}

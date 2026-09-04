@@ -1,0 +1,14 @@
+{
+  "model_id": "baseline_paper1",
+  "modes": [
+    "dense",
+    "event"
+  ],
+  "clock_mhz": 100.0,
+  "skip_vivado": false,
+  "run_id": "20260505_032431",
+  "run_dirs": [
+    "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\hardware_validation\\baseline_paper1\\dense\\20260505_032431",
+    "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\hardware_validation\\baseline_paper1\\event\\20260505_032431"
+  ]
+}

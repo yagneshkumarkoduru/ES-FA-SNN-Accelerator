@@ -1,0 +1,7 @@
+model_id=baseline_paper1
+scheduler_mode=event
+part_name=xczu3eg-sbva484-1-e
+top_name=snn_top
+clk_mhz=100.0
+clk_period_ns=10.0
+flow_type=non_project_ooc

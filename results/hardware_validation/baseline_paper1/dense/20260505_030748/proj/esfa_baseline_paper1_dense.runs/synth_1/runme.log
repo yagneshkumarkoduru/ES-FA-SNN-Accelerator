@@ -1,0 +1,303 @@
+
+*** Running vivado
+    with args -log snn_top.vds -m64 -product Vivado -mode batch -messageDb vivado.pb -notrace -source snn_top.tcl
+
+
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Tue May  5 03:08:11 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source snn_top.tcl -notrace
+Command: synth_design -top snn_top -part xczu3eg-sbva484-1-e -flatten_hierarchy none -directive RuntimeOptimized -fsm_extraction off
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xczu3eg'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xczu3eg'
+INFO: [Device 21-403] Loading part xczu3eg-sbva484-1-e
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 7 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 20704
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:05 ; elapsed = 00:00:05 . Memory (MB): peak = 1805.121 ; gain = 203.863
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'snn_top' [C:/Users/kodur/Desktop/BTP/project/hardware/top/snn_top.v:3]
+INFO: [Synth 8-6157] synthesizing module 'spike_router' [C:/Users/kodur/Desktop/BTP/project/hardware/routing/spike_router.v:6]
+	Parameter NEURON_ID_W bound to: 7 - type: integer 
+	Parameter TS_WIDTH bound to: 16 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'spike_router' (0#1) [C:/Users/kodur/Desktop/BTP/project/hardware/routing/spike_router.v:6]
+INFO: [Synth 8-6157] synthesizing module 'basic_scheduler' [C:/Users/kodur/Desktop/BTP/project/hardware/scheduler/basic_scheduler.v:4]
+	Parameter NUM_NEURONS bound to: 128 - type: integer 
+	Parameter NEURON_ID_W bound to: 7 - type: integer 
+	Parameter TS_WIDTH bound to: 16 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'basic_scheduler' (0#1) [C:/Users/kodur/Desktop/BTP/project/hardware/scheduler/basic_scheduler.v:4]
+INFO: [Synth 8-6157] synthesizing module 'advanced_scheduler' [C:/Users/kodur/Desktop/BTP/project/hardware/scheduler/advanced_scheduler.v:7]
+	Parameter NEURON_ID_W bound to: 7 - type: integer 
+	Parameter TS_WIDTH bound to: 16 - type: integer 
+	Parameter QUEUE_DEPTH bound to: 256 - type: integer 
+	Parameter QUEUE_PTR_W bound to: 8 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'event_queue' [C:/Users/kodur/Desktop/BTP/project/hardware/scheduler/event_queue.v:7]
+	Parameter DEPTH bound to: 256 - type: integer 
+	Parameter NEURON_ID_W bound to: 7 - type: integer 
+	Parameter TS_WIDTH bound to: 16 - type: integer 
+	Parameter PTR_W bound to: 8 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'event_queue' (0#1) [C:/Users/kodur/Desktop/BTP/project/hardware/scheduler/event_queue.v:7]
+INFO: [Synth 8-6155] done synthesizing module 'advanced_scheduler' (0#1) [C:/Users/kodur/Desktop/BTP/project/hardware/scheduler/advanced_scheduler.v:7]
+INFO: [Synth 8-6157] synthesizing module 'neuron_bram' [C:/Users/kodur/Desktop/BTP/project/hardware/memory/neuron_bram.v:4]
+	Parameter DATA_WIDTH bound to: 16 - type: integer 
+	Parameter ADDR_WIDTH bound to: 7 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'neuron_bram' (0#1) [C:/Users/kodur/Desktop/BTP/project/hardware/memory/neuron_bram.v:4]
+INFO: [Synth 8-6157] synthesizing module 'weight_bram_bank' [C:/Users/kodur/Desktop/BTP/project/hardware/memory/weight_bram_bank.v:5]
+	Parameter DATA_WIDTH bound to: 8 - type: integer 
+	Parameter ADDR_WIDTH bound to: 6 - type: integer 
+	Parameter NUM_BANKS bound to: 2 - type: integer 
+	Parameter BANK_SEL_W bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'weight_bram_bank' (0#1) [C:/Users/kodur/Desktop/BTP/project/hardware/memory/weight_bram_bank.v:5]
+INFO: [Synth 8-6157] synthesizing module 'lif_neuron_pe' [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:8]
+	Parameter DATA_WIDTH bound to: 16 - type: integer 
+	Parameter NEURON_ID_W bound to: 7 - type: integer 
+	Parameter TS_WIDTH bound to: 16 - type: integer 
+	Parameter LEAK_SHIFT bound to: 3 - type: integer 
+	Parameter THRESHOLD bound to: 16'sb0000000001000000 
+	Parameter RESET_VALUE bound to: 16'sb0000000000000000 
+INFO: [Synth 8-6155] done synthesizing module 'lif_neuron_pe' (0#1) [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:8]
+INFO: [Synth 8-6155] done synthesizing module 'snn_top' (0#1) [C:/Users/kodur/Desktop/BTP/project/hardware/top/snn_top.v:3]
+WARNING: [Synth 8-7137] Register id_mem_reg in module event_queue has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code 
+WARNING: [Synth 8-7137] Register ts_mem_reg in module event_queue has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code 
+WARNING: [Synth 8-4767] Trying to implement RAM 'ts_mem_reg' in registers. Block RAM or DRAM implementation is not possible; see log for reasons. [C:/Users/kodur/Desktop/BTP/project/hardware/scheduler/event_queue.v:84]
+Reason is one or more of the following :
+	1: Invalid write data for RAM. 
+	2: RAM has multiple writes via different ports in same process. If RAM inferencing intended, write to one port per process. 
+	3: Invalid write to RAM. 
+	4: Invalid write to RAM. 
+	5: RAM is sensitive to asynchronous reset signal. this RTL style is not supported. 
+	6: Encountered Fanout > 1 after ram read before register. 
+WARNING: [Synth 8-4767] Trying to implement RAM 'id_mem_reg' in registers. Block RAM or DRAM implementation is not possible; see log for reasons. [C:/Users/kodur/Desktop/BTP/project/hardware/scheduler/event_queue.v:81]
+Reason is one or more of the following :
+	1: Invalid write data for RAM. 
+	2: RAM has multiple writes via different ports in same process. If RAM inferencing intended, write to one port per process. 
+	3: Invalid write to RAM. 
+	4: Invalid write to RAM. 
+	5: Encountered Fanout > 1 after ram read before register. 
+	6: RAM is sensitive to asynchronous reset signal. this RTL style is not supported. 
+WARNING: [Synth 8-4767] Trying to implement RAM 'mem_reg' in registers. Block RAM or DRAM implementation is not possible; see log for reasons. [C:/Users/kodur/Desktop/BTP/project/hardware/memory/neuron_bram.v:43]
+Reason is one or more of the following :
+	1: RAM has multiple writes via different ports in same process. If RAM inferencing intended, write to one port per process. 
+	2: Invalid write to RAM. 
+	3: Invalid write to RAM. 
+	4: No valid clock found for write to RAM. 
+WARNING: [Synth 8-6014] Unused sequential element wr_idx_reg was removed.  [C:/Users/kodur/Desktop/BTP/project/hardware/memory/weight_bram_bank.v:65]
+WARNING: [Synth 8-7137] Register mem_reg in module weight_bram_bank has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code 
+WARNING: [Synth 8-4767] Trying to implement RAM 'mem_reg' in registers. Block RAM or DRAM implementation is not possible; see log for reasons. [C:/Users/kodur/Desktop/BTP/project/hardware/memory/weight_bram_bank.v:77]
+Reason is one or more of the following :
+	1: RAM is sensitive to asynchronous reset signal. this RTL style is not supported. 
+WARNING: [Synth 8-7137] Register s1_id_reg in module lif_neuron_pe has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:66]
+WARNING: [Synth 8-7137] Register s1_ts_reg in module lif_neuron_pe has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:67]
+WARNING: [Synth 8-7137] Register s1_mem_reg in module lif_neuron_pe has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:50]
+WARNING: [Synth 8-7137] Register s1_syn_reg in module lif_neuron_pe has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:51]
+WARNING: [Synth 8-7137] Register s2_id_reg in module lif_neuron_pe has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:73]
+WARNING: [Synth 8-7137] Register s2_ts_reg in module lif_neuron_pe has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:74]
+WARNING: [Synth 8-7137] Register s2_mem_u_reg in module lif_neuron_pe has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:75]
+WARNING: [Synth 8-7137] Register s3_id_reg in module lif_neuron_pe has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:79]
+WARNING: [Synth 8-7137] Register s3_ts_reg in module lif_neuron_pe has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:80]
+WARNING: [Synth 8-7137] Register s3_spike_reg in module lif_neuron_pe has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:82]
+WARNING: [Synth 8-7137] Register s3_mem_next_reg in module lif_neuron_pe has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [C:/Users/kodur/Desktop/BTP/project/hardware/compute/lif_neuron_pe.v:83]
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:07 ; elapsed = 00:00:08 . Memory (MB): peak = 1994.820 ; gain = 393.562
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:07 ; elapsed = 00:00:08 . Memory (MB): peak = 1994.820 ; gain = 393.562
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:07 ; elapsed = 00:00:08 . Memory (MB): peak = 1994.820 ; gain = 393.562
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.193 . Memory (MB): peak = 1994.820 ; gain = 0.000
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [C:/Users/kodur/Desktop/BTP/project/hardware_validation/kv260/vivado/constraints_kv260.xdc]
+Finished Parsing XDC File [C:/Users/kodur/Desktop/BTP/project/hardware_validation/kv260/vivado/constraints_kv260.xdc]
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.006 . Memory (MB): peak = 2100.215 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.130 . Memory (MB): peak = 2100.215 ; gain = 0.000
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:20 ; elapsed = 00:00:21 . Memory (MB): peak = 2100.215 ; gain = 498.957
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xczu3eg-sbva484-1-e
+INFO: [Synth 8-6742] Reading net delay rules and data
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:20 ; elapsed = 00:00:21 . Memory (MB): peak = 2100.215 ; gain = 498.957
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:20 ; elapsed = 00:00:21 . Memory (MB): peak = 2100.215 ; gain = 498.957
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:31 ; elapsed = 00:00:34 . Memory (MB): peak = 2100.215 ; gain = 498.957
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   4 Input   16 Bit       Adders := 1     
+	   2 Input    9 Bit       Adders := 1     
+	   2 Input    8 Bit       Adders := 2     
+	   2 Input    7 Bit       Adders := 1     
++---Registers : 
+	               16 Bit    Registers := 402   
+	                9 Bit    Registers := 1     
+	                8 Bit    Registers := 131   
+	                7 Bit    Registers := 266   
+	                1 Bit    Registers := 14    
++---Muxes : 
+	   2 Input 4096 Bit        Muxes := 2     
+	   2 Input 2048 Bit        Muxes := 1     
+	   2 Input 1792 Bit        Muxes := 2     
+	   2 Input   16 Bit        Muxes := 5     
+	   2 Input    7 Bit        Muxes := 3     
+	   3 Input    2 Bit        Muxes := 1     
+	   3 Input    1 Bit        Muxes := 1     
+	   2 Input    1 Bit        Muxes := 1     
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 360 (col length:72)
+BRAMs: 432 (col length: RAMB18 72 RAMB36 36)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:50 ; elapsed = 00:01:15 . Memory (MB): peak = 2210.973 ; gain = 609.715
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:01:03 ; elapsed = 00:01:30 . Memory (MB): peak = 2762.418 ; gain = 1161.160
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:01:20 ; elapsed = 00:01:54 . Memory (MB): peak = 2939.148 ; gain = 1337.891
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:01:27 ; elapsed = 00:02:04 . Memory (MB): peak = 3046.000 ; gain = 1444.742
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:01:27 ; elapsed = 00:02:04 . Memory (MB): peak = 3046.000 ; gain = 1444.742
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:01:28 ; elapsed = 00:02:04 . Memory (MB): peak = 3046.000 ; gain = 1444.742
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Static Shift Register Report:
++--------------+---------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|Module Name   | RTL Name      | Length | Width | Reset Signal | Pull out first Reg | Pull out last Reg | SRL16E | SRLC32E | 
++--------------+---------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|lif_neuron_pe | s3_id_reg[6]  | 3      | 7     | NO           | NO                 | NO                | 7      | 0       | 
+|lif_neuron_pe | s3_ts_reg[15] | 3      | 16    | NO           | NO                 | NO                | 16     | 0       | 
++--------------+---------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+-------+------+
+|      |Cell   |Count |
++------+-------+------+
+|1     |BUFG   |     1|
+|2     |CARRY8 |    17|
+|3     |LUT1   |    68|
+|4     |LUT2   |    91|
+|5     |LUT3   |  1463|
+|6     |LUT4   |   624|
+|7     |LUT5   |  7129|
+|8     |LUT6   | 14045|
+|9     |MUXF7  |  2423|
+|10    |MUXF8  |  1068|
+|11    |SRL16E |    23|
+|12    |FDCE   |   432|
+|13    |FDRE   |  9033|
+|14    |IBUF   |    44|
+|15    |OBUF   |   121|
++------+-------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:01:28 ; elapsed = 00:02:04 . Memory (MB): peak = 3046.000 ; gain = 1444.742
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 0 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:01:14 ; elapsed = 00:02:01 . Memory (MB): peak = 3046.000 ; gain = 1339.348
+Synthesis Optimization Complete : Time (s): cpu = 00:01:28 ; elapsed = 00:02:09 . Memory (MB): peak = 3046.000 ; gain = 1444.742
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.325 . Memory (MB): peak = 3046.000 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 3553 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.015 . Memory (MB): peak = 3046.000 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 45 instances were transformed.
+  BUFG => BUFGCE: 1 instance 
+  IBUF => IBUF (IBUFCTRL, INBUF): 44 instances
+
+Synth Design complete | Checksum: 94a533e7
+INFO: [Common 17-83] Releasing license: Synthesis
+31 Infos, 19 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:01:40 ; elapsed = 00:02:25 . Memory (MB): peak = 3046.000 ; gain = 2440.480
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.038 . Memory (MB): peak = 3046.000 ; gain = 0.000
+INFO: [Common 17-1381] The checkpoint 'C:/Users/kodur/Desktop/BTP/project/results/hardware_validation/baseline_paper1/dense/20260505_030748/proj/esfa_baseline_paper1_dense.runs/synth_1/snn_top.dcp' has been generated.
+INFO: [Vivado 12-24828] Executing command : report_utilization -file snn_top_utilization_synth.rpt -pb snn_top_utilization_synth.pb
+INFO: [Common 17-206] Exiting Vivado at Tue May  5 03:10:46 2026...

@@ -1,0 +1,20 @@
+{
+  "run_name": "exp5_dataflow_adaptation",
+  "category": "experiment",
+  "proposal_mapping": "Paper 2: adaptive dataflow (dense vs event) guided by spike density",
+  "epochs": 5,
+  "loss_weights": {
+    "hardware": 0.02,
+    "sparsity": 0.02,
+    "latency": 0.01
+  },
+  "sparsity_target": 0.92,
+  "hardware_estimator": {
+    "a": 1.0,
+    "b": 0.2,
+    "dataflow_mode": "adaptive",
+    "density_threshold": 0.09,
+    "temporal_multiplexing_factor": 2,
+    "queue_pressure_scale": 0.2
+  }
+}

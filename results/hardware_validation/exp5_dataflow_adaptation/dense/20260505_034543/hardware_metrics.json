@@ -1,0 +1,27 @@
+{
+  "model_name": "exp5_dataflow_adaptation",
+  "dataset_test_subset": "mnist_test",
+  "quantization_bit_width": "fp32",
+  "scheduler_mode": "dense",
+  "execution_mode": "fpga_emulation",
+  "clock_frequency_mhz": 100.0,
+  "measured": {
+    "latency_ns": 5760.0,
+    "cycle_count": 576.0,
+    "lut_usage": 22193.0,
+    "bram_usage": 0.0,
+    "dsp_usage": 0.0,
+    "timing_slack_ns": -0.92,
+    "fmax_mhz_estimated": 91.57509157509158
+  },
+  "estimator_reference": {
+    "latency_proxy": 1.2333381125267717,
+    "energy_proxy": 45016894.72704013,
+    "spike_sparsity": 0.564757291666667
+  },
+  "artifacts": {
+    "xsim_metrics": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\hardware_validation\\exp5_dataflow_adaptation\\dense\\20260505_034543\\xsim_metrics.json",
+    "vivado_metrics": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\hardware_validation\\exp5_dataflow_adaptation\\dense\\20260505_034543\\vivado_metrics.json",
+    "vivado_log": "C:\\Users\\kodur\\Desktop\\BTP\\project\\results\\hardware_validation\\exp5_dataflow_adaptation\\dense\\20260505_034543\\vivado.log"
+  }
+}

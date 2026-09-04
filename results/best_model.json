@@ -1,0 +1,14 @@
+{
+  "best_run_name": "exp1_hardware_aware_loss",
+  "best_category": "experiment",
+  "best_score": 0.7698999999999999,
+  "best_metrics": {
+    "accuracy": 0.957,
+    "spike_activity": 0.4352427083333334,
+    "spike_sparsity": 0.564757291666667,
+    "energy_proxy": 4592863.1728,
+    "latency_proxy": 0.6166690562633859,
+    "memory_accesses": 17604665.5296
+  },
+  "num_runs_compared": 3
+}

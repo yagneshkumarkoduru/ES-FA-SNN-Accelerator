@@ -1,0 +1,37 @@
+# Local Python environment
+.venv/
+.venv*/
+__pycache__/
+*.py[cod]
+
+# Local data/cache generated during runs
+data/MNIST/
+
+# Xilinx / Vivado / xsim generated files
+.Xil/
+xsim.dir/
+*.jou
+*.pb
+*.wdb
+*.str
+vivado*.log
+xvlog*.log
+xelab*.log
+xsim*.log
+clockInfo.txt
+dfx_runtime.txt
+tight_setup_hold_pins.txt
+iter_*_CongestedCLBsAndNets.txt
+
+# LaTeX build by-products
+*.aux
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.out
+
+# Keep final PDFs, but ignore transient TeX logs unless explicitly needed
+*.blg
+*.bbl
+

@@ -1,0 +1,4 @@
+run_name,category,accuracy,spike_sparsity,energy_proxy,latency_proxy,source_path
+baseline_paper1,baseline,0.957,0.564757291666667,22604295.758720063,0.6166690562633859,C:\Users\kodur\Desktop\BTP\project\results\baseline\metrics.json
+exp1_hardware_aware_loss,experiment,0.957,0.564757291666667,4592863.1728,0.6166690562633859,C:\Users\kodur\Desktop\BTP\project\results\experiments\exp1_hardware_aware_loss\metrics.json
+exp5_dataflow_adaptation,experiment,0.957,0.564757291666667,45016894.72704013,1.2333381125267717,C:\Users\kodur\Desktop\BTP\project\results\experiments\exp5_dataflow_adaptation\metrics.json

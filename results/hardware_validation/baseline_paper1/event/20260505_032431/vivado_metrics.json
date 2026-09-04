@@ -1,0 +1,30 @@
+{
+  "synthesis": {
+    "utilization": {
+      "lut": 22325.0,
+      "bram": 0.0,
+      "dsp": 0.0,
+      "ff": 9497.0
+    },
+    "timing": {
+      "wns_ns": 1.027,
+      "tns_ns": 0.0,
+      "target_clock_mhz": 100.0,
+      "fmax_mhz_estimated": 111.44544745347152
+    }
+  },
+  "implementation": {
+    "utilization": {
+      "lut": 22193.0,
+      "bram": 0.0,
+      "dsp": 0.0,
+      "ff": 9516.0
+    },
+    "timing": {
+      "wns_ns": -0.92,
+      "tns_ns": -1105.844,
+      "target_clock_mhz": 100.0,
+      "fmax_mhz_estimated": 91.57509157509158
+    }
+  }
+}

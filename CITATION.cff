@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software or research architecture in your work, please cite it as below."
+title: "ES-FA: Parameterizable Event-Driven Spiking Neural Network Accelerator with On-Chip STDP Learning and Spike-Driven FlashAttention"
+authors:
+  - family-names: "Koduru"
+    given-names: "Yagnesh Kumar"
+    affiliation: "Esthien Labs"
+    orcid: "https://orcid.org/0009-0000-0000-0000"
+date-released: 2026-09-04
+repository-code: "https://github.com/yagneshkumarkoduru/ES-FA-SNN-Accelerator"
+license: "MIT"
+keywords:
+  - "spiking neural networks"
+  - "neuromorphic hardware"
+  - "spike-driven flashattention"
+  - "stdp"
+  - "fpga"
+  - "asic"

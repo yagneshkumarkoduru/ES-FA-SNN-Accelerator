@@ -1,5 +1,6 @@
 # ES-FA: Parameterizable Event-Driven Spiking Neural Network Accelerator with On-Chip STDP Learning for Edge Physical Intelligence
 
+[![CI](https://github.com/yagneshkumarkoduru/ES-FA-SNN-Accelerator/actions/workflows/ci.yml/badge.svg)](https://github.com/yagneshkumarkoduru/ES-FA-SNN-Accelerator/actions)
 [![Target](https://img.shields.io/badge/Architecture-Generic%20ASIC%20%7C%20Multi--FPGA-blue.svg)](#3-implementation-versions-architecture)
 [![Tier 1 RTL](https://img.shields.io/badge/Tier%201-Synthesizable%20Verilog%20RTL-059669.svg)](implementations/v1_synthesizable_rtl_verilog/)
 [![Tier 2 C99](https://img.shields.io/badge/Tier%202-C99%20Cycle--Accurate%20Sim-d97706.svg)](implementations/v2_c99_cycle_accurate_engine/)

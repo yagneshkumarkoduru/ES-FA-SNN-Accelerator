@@ -31,7 +31,7 @@ def main() -> None:
         project_root,
     )
     run_step(
-        "6) Iterations v1/v2/v3",
+        "6) Staged iterations (initial/combined/refined)",
         project_root / "iterations" / "run_all.py",
         project_root,
     )

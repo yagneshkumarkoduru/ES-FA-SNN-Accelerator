@@ -29,11 +29,11 @@ Real-time physical intelligence on energy-constrained robotic and embedded platf
 
 In this paper, we present \textbf{ES-FA}, an open, parameterizable, technology-independent neuromorphic computing architecture and verification framework designed for edge physical AI. ES-FA delivers four foundational contributions:
 (1) A 4-stage pipelined Leaky Integrate-and-Fire (LIF) processing element that executes exact fixed-point discrete leaky integration with homeostatic threshold adaptation without hardware floating-point multipliers;
-(2) A dual-banked parity-interleaved synaptic SRAM arbiter that reduces memory access contention by \textbf{68.4\%};
+(2) A dual-banked parity-interleaved synaptic SRAM arbiter for concurrent access arbitration (contention-reduction figures pending a dedicated arbiter benchmark; the 68.4\% figure elsewhere belongs to the NPU bank model, not this arbiter);
 (3) A synthesizable on-chip Spike-Timing-Dependent Plasticity (STDP) learning engine enabling autonomous local adaptation in the field; and
-(4) A dual-language core verification stack comprising a cycle-accurate C99 simulation engine and a real-time C\# embedded hardware abstraction driver streaming \textbf{2.46 million events/second} with \textbf{405~ns} latency.
+(4) A dual-language core verification stack comprising a cycle-accurate C99 simulation engine and a real-time C\# embedded hardware abstraction driver (driver throughput/latency figures conflict between this draft and the README and are withdrawn pending one verified driver run).
 
-We provide formal mathematical proofs for synaptic weight boundedness under continuous Poisson jitter and worst-case memory arbitration stalls. Fabricated virtually across generic 28~nm/7~nm standard-cell ASIC libraries and verified on FPGA hardware, ES-FA achieves a peak throughput of \textbf{128.0~GSOP/s} at 250~MHz with an ultra-low energy dissipation of \textbf{3.89~pJ per synaptic operation}. Compared to synchronous round-robin architectures, ES-FA yields an Energy-Delay Product (EDP) reduction of \textbf{6.3}$\times$, providing a mathematically rigorous silicon architecture ready for real-world deployment.
+We provide mathematical derivations for synaptic weight boundedness under Poisson jitter and worst-case memory arbitration stalls (proof review pending). ES-FA is evaluated as a simulation and modeling pipeline: 95.7\% validation accuracy preserved with a 79.68\% estimated energy-proxy reduction (model, not board power), 20.81\% C-engine modeled energy saving, and a 6.3$\times$ EDP figure from the analysis script (model output, not a board measurement). Peak-throughput figures disagree across this draft and the README and are withdrawn pending one reconciled measurement run. Board power measurements on the KV260 remain future work; see \texttt{EVIDENCE.md}.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -127,7 +127,8 @@ For a neuromorphic core servicing $M$ active postsynaptic neuron updates per cyc
 \begin{equation}
 P_{\text{conflict}}(M, B) = 1 - \prod_{k=0}^{M-1} \left(1 - \frac{k}{B}\right)
 \end{equation}
-Under our dual-bank parity architecture ($B = 2$) with destination LSB steering ($k = \text{Neuron\_ID} \pmod 2$), memory conflicts are completely eliminated ($P_{\text{conflict}} = 0$) for any pair of adjacent neurons $(2j, 2j+1)$, reducing total bank stalls by $68.4\%$ over monolithic memory arrays.
+Under our dual-bank parity architecture ($B = 2$) with destination LSB steering ($k = \text{Neuron\_ID} \pmod 2$), memory conflicts are completely eliminated ($P_{\text{conflict}} = 0$) for any pair of adjacent neurons $(2j, 2j+1)$, since adjacent destination identifiers are guaranteed to map to distinct physical banks. Quantitative stall-reduction ratios for arbitrary (non-adjacent) access interleavings depend on the live event stream and are reported separately from the dedicated arbiter benchmark rather than asserted here.
+\end{theorem}
 \subsection{Spike-Driven FlashAttention (SD-FlashAttention)}
 To accelerate modern Spiking Transformers, ES-FA integrates a hardware-native Spike-Driven FlashAttention engine. Rather than evaluating dense $O(N^2)$ floating-point Softmax $\operatorname{Softmax}(Q K^T / \sqrt{d}) V$, ternary event streams $S_Q, S_K \in \{-1, 0, +1\}^{N \times d}$ perform event-driven coincidence accumulation:
 \begin{equation}

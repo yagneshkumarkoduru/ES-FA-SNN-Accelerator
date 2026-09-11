@@ -1,8 +1,8 @@
-# Tier 1 Implementation: Synthesizable Multi-Core RTL in Verilog / SystemVerilog
+# Synthesizable Multi-Core RTL Implementation in Verilog / SystemVerilog
 
 ## 1. Architectural Overview
 
-Tier 1 provides a fully synthesizable, technology-independent Verilog/SystemVerilog RTL core optimized for target deployment on standard cell ASICs (TSMC 28nm/16nm) and modern FPGAs (AMD Xilinx Kria KV260, UltraScale+, Versal).
+This implementation provides a fully synthesizable, technology-independent Verilog/SystemVerilog RTL core optimized for target deployment on standard cell ASICs (TSMC 28nm/16nm) and modern FPGAs (AMD Xilinx Kria KV260, UltraScale+, Versal).
 
 ```
                             Event Stream (AXI4-Stream)

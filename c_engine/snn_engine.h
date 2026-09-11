@@ -30,8 +30,8 @@ typedef struct {
 
 typedef struct {
     int8_t   weight;
-    uint16_t last_pre_ts;
-    uint16_t last_post_ts;
+    uint16_t last_pre_ts;   // timestamp of the most recent pre-synaptic event (0 = none)
+    uint16_t last_post_ts;  // timestamp of the most recent post-synaptic fire (0 = none)
 } Synapse;
 
 typedef struct {
@@ -42,7 +42,8 @@ typedef struct {
 
     // Banked SRAM Contention Tracking
     uint32_t   bank_accesses[2];
-    uint32_t   bank_conflicts;
+    uint32_t   bank_conflicts;      // same-cycle read/write hits on one bank
+    uint64_t   memory_stall_cycles; // cycles a PE waits on a serialized access
 
     // Local Event Queue
     SpikeEvent queue[EVENT_QUEUE_CAPACITY];

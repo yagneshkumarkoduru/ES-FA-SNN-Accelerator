@@ -78,12 +78,20 @@ module lif_neuron_pe #(
             s3_valid <= s2_valid;
             s3_id    <= s2_id;
             s3_ts    <= s2_ts;
-            if (s2_mem_u >= THRESHOLD) begin
-                s3_spike    <= 1'b1;
-                s3_mem_next <= RESET_VALUE;
+            // Gate the threshold decision on s2_valid so a bubble propagates
+            // as "no spike / zero state" instead of evaluating a stale
+            // membrane value (matches lif_pe_core.v).
+            if (s2_valid) begin
+                if (s2_mem_u >= THRESHOLD) begin
+                    s3_spike    <= 1'b1;
+                    s3_mem_next <= RESET_VALUE;
+                end else begin
+                    s3_spike    <= 1'b0;
+                    s3_mem_next <= s2_mem_u;
+                end
             end else begin
                 s3_spike    <= 1'b0;
-                s3_mem_next <= s2_mem_u;
+                s3_mem_next <= {DATA_WIDTH{1'b0}};
             end
 
             // Stage 4 output

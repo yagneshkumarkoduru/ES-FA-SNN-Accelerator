@@ -22,6 +22,7 @@ module tb_top;
     wire [31:0] basic_ops_basic;
     wire [31:0] advanced_ops_basic_unused;
     wire [31:0] pe_ops_basic;
+    wire [31:0] adv_drops_basic_unused;
 
     wire out_valid_adv;
     wire out_spike_adv;
@@ -30,6 +31,7 @@ module tb_top;
     wire [31:0] basic_ops_adv_unused;
     wire [31:0] advanced_ops_adv;
     wire [31:0] pe_ops_adv;
+    wire [31:0] adv_drops_adv;
 
     integer i;
     integer basic_spike_count;
@@ -57,6 +59,7 @@ module tb_top;
         .out_spike(out_spike_basic),
         .out_neuron_id(out_id_basic),
         .out_timestamp(out_ts_basic),
+        .adv_event_drop_count(adv_drops_basic_unused),
         .basic_op_count(basic_ops_basic),
         .advanced_op_count(advanced_ops_basic_unused),
         .pe_op_count(pe_ops_basic)
@@ -84,6 +87,7 @@ module tb_top;
         .out_spike(out_spike_adv),
         .out_neuron_id(out_id_adv),
         .out_timestamp(out_ts_adv),
+        .adv_event_drop_count(adv_drops_adv),
         .basic_op_count(basic_ops_adv_unused),
         .advanced_op_count(advanced_ops_adv),
         .pe_op_count(pe_ops_adv)
@@ -125,12 +129,20 @@ module tb_top;
         @(posedge clk);
         cfg_weight_we <= 0;
 
-        // Feed 200 input events with 25% activity.
+        // Feed 200 input events with 25% activity. Spike events are steered
+        // onto 8 target neurons (ids 0,4,...,28) so each target accumulates
+        // 6-7 weighted inputs (weight 24, threshold 64). With the shift leak
+        // (V_next = V - V>>3 + W) a resting neuron crosses the threshold on
+        // its 3rd event (24 -> 45 -> 64) and fires again 3 events later, so
+        // every target fires exactly twice via temporal integration.
+        // Same-neuron events are 32 cycles apart (event index step of 8 in
+        // the i/4 ordering), which clears the ~8-cycle PE read/write pipeline
+        // so successive updates land on the freshly written membrane state.
         for (i = 0; i < 200; i = i + 1) begin
             @(posedge clk);
             in_valid <= 1;
             in_spike <= (i % 4 == 0);
-            in_neuron_id <= i % 128;
+            in_neuron_id <= (i % 4 == 0) ? (((i / 4) % 8) * 4) : (i % 128);
             in_timestamp <= i;
         end
 
@@ -146,12 +158,18 @@ module tb_top;
         $display("Advanced Scheduler ops   : %0d", advanced_ops_adv);
         $display("PE ops (basic mode)      : %0d", pe_ops_basic);
         $display("PE ops (advanced mode)   : %0d", pe_ops_adv);
+        $display("Event queue drops (adv)  : %0d", adv_drops_adv);
         $display("Output spikes basic/adv  : %0d / %0d", basic_spike_count, adv_spike_count);
 
         if (advanced_ops_adv < basic_ops_basic) begin
             $display("PASS: Event-driven scheduling reduced operations.");
         end else begin
             $display("FAIL: Event-driven scheduling did not reduce operations.");
+        end
+        if (adv_spike_count > 0) begin
+            $display("PASS: Temporal integration produced output spikes.");
+        end else begin
+            $display("FAIL: No output spikes; check weights, threshold, and stimulus.");
         end
         $display("--------------------------------------------------");
 

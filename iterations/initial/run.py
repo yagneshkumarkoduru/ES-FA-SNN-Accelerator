@@ -10,15 +10,15 @@ def main() -> None:
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
 
-    from iterations.common import build_v1_config, compare_metric_sets
+    from iterations.common import build_initial_config, compare_metric_sets
     from p1_training.training_core import train_from_config
 
     results_root = project_root / "results"
     experiments_root = project_root / "experiments"
-    output_dir = results_root / "iterations" / "v1"
+    output_dir = results_root / "iterations" / "initial"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    cfg, source_exp = build_v1_config(results_root=results_root, experiments_root=experiments_root)
+    cfg, source_exp = build_initial_config(results_root=results_root, experiments_root=experiments_root)
     with (Path(__file__).resolve().parent / "config_generated.json").open("w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
 
@@ -37,10 +37,9 @@ def main() -> None:
     with (output_dir / "comparison.json").open("w", encoding="utf-8") as f:
         json.dump(comparison, f, indent=2)
 
-    print("v1 complete.")
+    print("Initial iteration complete.")
     print(json.dumps(comparison, indent=2))
 
 
 if __name__ == "__main__":
     main()
-

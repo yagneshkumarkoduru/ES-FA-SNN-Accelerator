@@ -1,4 +1,4 @@
-"""Run v1 -> v2 -> v3 iteration sequence."""
+"""Run the staged iteration sequence: initial -> combined -> refined."""
 
 from __future__ import annotations
 
@@ -10,9 +10,9 @@ from pathlib import Path
 def main() -> None:
     project_root = Path(__file__).resolve().parents[1]
     scripts = [
-        project_root / "iterations" / "v1" / "run.py",
-        project_root / "iterations" / "v2" / "run.py",
-        project_root / "iterations" / "v3" / "run.py",
+        project_root / "iterations" / "initial" / "run.py",
+        project_root / "iterations" / "combined" / "run.py",
+        project_root / "iterations" / "refined" / "run.py",
     ]
     for script in scripts:
         print(f"Running {script} ...")
@@ -21,4 +21,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

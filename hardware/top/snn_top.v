@@ -27,6 +27,11 @@ module snn_top #(
     output wire [NEURON_ID_W-1:0]         out_neuron_id,
     output wire [TS_WIDTH-1:0]            out_timestamp,
 
+    // Telemetry: events the event-driven scheduler could not accept because
+    // its queue was full (the router is a registered pass-through with no
+    // backpressure input, so overflow here is observable, not recoverable).
+    output wire [31:0]                    adv_event_drop_count,
+
     output wire [31:0]                    basic_op_count,
     output wire [31:0]                    advanced_op_count,
     output reg  [31:0]                    pe_op_count
@@ -86,6 +91,7 @@ module snn_top #(
     wire [TS_WIDTH-1:0] a_ts;
     wire [8:0] a_queue_count;
     wire [31:0] a_ops;
+    wire a_in_ready;
 
     advanced_scheduler #(
         .NEURON_ID_W(NEURON_ID_W),
@@ -99,7 +105,7 @@ module snn_top #(
         .in_event_valid(r_valid),
         .in_event_neuron_id(r_id),
         .in_event_timestamp(r_ts),
-        .in_event_ready(),
+        .in_event_ready(a_in_ready),
         .pe_ready(1'b1),
         .out_valid(a_valid),
         .out_neuron_id(a_id),
@@ -107,6 +113,19 @@ module snn_top #(
         .queue_count(a_queue_count),
         .op_count(a_ops)
     );
+
+    // Overflow telemetry: in event-driven mode the advanced scheduler's
+    // 256-deep queue can fill under burst load. Count every routed event the
+    // scheduler could not accept instead of dropping it silently.
+    reg [31:0] adv_drop_cnt;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            adv_drop_cnt <= 32'd0;
+        end else if (mode_advanced && r_valid && !a_in_ready) begin
+            adv_drop_cnt <= adv_drop_cnt + 32'd1;
+        end
+    end
+    assign adv_event_drop_count = adv_drop_cnt;
 
     assign basic_op_count = b_ops;
     assign advanced_op_count = a_ops;

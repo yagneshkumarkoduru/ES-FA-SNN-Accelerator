@@ -10,7 +10,7 @@
 - `p1_training/`: config-driven SNN training core, baseline run, INT8 export helpers.
 - `p2_hardware_model/estimators.py`: energy, memory, latency, spike-cost estimators.
 - `experiments/`: experiment configs + runners (`exp1`..`exp5`) aligned to proposal themes.
-- `iterations/`: iterative v1/v2/v3 refinement on top of experiment outputs.
+- `iterations/`: staged refinement runs (initial -> combined -> refined) on top of experiment outputs.
 - `analysis/compare.py`: ranking + plots + best-model selection.
 - `output/generate_output.py`: draft markdown paper sections.
 - `hardware/`: RTL modules (LIF PE, memory, router, basic/advanced schedulers, top-level).

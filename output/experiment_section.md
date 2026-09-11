@@ -11,4 +11,4 @@ Experiments follow proposal concepts with minimal baseline modifications:
 Each run logs accuracy, sparsity, energy proxy, latency proxy, training history, INT8 weights, and spike raster/stats.
 
 ## Comparisons and Ablation
-We compare baseline, all experiments, and iteration versions (`v1`, `v2`, `v3`) using a unified ranking and Pareto-style trade-off analysis.
+We compare baseline, all experiments, and the staged iterations (initial, combined, refined) using a unified ranking and Pareto-style trade-off analysis.

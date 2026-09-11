@@ -1,22 +1,20 @@
 // =============================================================================
 // File: SpikeDrivenFlashAttention.cs
-// Project: ES-FA Neuromorphic Accelerator (Tier 3 Implementation)
+// Project: ES-FA Neuromorphic Accelerator (.NET 9 HAL & SD-FlashAttention)
 // Author: Yagnesh Kumar Koduru (Esthien Labs)
-// Architecture: SIMD-Accelerated Spike-Driven FlashAttention (SD-FlashAttention)
+// Architecture: Multiplier-Free Spike-Driven FlashAttention (SD-FlashAttention)
 // =============================================================================
 
 using System;
 using System.Diagnostics;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace ESFA.Tier3.Driver
+namespace ESFA.Driver
 {
     public sealed class SpikeDrivenFlashAttention
     {
         public const int SeqLen = 256;
         public const int HeadDim = 64;
-        public const int NumHeads = 4;
 
         private readonly sbyte[] _qSpikes; // Ternary: -1, 0, 1
         private readonly sbyte[] _kSpikes;
@@ -97,7 +95,10 @@ namespace ESFA.Tier3.Driver
 
                     if (coincidence != 0)
                     {
-                        float scale = coincidence * 0.125f;
+                        // Softmax-free normalization by 1/d_k, matching the
+                        // Python reference (sd_flashattention_engine.py) and
+                        // the stated O[i] = sum_j (A[i,j] / d_k) V[j].
+                        float scale = (float)coincidence / (float)HeadDim;
                         for (int d = 0; d < HeadDim; d++)
                         {
                             _output[i * HeadDim + d] += scale * _values[kOffset + d];

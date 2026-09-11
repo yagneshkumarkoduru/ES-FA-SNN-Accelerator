@@ -1,26 +1,26 @@
-# Tier 3 Implementation: .NET 9 High-Performance HAL & Spike-Driven FlashAttention
+# .NET 9 HAL Driver & Spike-Driven FlashAttention
 
 ## 1. Architectural Overview
 
-Tier 3 introduces a high-performance **C# / .NET 9 Hardware Abstraction Layer (HAL)** combined with a **Spike-Driven FlashAttention (SD-FlashAttention)** engine. It bridges software event streams directly to FPGA/ASIC hardware via zero-allocation memory pooling and lock-free concurrent queues.
+This implementation provides a high-performance **C# / .NET 9 Hardware Abstraction Layer (HAL)** combined with a **Spike-Driven FlashAttention (SD-FlashAttention)** engine. It bridges software event streams directly to FPGA/ASIC hardware via zero-allocation memory pooling and lock-free concurrent queues.
 
 ```
                   High-Level Neural App (.NET 9 / Python)
                                      │
                                      ▼
 ┌───────────────────────────────────────────────────────────────────────────┐
-│              TIER 3: HIGH-PERFORMANCE .NET 9 HAL RUNTIME                  │
+│              HIGH-PERFORMANCE .NET 9 HAL RUNTIME                  │
 │                                                                           │
 │  ┌───────────────────────┐                    ┌────────────────────────┐  │
 │  │ Zero-Allocation Pool  │                    │ Spike-Driven FlashAttn │  │
-│  │ ArrayPool<byte>       │◄── Streaming DMA ──┤ SIMD Ternary Kernel    │  │
+│  │ ArrayPool<byte>       │◄── Streaming DMA ──┤ Ternary Coincidence Kernel    │  │
 │  │ MemoryMarshal / Span  │                    │ Non-Softmax Inner-Prod │  │
 │  └───────────────────────┘                    └───────────┬────────────┘  │
 │             ▲                                             │               │
 │             │                                             ▼               │
 │  ┌──────────┴────────────┐                    ┌────────────────────────┐  │
 │  │ Lock-Free DMA Buffer  │◄── ConcurrentQueue ┤ Telemetry Monitoring   │  │
-│  │ 26.46M packets/sec    │    Fast Dispatch   │ Sub-40ns Dispatch Lat  │  │
+│  │ Lock-free streaming    │    Fast Dispatch   │ Measured Dispatch Lat  │  │
 │  └───────────────────────┘                    └────────────────────────┘  │
 └───────────────────────────────────────────────────────────────────────────┘
 ```
@@ -31,7 +31,7 @@ Tier 3 introduces a high-performance **C# / .NET 9 Hardware Abstraction Layer (H
 
 | Module | File | Core Engineering Highlights |
 | :--- | :--- | :--- |
-| **HAL DMA Driver** | [`EsfaDriverNet9.cs`](EsfaDriverNet9.cs) | High-speed asynchronous HAL utilizing `readonly record struct SpikePacket`, unmanaged struct layouts (`Pack = 1`), and lock-free concurrent ingestion. Streams up to **26.46 Million packets/sec** with **$37.8\text{ ns}$** dispatch latency. |
+| **HAL DMA Driver** | [`EsfaDriverNet9.cs`](EsfaDriverNet9.cs) | High-speed asynchronous HAL utilizing `readonly record struct SpikePacket`, unmanaged struct layouts (`Pack = 1`), and lock-free concurrent ingestion. Streams spike packets through the lock-free pipe with measured (host-dependent) sub-microsecond dispatch latency. |
 | **SD-FlashAttention** | [`SpikeDrivenFlashAttention.cs`](SpikeDrivenFlashAttention.cs) | Event-driven neuromorphic attention kernel executing ternary sparse coincidence calculations ($S_Q \odot S_K$). Bypasses **$97.71\%$** of operations under $85\%$ sparsity. |
 | **Console Runner** | [`Program.cs`](Program.cs) | Dual benchmark harness verifying multi-core DMA packet streaming and attention kernel performance. |
 | **Python Reference** | [`sd_flashattention_engine.py`](sd_flashattention_engine.py) | Algorithmic reference comparing dense $O(N^2)$ Softmax attention vs. spike-driven sparse additions. |

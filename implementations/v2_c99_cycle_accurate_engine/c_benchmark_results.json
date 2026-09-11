@@ -17,14 +17,19 @@
     "static_energy_nj": 592.0000,
     "total_energy_nj": 11214.2648,
     "edp_js": 4.485706e-010,
+    "bank_conflicts": 0,
+    "memory_stall_cycles": 0,
     "energy_savings_pct": 20.81,
     "edp_reduction_x": 1.25
   },
   "es_fa_stdp": {
     "cycles": 10000,
-    "dynamic_energy_nj": 9257.9691,
+    "dynamic_energy_nj": 14603.8466,
     "static_energy_nj": 592.0000,
-    "total_energy_nj": 9849.9691,
-    "edp_js": 3.939988e-010
+    "total_energy_nj": 15195.8466,
+    "edp_js": 6.078339e-010,
+    "bank_conflicts": 3422267,
+    "memory_stall_cycles": 3422267,
+    "output_spikes": 534043
   }
 }

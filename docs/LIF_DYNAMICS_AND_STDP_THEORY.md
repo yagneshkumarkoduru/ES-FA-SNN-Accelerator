@@ -27,7 +27,7 @@ $$V_i[n] = V_i[n-1] e^{-\Delta t / \tau_m} + \sum_{j=1}^{N_{\text{in}}} W_{ij} S
 Defining the discrete membrane decay factor:
 $$\beta \triangleq e^{-\Delta t / \tau_m} \in (0, 1)$$
 
-In synthesizable hardware (Tier 1 RTL) and bit-exact fixed-point C99 simulation (Tier 2), multiplication by non-integer $\beta$ is eliminated through an arithmetic shift-right approximation:
+In synthesizable hardware (the RTL implementation) and bit-exact fixed-point C99 simulation (the C99 cycle-accurate engine), multiplication by non-integer $\beta$ is eliminated through an arithmetic shift-right approximation:
 
 $$\beta V \approx V - \left(V \gg k_{\text{leak}}\right) = V \left(1 - 2^{-k_{\text{leak}}}\right)$$
 

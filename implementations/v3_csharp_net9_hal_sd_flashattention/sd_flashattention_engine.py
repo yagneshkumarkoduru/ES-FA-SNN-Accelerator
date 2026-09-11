@@ -2,7 +2,7 @@
 """
 =============================================================================
 Spike-Driven FlashAttention (SD-FlashAttention) Mathematical Reference
-Project: ES-FA Neuromorphic Accelerator (Tier 3 Implementation)
+Project: ES-FA Neuromorphic Accelerator (.NET 9 HAL & SD-FlashAttention)
 Author: Yagnesh Kumar Koduru (Esthien Labs)
 =============================================================================
 """
@@ -10,9 +10,21 @@ Author: Yagnesh Kumar Koduru (Esthien Labs)
 import time
 import numpy as np
 
+def sd_attention(s_q, s_k, values, head_dim):
+    """Pure NumPy SD-FlashAttention core (importable, unit-testable).
+
+    Computes the softmax-free spike-driven attention output:
+        A_spike = S_Q @ S_K^T            (integer coincidence scores)
+        O       = (A_spike / head_dim) @ V
+    Returns the output tensor of shape (num_heads, seq_len, head_dim).
+    """
+    spike_scores = np.matmul(s_q.astype(np.int32), s_k.astype(np.int32).swapaxes(-1, -2))
+    return np.matmul(spike_scores.astype(np.float32) * (1.0 / head_dim), values)
+
+
 def run_sd_flashattention_benchmark(seq_len=256, head_dim=64, num_heads=4, sparsity=0.85):
     print("=" * 70)
-    print("  ES-FA TIER 3: SPIKE-DRIVEN FLASHATTENTION MATHEMATICAL BENCHMARK")
+    print("  SPIKE-DRIVEN FLASHATTENTION MATHEMATICAL REFERENCE BENCHMARK")
     print("  Author: Yagnesh Kumar Koduru | Esthien Labs")
     print("=" * 70)
     
@@ -48,10 +60,7 @@ def run_sd_flashattention_benchmark(seq_len=256, head_dim=64, num_heads=4, spars
     
     # 2. Spike-Driven Attention (Sparse Accumulation O(N_spikes * d))
     t1 = time.perf_counter()
-    # Sparse inner-product: A_spike = S_Q @ S_K^T (integer addition/subtraction only)
-    spike_scores = np.matmul(s_q.astype(np.int32), s_k.astype(np.int32).swapaxes(-1, -2))
-    # Direct scale accumulation without transcendental exp() / softmax
-    spike_out = np.matmul(spike_scores.astype(np.float32) * (1.0 / head_dim), values)
+    spike_out = sd_attention(s_q, s_k, values, head_dim)
     t_spike = (time.perf_counter() - t1) * 1000.0
     
     # Energy calculations (45nm / 28nm standard cell energy: FP32 MAC = 4.6 pJ, INT8 ADD = 0.03 pJ)

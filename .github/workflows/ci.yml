@@ -26,11 +26,11 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy scipy matplotlib
+          pip install numpy matplotlib pytest
 
       - name: Python Bytecode Syntax Check
         run: |
-          python -m compileall implementations/
+          python -m compileall implementations/ iterations/ experiments/ p1_training/ tests/
 
       - name: Build .NET 9 HAL Driver & Benchmark
         run: |
@@ -42,6 +42,10 @@ jobs:
           gcc -O3 -std=c99 implementations/v2_c99_cycle_accurate_engine/spike_attention.c -o implementations/v2_c99_cycle_accurate_engine/spike_attn_bench
           ./implementations/v2_c99_cycle_accurate_engine/spike_attn_bench
 
-      - name: Run Tier 3 Spike-Driven FlashAttention Reference
+      - name: Run the Spike-Driven FlashAttention Reference Model
         run: |
           python implementations/v3_csharp_net9_hal_sd_flashattention/sd_flashattention_engine.py
+
+      - name: Run pytest suite
+        run: |
+          python -m pytest -q tests

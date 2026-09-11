@@ -69,6 +69,16 @@ int main(int argc, char **argv) {
     double energy_savings_pct = (1.0 - (sys_event->energy_dynamic_nj / sys_basic->energy_dynamic_nj)) * 100.0;
     double edp_reduction_x    = sys_basic->energy_delay_product / sys_event->energy_delay_product;
 
+    // Aggregate memory-contention telemetry across cores.
+    unsigned long long event_conflicts = 0, event_stalls = 0;
+    unsigned long long stdp_conflicts = 0, stdp_stalls = 0;
+    for (uint8_t c = 0; c < sys_event->num_cores; c++) {
+        event_conflicts += sys_event->cores[c].bank_conflicts;
+        event_stalls    += sys_event->cores[c].memory_stall_cycles;
+        stdp_conflicts  += sys_stdp->cores[c].bank_conflicts;
+        stdp_stalls     += sys_stdp->cores[c].memory_stall_cycles;
+    }
+
     printf("==================================================================\n");
     printf("                COMPARATIVE RESEARCH BREAKTHROUGHS                \n");
     printf("==================================================================\n");
@@ -101,6 +111,8 @@ int main(int argc, char **argv) {
         fprintf(fp, "    \"static_energy_nj\": %.4f,\n", sys_event->energy_static_nj);
         fprintf(fp, "    \"total_energy_nj\": %.4f,\n", sys_event->energy_total_nj);
         fprintf(fp, "    \"edp_js\": %.6e,\n", sys_event->energy_delay_product);
+        fprintf(fp, "    \"bank_conflicts\": %llu,\n", event_conflicts);
+        fprintf(fp, "    \"memory_stall_cycles\": %llu,\n", event_stalls);
         fprintf(fp, "    \"energy_savings_pct\": %.2f,\n", energy_savings_pct);
         fprintf(fp, "    \"edp_reduction_x\": %.2f\n", edp_reduction_x);
         fprintf(fp, "  },\n");
@@ -109,7 +121,10 @@ int main(int argc, char **argv) {
         fprintf(fp, "    \"dynamic_energy_nj\": %.4f,\n", sys_stdp->energy_dynamic_nj);
         fprintf(fp, "    \"static_energy_nj\": %.4f,\n", sys_stdp->energy_static_nj);
         fprintf(fp, "    \"total_energy_nj\": %.4f,\n", sys_stdp->energy_total_nj);
-        fprintf(fp, "    \"edp_js\": %.6e\n", sys_stdp->energy_delay_product);
+        fprintf(fp, "    \"edp_js\": %.6e,\n", sys_stdp->energy_delay_product);
+        fprintf(fp, "    \"bank_conflicts\": %llu,\n", stdp_conflicts);
+        fprintf(fp, "    \"memory_stall_cycles\": %llu,\n", stdp_stalls);
+        fprintf(fp, "    \"output_spikes\": %llu\n", (unsigned long long)sys_stdp->total_output_spikes);
         fprintf(fp, "  }\n");
         fprintf(fp, "}\n");
         fclose(fp);

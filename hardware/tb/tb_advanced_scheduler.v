@@ -18,6 +18,21 @@ module tb_advanced_scheduler;
     wire [8:0] queue_count;
     wire [31:0] op_count;
 
+    integer observed;
+    integer seen_id [0:2];
+    integer exp_id  [0:2];
+    integer k;
+    integer check_ok;
+
+    // Continuous capture of the popped event sequence for the final
+    // self-check (expected oldest-timestamp-first order: ids 2, 7, 4).
+    always @(posedge clk) begin
+        if (rst_n && out_valid) begin
+            seen_id[observed] = out_neuron_id;
+            observed = observed + 1;
+        end
+    end
+
     advanced_scheduler #(
         .NEURON_ID_W(7),
         .TS_WIDTH(16),
@@ -46,6 +61,10 @@ module tb_advanced_scheduler;
         in_event_neuron_id = 0;
         in_event_timestamp = 0;
         pe_ready = 0;
+        observed = 0;
+        exp_id[0] = 2;
+        exp_id[1] = 7;
+        exp_id[2] = 4;
 
         repeat (2) @(posedge clk);
         rst_n <= 1;
@@ -65,6 +84,20 @@ module tb_advanced_scheduler;
         end
 
         $display("Advanced scheduler op_count=%0d", op_count);
+
+        // Self-check: 3 events pushed -> 3 popped, oldest-timestamp-first.
+        check_ok = (observed == 3) && (op_count == 32'd3);
+        for (k = 0; k < 3; k = k + 1) begin
+            if (seen_id[k] !== exp_id[k]) begin
+                check_ok = 0;
+            end
+        end
+        if (check_ok) begin
+            $display("PASS: event-driven pop sequence and op count verified");
+        end else begin
+            $display("FAIL: advanced scheduler check (observed=%0d op_count=%0d)", observed, op_count);
+        end
+
         #20;
         $finish;
     end

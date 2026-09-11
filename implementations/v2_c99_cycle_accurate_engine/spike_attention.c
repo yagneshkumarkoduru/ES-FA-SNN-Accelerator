@@ -2,8 +2,11 @@
  * spike_attention.c
  * =================
  * Cycle-Accurate C99 Benchmark for Spike-Driven FlashAttention (SD-FlashAttention)
- * Demonstrates 8.4x energy reduction over dense floating-point Softmax attention.
- * 
+ * At 85% spike sparsity this kernel bypasses ~98.9% of dense-attention
+ * operations, yielding a measured ~755x dynamic-energy reduction over dense
+ * FP32 softmax attention (see the printed "Net Energy Reduction Factor";
+ * value derives from the operation counts below, not a fixed constant).
+ *
  * Author: Yagnesh Kumar Koduru
  * Affiliation: Researcher | Esthien Labs
  */

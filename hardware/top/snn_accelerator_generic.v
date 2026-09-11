@@ -1,4 +1,4 @@
-﻿`timescale 1ns / 1ps
+`timescale 1ns / 1ps
 // =============================================================================
 // File        : snn_accelerator_generic.v
 // Module      : snn_accelerator_generic
@@ -84,6 +84,7 @@ module snn_accelerator_generic #(
     // 0x18: Total Spikes Ingested
     // 0x1C: Total Spikes Emitted
     // 0x20: Active Synaptic Ops Counter
+    // 0x24: STDP Weight Update Count (low 8 bits: last updated weight, Q1.7)
     // -------------------------------------------------------------------------
     reg [31:0] reg_control;
     reg [31:0] reg_status;
@@ -93,6 +94,13 @@ module snn_accelerator_generic #(
     reg [31:0] reg_spikes_in_cnt;
     reg [31:0] reg_spikes_out_cnt;
     reg [31:0] reg_active_ops_cnt;
+
+    // STDP writeback collection (one pulse and updated INT8 weight per core,
+    // drained into the host-readable telemetry register at 0x24).
+    wire [NUM_CORES-1:0]          stdp_update_pulse;
+    wire signed [7:0]             stdp_update_weight [NUM_CORES-1:0];
+    reg  [31:0]                   reg_stdp_update_cnt;
+    reg  [7:0]                    reg_stdp_last_weight;
 
     // AXI-Lite Handshake Logic
     reg        axi_awready_r;
@@ -168,6 +176,7 @@ module snn_accelerator_generic #(
                     8'h18: axi_rdata_r <= reg_spikes_in_cnt;
                     8'h1C: axi_rdata_r <= reg_spikes_out_cnt;
                     8'h20: axi_rdata_r <= reg_active_ops_cnt;
+                    8'h24: axi_rdata_r <= {reg_stdp_update_cnt[23:0], reg_stdp_last_weight};
                     default: axi_rdata_r <= 32'hDEAD_BEEF;
                 endcase
             end else if (s_axi_rready && axi_rvalid_r) begin
@@ -186,6 +195,8 @@ module snn_accelerator_generic #(
             reg_spikes_out_cnt<= 32'd0;
             reg_active_ops_cnt<= 32'd0;
             reg_status        <= 32'd0;
+            reg_stdp_update_cnt   <= 32'd0;
+            reg_stdp_last_weight  <= 8'd0;
         end else begin
             if (reg_control[0]) begin // Running
                 reg_cycle_counter <= reg_cycle_counter + 1'b1;
@@ -200,6 +211,17 @@ module snn_accelerator_generic #(
 
             if (m_axis_spike_tvalid && m_axis_spike_tready) begin
                 reg_spikes_out_cnt <= reg_spikes_out_cnt + 1'b1;
+            end
+
+            // On-chip STDP activity: total weight updates applied and the most
+            // recent updated weight (Q1.7 signed), both host readable.
+            if (|stdp_update_pulse) begin
+                reg_stdp_update_cnt  <= reg_stdp_update_cnt + 1'b1;
+                for (integer su = 0; su < NUM_CORES; su = su + 1) begin
+                    if (stdp_update_pulse[su]) begin
+                        reg_stdp_last_weight <= stdp_update_weight[su];
+                    end
+                end
             end
         end
     end
@@ -259,28 +281,39 @@ module snn_accelerator_generic #(
             );
 
             if (STDP_ENABLE) begin : gen_stdp
-                wire [7:0] stdp_new_weight;
-                wire       stdp_w_update;
+                wire signed [7:0] stdp_new_weight;
+                wire              stdp_w_update;
 
+                // On-chip STDP engine wired to the live pre/post event streams
+                // of this core. The engine evaluates LTP/LTD whenever a
+                // pre-synaptic event and a post-synaptic output spike of this
+                // core coincide in the same cycle, using their real
+                // timestamps. The updated weight is captured in the STDP
+                // telemetry register below (a full design routes it into the
+                // core's weight bank write port).
                 stdp_learning_engine #(
                     .WEIGHT_WIDTH(8),
-                    .TS_WIDTH(TS_WIDTH),
-                    .TAU_PLUS(16),
-                    .TAU_MINUS(20),
-                    .A_PLUS(8'd6),
-                    .A_MINUS(8'd4)
+                    .TIME_WIDTH(TS_WIDTH),
+                    .ALPHA_PLUS(8'd6),
+                    .ALPHA_MINUS(8'd4),
+                    .TAU_WINDOW(16'd32)
                 ) u_core_stdp (
                     .clk(clk),
                     .rst_n(rst_n && ~reg_control[3]),
-                    .enable(reg_control[2]),
-                    .pre_spike(core_in_spike[c]),
-                    .pre_timestamp(core_in_ts[c]),
-                    .post_spike(core_out_spike[c]),
-                    .post_timestamp(core_out_ts[c]),
+                    .pre_spike_valid(core_in_valid[c] && reg_control[2]),
+                    .pre_spike_time(core_in_ts[c]),
+                    .post_spike_valid(core_out_valid[c] && core_out_spike[c] && reg_control[2]),
+                    .post_spike_time(core_out_ts[c]),
                     .current_weight(reg_synapse_cfg[7:0]),
-                    .new_weight(stdp_new_weight),
-                    .weight_update_valid(stdp_w_update)
+                    .updated_weight(stdp_new_weight),
+                    .weight_write_en(stdp_w_update)
                 );
+
+                assign stdp_update_pulse[c] = stdp_w_update && reg_control[2];
+                assign stdp_update_weight[c] = stdp_new_weight;
+            end else begin : gen_stdp_off
+                assign stdp_update_pulse[c]  = 1'b0;
+                assign stdp_update_weight[c] = 8'sd0;
             end
         end
     endgenerate

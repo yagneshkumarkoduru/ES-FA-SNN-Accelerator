@@ -33,12 +33,28 @@ module tb_basic_scheduler;
     );
 
     integer i;
+    integer observed;
+    integer seen_id [0:7];
+    integer k;
+    integer check_ok;
+
+    // Continuous capture: every accepted schedule pulse is recorded so the
+    // final self-check sees all pulses, not just the ones inside the
+    // display window below.
+    always @(posedge clk) begin
+        if (rst_n && out_valid) begin
+            seen_id[observed] = out_neuron_id;
+            observed = observed + 1;
+        end
+    end
+
     initial begin
         rst_n = 0;
         enable = 0;
         in_valid = 0;
         in_timestamp = 0;
         pe_ready = 1;
+        observed = 0;
 
         repeat (2) @(posedge clk);
         rst_n <= 1;
@@ -61,6 +77,20 @@ module tb_basic_scheduler;
         end
 
         $display("Basic scheduler op_count=%0d", op_count);
+
+        // Self-check: 5 accepted inputs -> 5 ops, round-robin ids 0..4.
+        check_ok = (observed == 5) && (op_count == 32'd5);
+        for (k = 0; k < 5; k = k + 1) begin
+            if (seen_id[k] !== k) begin
+                check_ok = 0;
+            end
+        end
+        if (check_ok) begin
+            $display("PASS: round-robin id sequence and op count verified");
+        end else begin
+            $display("FAIL: round-robin check (observed=%0d op_count=%0d)", observed, op_count);
+        end
+
         #20;
         $finish;
     end

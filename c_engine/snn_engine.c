@@ -8,6 +8,7 @@
 #define STDP_TAU_MINUS  20
 #define STDP_A_PLUS     6
 #define STDP_A_MINUS    4
+#define STDP_WINDOW     64   // max |dt| (in cycles) for plasticity
 
 void snn_system_init(SNNSystem *sys, uint8_t num_cores, uint16_t neurons_per_core, bool event_driven, bool stdp, float freq_mhz) {
     memset(sys, 0, sizeof(SNNSystem));
@@ -65,24 +66,38 @@ bool snn_enqueue_spike(SNNSystem *sys, uint8_t core_id, uint16_t neuron_id, uint
     return true;
 }
 
-static void apply_stdp(Synapse *syn, uint16_t pre_ts, uint16_t post_ts) {
-    int32_t dt = (int32_t)post_ts - (int32_t)pre_ts;
+// Apply the bi-exponential STDP rule with the REAL pre/post delta. The caller
+// is responsible for passing timestamps actually observed in the event trace:
+//   dt >  0  -> LTP  (post fired shortly after pre)
+//   dt == 0  -> LTP  (coincident pre/post within one step; exp(0) = 1)
+//   dt <  0  -> LTD  (post fired shortly before pre) - reachable because the
+//               engine tracks per-synapse last_post_ts
+static void apply_stdp(Synapse *syn, int32_t dt) {
     int32_t dw = 0;
-    if (dt > 0 && dt <= 64) {
+    if (dt >= 0 && dt <= STDP_WINDOW) {
         // LTP (Long-Term Potentiation)
         dw = (int32_t)(STDP_A_PLUS * expf(-(float)dt / (float)STDP_TAU_PLUS));
         if (dw < 1) dw = 1;
-    } else if (dt < 0 && dt >= -64) {
+    } else if (dt < 0 && dt >= -STDP_WINDOW) {
         // LTD (Long-Term Depression)
         int32_t abs_dt = -dt;
         dw = -(int32_t)(STDP_A_MINUS * expf(-(float)abs_dt / (float)STDP_TAU_MINUS));
         if (dw > -1) dw = -1;
+    } else {
+        return; // outside the plasticity window: no update, no write
     }
 
     int32_t new_w = (int32_t)syn->weight + dw;
     if (new_w > 127) new_w = 127;
     if (new_w < -128) new_w = -128;
     syn->weight = (int8_t)new_w;
+}
+
+// STDP weight writebacks contend with the cycle's synaptic read on the same
+// parity-interleaved bank; the access serializes into one stall cycle.
+static void note_weight_write_conflict(SNNCore *core) {
+    core->bank_conflicts++;
+    core->memory_stall_cycles++;
 }
 
 void snn_step_cycle(SNNSystem *sys) {
@@ -115,6 +130,22 @@ void snn_step_cycle(SNNSystem *sys) {
                     uint8_t bank = dst & 1;
                     core->bank_accesses[bank]++;
 
+                    // LTD with the REAL post-synaptic time: the STDP delta is
+                    // dt = t_post - t_pre. When the post neuron's most recent
+                    // fire precedes this pre event inside the window, dt < 0
+                    // and the synapse depresses (LTD). (An out-of-order
+                    // timestamp with last_post_ts > ts yields dt > 0 and
+                    // potentiates, which is consistent with post-after-pre.)
+                    if (sys->stdp_enabled && syn->last_post_ts != 0) {
+                        int32_t dt = (int32_t)syn->last_post_ts - (int32_t)ts;
+                        if (dt != 0 && dt >= -STDP_WINDOW && dt <= STDP_WINDOW) {
+                            apply_stdp(syn, dt);
+                            sys->sram_write_accesses++;
+                            note_weight_write_conflict(core);
+                        }
+                    }
+                    syn->last_pre_ts = ts;
+
                     LIFNeuron *post_nrn = &core->neurons[dst];
                     if (post_nrn->refractory_counter > 0) {
                         post_nrn->refractory_counter--;
@@ -134,10 +165,23 @@ void snn_step_cycle(SNNSystem *sys) {
                         post_nrn->total_spikes_emitted++;
                         sys->total_output_spikes++;
 
-                        // STDP adaptation
+                        // STDP adaptation: the post neuron fires at ts, so the
+                        // causal pre traces (this event's, dt = 0, and any
+                        // other pre events still inside the window) potentiate
+                        // with the real per-synapse dt.
                         if (sys->stdp_enabled) {
-                            apply_stdp(syn, ts, ts + 2);
-                            sys->sram_write_accesses++;
+                            for (uint16_t p = 0; p < core->num_neurons; p++) {
+                                Synapse *cause = &core->weights[p][dst];
+                                if (cause->weight == 0 || cause->last_pre_ts == 0) continue;
+                                int32_t dt = (int32_t)ts - (int32_t)cause->last_pre_ts;
+                                if (dt >= 0 && dt <= STDP_WINDOW) {
+                                    sys->sram_read_accesses++;
+                                    apply_stdp(cause, dt);
+                                    sys->sram_write_accesses++;
+                                    note_weight_write_conflict(core);
+                                    cause->last_post_ts = ts; // enables later LTD
+                                }
+                            }
                         }
 
                         // Inter-core or intra-core routing
@@ -186,11 +230,13 @@ void snn_step_cycle(SNNSystem *sys) {
 
 void snn_run_timesteps(SNNSystem *sys, uint32_t num_timesteps, float input_spike_probability) {
     for (uint32_t t = 0; t < num_timesteps; t++) {
-        // Inject random Poisson spikes based on input probability
+        // Inject random Poisson spikes based on input probability.
+        // Timestamps start at 1: ts == 0 is the per-synapse "no history"
+        // sentinel used by the STDP trace trackers.
         for (uint8_t c = 0; c < sys->num_cores; c++) {
             if (((float)rand() / (float)RAND_MAX) < input_spike_probability) {
                 uint16_t nid = rand() % sys->neurons_per_core;
-                snn_enqueue_spike(sys, c, nid, (uint16_t)(t & 0xFFFF));
+                snn_enqueue_spike(sys, c, nid, (uint16_t)((t + 1) & 0xFFFF));
             }
         }
         snn_step_cycle(sys);
@@ -257,6 +303,15 @@ void snn_print_report(const SNNSystem *sys) {
     printf(" Total Synaptic Ops   : %llu SOPs\n", (unsigned long long)sys->total_synaptic_ops);
     printf(" Peak Throughput      : %.4f GSOP/s\n", sys->throughput_gsops);
     printf(" SRAM Read / Write    : %llu / %llu accesses\n", (unsigned long long)sys->sram_read_accesses, (unsigned long long)sys->sram_write_accesses);
+    for (uint8_t c = 0; c < sys->num_cores; c++) {
+        const SNNCore *core = &sys->cores[c];
+        printf(" Core %u Bank Traffic  : bank0=%lu bank1=%lu | conflicts=%lu | stall cycles=%llu\n",
+               core->core_id,
+               (unsigned long)core->bank_accesses[0],
+               (unsigned long)core->bank_accesses[1],
+               (unsigned long)core->bank_conflicts,
+               (unsigned long long)core->memory_stall_cycles);
+    }
     printf(" Inter-Core Router Hops: %llu\n", (unsigned long long)sys->router_hops);
     printf(" Dynamic Energy       : %.4f nJ (%.2f pJ / Synaptic OP)\n", sys->energy_dynamic_nj, pJ_per_sop);
     printf(" Static Leakage Energy: %.4f nJ\n", sys->energy_static_nj);

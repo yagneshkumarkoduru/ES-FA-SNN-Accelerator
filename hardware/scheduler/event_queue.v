@@ -63,16 +63,6 @@ module event_queue #(
         end else begin
             pop_valid <= 1'b0;
 
-            if (do_push) begin
-                id_mem[tail_ptr] <= push_neuron_id;
-                ts_mem[tail_ptr] <= push_timestamp;
-                if (tail_ptr == DEPTH - 1) begin
-                    tail_ptr <= {PTR_W{1'b0}};
-                end else begin
-                    tail_ptr <= tail_ptr + 1'b1;
-                end
-            end
-
             if (do_pop) begin
                 pop_valid <= 1'b1;
 
@@ -87,6 +77,29 @@ module event_queue #(
                     pop_neuron_id <= id_mem[head_ptr];
                     pop_timestamp <= ts_mem[head_ptr];
                     head_ptr <= head_next;
+                end
+            end
+
+            if (do_push) begin
+                // Wrap-collision guard: when a pop (with the two-entry swap)
+                // executes in the same cycle as a push, the pop's write target
+                // (head_next) can equal the push tail slot. The pop frees the
+                // old head slot (head_ptr), so the push is redirected there
+                // instead of being overwritten by the swap. Under the current
+                // ring invariant (tail = head + count) this collision cannot
+                // occur, but the guard keeps the queue correct if the head/
+                // tail discipline is ever extended (e.g., deferred pops).
+                if (do_pop && second_is_older && (tail_ptr == head_next)) begin
+                    id_mem[head_ptr] <= push_neuron_id;
+                    ts_mem[head_ptr] <= push_timestamp;
+                end else begin
+                    id_mem[tail_ptr] <= push_neuron_id;
+                    ts_mem[tail_ptr] <= push_timestamp;
+                end
+                if (tail_ptr == DEPTH - 1) begin
+                    tail_ptr <= {PTR_W{1'b0}};
+                end else begin
+                    tail_ptr <= tail_ptr + 1'b1;
                 end
             end
 

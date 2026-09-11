@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/yagneshkumarkoduru/ES-FA-SNN-Accelerator/actions/workflows/ci.yml/badge.svg)](https://github.com/yagneshkumarkoduru/ES-FA-SNN-Accelerator/actions)
 [![Target](https://img.shields.io/badge/Architecture-Generic%20ASIC%20%7C%20Multi--FPGA-blue.svg)](#3-implementation-versions-architecture)
-[![Tier 1 RTL](https://img.shields.io/badge/Tier%201-Synthesizable%20Verilog%20RTL-059669.svg)](implementations/v1_synthesizable_rtl_verilog/)
-[![Tier 2 C99](https://img.shields.io/badge/Tier%202-C99%20Cycle--Accurate%20Sim-d97706.svg)](implementations/v2_c99_cycle_accurate_engine/)
-[![Tier 3 CSharp](https://img.shields.io/badge/Tier%203-C%23%20.NET%209%20HAL%20%26%20SD--FA-512bd4.svg)](implementations/v3_csharp_net9_hal_sd_flashattention/)
+[![Synthesizable RTL](https://img.shields.io/badge/Synthesizable%20RTL-Verilog-059669.svg)](implementations/v1_synthesizable_rtl_verilog/)
+[![C99 Engine](https://img.shields.io/badge/C99-Cycle--Accurate%20Engine-d97706.svg)](implementations/v2_c99_cycle_accurate_engine/)
+[![.NET 9 HAL & SD-FA](https://img.shields.io/badge/.NET%209-HAL%20%26%20SD--FlashAttention-512bd4.svg)](implementations/v3_csharp_net9_hal_sd_flashattention/)
 [![Theory](https://img.shields.io/badge/Theory-LIF%20%26%20STDP%20Derivations-0284c7.svg)](docs/LIF_DYNAMICS_AND_STDP_THEORY.md)
 [![Paper](https://img.shields.io/badge/Manuscript-IEEE%20TVLSI%20%2F%20TCAS--I-7c3aed.svg)](docs/paper/RESEARCH_PAPER.md)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -21,11 +21,11 @@
 Edge-deployed physical intelligence systems—such as autonomous micro-drones, quadruped robots, and active prosthetic interfaces—require milliwatt-scale sensory perception and closed-loop control under tight real-time latencies ($<10\text{ ms}$). Conventional deep neural networks (e.g., standard CNNs, MLPs) perform continuous multiply-accumulate (MAC) operations regardless of input signal variation, leading to prohibitive dynamic power consumption and thermal throttling.
 
 **ES-FA (Event-Driven Spiking FPGA/ASIC Accelerator)** resolves this bottleneck via an end-to-end hardware-software co-designed neuromorphic architecture:
-1. **Tier 1: Generic Synthesizable RTL**: Parameterizable multi-core array ([`implementations/v1_synthesizable_rtl_verilog/`](implementations/v1_synthesizable_rtl_verilog/)) with 4-stage pipelined LIF PEs, zero-bubble BRAM bank arbiters, and on-chip STDP plasticity.
-2. **Tier 2: C99 Cycle-Accurate Simulator**: High-performance ANSI C99 bit-exact engine ([`implementations/v2_c99_cycle_accurate_engine/`](implementations/v2_c99_cycle_accurate_engine/)) executing at **$59.9\text{ GSOP/s}$** with gate-level toggle energy telemetry ($3.89\text{ pJ/SOP}$).
-3. **Tier 3: .NET 9 HAL & Spike-Driven FlashAttention**: High-throughput driver ([`implementations/v3_csharp_net9_hal_sd_flashattention/`](implementations/v3_csharp_net9_hal_sd_flashattention/)) streaming **26.46 Million packets/second** with **$37.8\text{ ns}$** dispatch latency and multiplier-free transformer attention.
+1. **Synthesizable RTL**: Parameterizable multi-core array ([`implementations/v1_synthesizable_rtl_verilog/`](implementations/v1_synthesizable_rtl_verilog/)) with 4-stage pipelined LIF PEs, dual-bank BRAM arbitration, and on-chip STDP plasticity.
+2. **C99 Cycle-Accurate Engine**: High-performance ANSI C99 bit-exact engine ([`implementations/v2_c99_cycle_accurate_engine/`](implementations/v2_c99_cycle_accurate_engine/)) executing at **$59.9\text{ GSOP/s}$** with gate-level toggle energy telemetry ($4.43\text{ pJ/SOP}$).
+3. **.NET 9 HAL & Spike-Driven FlashAttention**: High-throughput driver ([`implementations/v3_csharp_net9_hal_sd_flashattention/`](implementations/v3_csharp_net9_hal_sd_flashattention/)) streaming millions of packets/second with measured sub-microsecond dispatch latency and multiplier-free transformer attention.
 4. **Comprehensive Theoretical Derivations**: Complete biophysical and VLSI mathematical proofs in [`docs/LIF_DYNAMICS_AND_STDP_THEORY.md`](docs/LIF_DYNAMICS_AND_STDP_THEORY.md).
-5. **Architectural Comparison Guide**: In-depth version matrix and benchmark analysis in [`docs/IMPLEMENTATION_VERSIONS.md`](docs/IMPLEMENTATION_VERSIONS.md).
+5. **Architectural Comparison Guide**: In-depth implementation matrix and benchmark analysis in [`docs/IMPLEMENTATION_VERSIONS.md`](docs/IMPLEMENTATION_VERSIONS.md).
 6. **Full Research Paper Manuscript**: IEEE TVLSI / TCAS-I manuscript available in LaTeX ([`docs/paper/ES_FA_SNN_Accelerator_TVLSI.tex`](docs/paper/ES_FA_SNN_Accelerator_TVLSI.tex)) and Markdown ([`docs/paper/RESEARCH_PAPER.md`](docs/paper/RESEARCH_PAPER.md)).
 
 ---
@@ -91,18 +91,18 @@ $$\mathcal{L} = \mathcal{L}_{\text{task}}(y, \hat{y}) + \lambda_{\text{sparse}} 
 
 ## 3. Implementation Versions Architecture
 
-The accelerator features three tiered implementation targets providing unified functional equivalence from standard cell ASIC synthesis to cycle-accurate system simulation and low-overhead host bridges. Complete architectural details and benchmark matrices are provided in [`docs/IMPLEMENTATION_VERSIONS.md`](docs/IMPLEMENTATION_VERSIONS.md).
+The accelerator features three implementation targets providing unified functional equivalence from standard cell ASIC synthesis to cycle-accurate system simulation and low-overhead host bridges. Complete architectural details and benchmark matrices are provided in [`docs/IMPLEMENTATION_VERSIONS.md`](docs/IMPLEMENTATION_VERSIONS.md).
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                          ES-FA MULTI-TIER ARCHITECTURE                                 │
+│                       ES-FA IMPLEMENTATION ARCHITECTURE                                │
 ├─────────────────────────┬─────────────────────────────┬────────────────────────────────┤
-│ Tier 1: Synthesizable   │ Tier 2: C99 Cycle-Accurate  │ Tier 3: .NET 9 HAL Driver &    │
-│ Verilog RTL             │ Simulation Engine           │ Spike-Driven FlashAttention    │
+│ Synthesizable RTL       │ C99 Cycle-Accurate Engine   │ .NET 9 HAL Driver &            │
+│ (Verilog)               │                             │ SD-FlashAttention              │
 ├─────────────────────────┼─────────────────────────────┼────────────────────────────────┤
 │ • 4-stage LIF PE array  │ • Bit-exact fixed-point     │ • Zero-allocation buffer pool  │
 │ • Banked BRAM arbiter   │ • Gate toggle energy model  │ • Lock-free concurrent DMA     │
-│ • On-chip STDP engine   │ • 59.9 GSOP/s throughput    │ • 26.46M packets/s streaming   │
+│ • On-chip STDP engine   │ • 59.9 GSOP/s (cycle model) │ • Packet streaming + telemetry │
 │ • 0.42 pJ/SOP (28nm)    │ • Memory contention counters│ • Multiplier-free attention    │
 │ 📁 implementations/v1_  │ 📁 implementations/v2_      │ 📁 implementations/v3_         │
 └─────────────────────────┴─────────────────────────────┴────────────────────────────────┘
@@ -110,11 +110,11 @@ The accelerator features three tiered implementation targets providing unified f
 
 ### 3.1 Implementation Matrix
 
-| Version Tier | Target Substrate | Algorithmic Formulation | Precision Mode | Primary Performance Metric | Source Code |
+| Implementation | Target Substrate | Algorithmic Formulation | Precision Mode | Primary Performance Metric | Source Code |
 | :--- | :--- | :--- | :--- | :---: | :---: |
-| **Tier 1: Synthesizable RTL** | ASIC (28nm/16nm) & FPGA (KV260) | 4-Stage Pipelined LIF + STDP Plasticity | INT16 State, INT8 Weight | **$0.42\text{ pJ/SOP}$**, $250\text{ MHz}$ | [`implementations/v1_synthesizable_rtl_verilog/`](implementations/v1_synthesizable_rtl_verilog/) |
-| **Tier 2: C99 Cycle Sim** | High-Performance Simulation & SIL | Bit-Exact Fixed-Point + BRAM Profiler | INT16 State, INT8 Weight | **$59.9\text{ GSOP/s}$**, $3.89\text{ pJ/SOP}$ | [`implementations/v2_c99_cycle_accurate_engine/`](implementations/v2_c99_cycle_accurate_engine/) |
-| **Tier 3: .NET 9 HAL & SD-FA** | Modern Edge Host & Edge Inference | Lock-free DMA Pipe + SD-FlashAttention | Zero-Alloc Span, Ternary Attention | **$26.46\text{ Mpps}$**, **$37.8\text{ ns}$** lat | [`implementations/v3_csharp_net9_hal_sd_flashattention/`](implementations/v3_csharp_net9_hal_sd_flashattention/) |
+| **Synthesizable RTL** | ASIC (28nm/16nm) & FPGA (KV260) | 4-Stage Pipelined LIF + STDP Plasticity | INT16 State, INT8 Weight | **$0.42\text{ pJ/SOP}$**, $250\text{ MHz}$ | [`implementations/v1_synthesizable_rtl_verilog/`](implementations/v1_synthesizable_rtl_verilog/) |
+| **C99 Cycle-Accurate Engine** | High-Performance Simulation & SIL | Bit-Exact Fixed-Point + BRAM Profiler | INT16 State, INT8 Weight | **$59.9\text{ GSOP/s}$**, $4.43\text{ pJ/SOP}$ | [`implementations/v2_c99_cycle_accurate_engine/`](implementations/v2_c99_cycle_accurate_engine/) |
+| **.NET 9 HAL & SD-FlashAttention** | Modern Edge Host & Edge Inference | Lock-free DMA Pipe + SD-FlashAttention | Zero-Alloc Span, Ternary Attention | **$4.8\text{ Mpps}$**, **$81.9\text{ ns}$** dispatch (measured) | [`implementations/v3_csharp_net9_hal_sd_flashattention/`](implementations/v3_csharp_net9_hal_sd_flashattention/) |
 
 ---
 
@@ -140,14 +140,16 @@ Evaluated on the $784 \to 128 \to 64 \to 10$ LIF temporal network across baselin
 
 ### 5.1 Comparative Benchmark Matrix
 
+Values below are read directly from [`results/analysis_summary.json`](results/analysis_summary.json) (energy and memory accesses are estimator-model proxies, not board power measurements):
+
 | Execution Strategy | Classification Accuracy | Spike Sparsity (%) | Active Spike Density (%) | Synaptic Memory Accesses | Relative Energy Proxy | Energy Reduction vs Baseline |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Baseline Dense (Unregularized)** | 95.70% | 56.48% | 43.52% | 86,520,400 | 22,604,295 | *Baseline* |
-| **Adaptive Dataflow (`exp5`)** | 95.70% | 56.48% | 43.52% | 43,260,200 | 45,016,894 | - |
-| **ES-FA Hardware-Aware Loss (`exp1`)** | **95.70%** | **56.48%** | **43.52%** | **17,604,665** | **4,592,863** | **79.68% Energy Reduction** |
+| **Baseline Dense (Unregularized)** | 95.70% | 56.48% | 43.52% | 112,062,995 | 22,604,296 | *Baseline* |
+| **Adaptive Dataflow (`exp5`)** | 95.70% | 56.48% | 43.52% | 224,125,990 | 45,016,895 | - |
+| **ES-FA Hardware-Aware Loss (`exp1`)** | **95.70%** | **56.48%** | **43.52%** | **17,604,666** | **4,592,863** | **79.68% Estimated Energy-Proxy Reduction** |
 
 ### 5.2 Key Empirical Findings:
-- **79.68% Dynamic Energy Reduction**: Regularizing spike frequency eliminates unnecessary synaptic read cycles, slashing memory access count from $86.5\times 10^6$ down to $17.6\times 10^6$.
+- **79.68% Estimated Energy-Proxy Reduction**: Regularizing spike frequency eliminates unnecessary synaptic read cycles, cutting the estimated memory access count from $112.1\times 10^6$ down to $17.6\times 10^6$ (a 84.29% memory-access reduction; both figures are estimator-model values, not board power).
 - **Zero Accuracy Degradation**: Retains identical $95.70\%$ test accuracy while operating under a strict $56.48\%$ sparsity regime.
 - **Cycle-Accurate Hardware Alignment**: Verilog simulation (`tb_top.v`) confirms that the event-driven advanced scheduler executes significantly fewer PE clock cycles than the synchronous round-robin baseline.
 
@@ -184,17 +186,17 @@ Combined with event-driven clock-gating, the architecture establishes a superior
 
 ## 6. Hardware Simulation & Validation Guide
 
-### 6.1 Multi-Tier Reproduction Commands
+### 6.1 Implementation Reproduction Commands
 
 ```bash
-# Tier 1: Synthesizable RTL Testbench (Icarus Verilog)
+# Synthesizable RTL Testbench (Icarus Verilog)
 iverilog -o esfa_sim implementations/v1_synthesizable_rtl_verilog/*.v
 vvp esfa_sim
 
-# Tier 2: C99 Cycle-Accurate Simulation & SD-FlashAttention Benchmark
+# C99 Cycle-Accurate Simulation & SD-FlashAttention Benchmark
 python implementations/v2_c99_cycle_accurate_engine/run_c_engine_benchmark.py
 
-# Tier 3: .NET 9 High-Performance HAL & DMA Driver Benchmark
+# .NET 9 High-Performance HAL & DMA Driver Benchmark
 dotnet run --project implementations/v3_csharp_net9_hal_sd_flashattention/ESFA.Net9.csproj -c Release
 
 # Mathematical Reference Model for SD-FlashAttention
@@ -230,24 +232,24 @@ ES-FA-SNN-Accelerator/
 │       ├── ES_FA_SNN_Accelerator_TVLSI.tex     # Complete IEEE TVLSI manuscript LaTeX
 │       └── RESEARCH_PAPER.md                   # Full IEEE journal manuscript markdown
 ├── implementations/
-│   ├── v1_synthesizable_rtl_verilog/           # Tier 1: Synthesizable Verilog RTL Core
+│   ├── v1_synthesizable_rtl_verilog/           # Synthesizable Verilog RTL Core
 │   │   ├── lif_pe_core.v                       # 4-stage pipelined LIF PE datapath
 │   │   ├── bram_bank_arbiter.v                 # Dual-bank BRAM memory arbiter
 │   │   ├── stdp_weight_updater.v               # On-chip synthesizable STDP plasticity engine
 │   │   ├── esfa_top_core.v                     # Master top-level RTL wrapper
 │   │   ├── tb_esfa_rtl.v                       # Simulation testbench
 │   │   └── README.md                           # Microarchitecture & synthesis specs
-│   ├── v2_c99_cycle_accurate_engine/           # Tier 2: ANSI C99 Bit-Exact Engine
+│   ├── v2_c99_cycle_accurate_engine/           # ANSI C99 Bit-Exact Cycle Engine
 │   │   ├── snn_engine.c / snn_engine.h         # Cycle-accurate multi-core simulator
 │   │   ├── spike_attention.c                   # Event-driven FlashAttention kernel
 │   │   ├── spike_attn_bench.exe                # Compiled native benchmark binary
 │   │   ├── run_c_engine_benchmark.py           # Automated execution & telemetry script
 │   │   └── README.md                           # C-engine architectural documentation
-│   └── v3_csharp_net9_hal_sd_flashattention/   # Tier 3: .NET 9 HAL Driver & SD-FlashAttention
+│   └── v3_csharp_net9_hal_sd_flashattention/   # .NET 9 HAL Driver & SD-FlashAttention
 │       ├── EsfaDriverNet9.cs                   # Zero-alloc lock-free DMA HAL driver
 │       ├── SpikeDrivenFlashAttention.cs        # Multiplier-free SD-FlashAttention kernel
 │       ├── Program.cs                          # Benchmark console runner
-│       ├── sd_flashattention_engine.py         # Python PyTorch/NumPy reference model
+│       ├── sd_flashattention_engine.py         # Python NumPy reference model
 │       ├── ESFA.Net9.csproj                    # .NET 9 SDK project configuration
 │       └── README.md                           # HAL driver & kernel specification
 ├── hardware/                                   # Extended modular RTL components
@@ -263,7 +265,7 @@ ES-FA-SNN-Accelerator/
 
 ## 8. Physical Intelligence Integration & Synergies
 
-- **Heterogeneous Coupling with CCE-QOS**: Pairs with [CCE-QOS](https://github.com/yagneshkumarkoduru/CCE-QOS) QUBO compiler to optimize multi-tier SRAM allocation and task scheduling across hybrid NPU/SNN heterogeneous accelerators.
+- **Heterogeneous Coupling with CCE-QOS**: Pairs with [CCE-QOS](https://github.com/yagneshkumarkoduru/CCE-QOS) QUBO compiler to optimize multi-core SRAM allocation and task scheduling across hybrid NPU/SNN heterogeneous accelerators.
 - **Ultra-Low-Latency Sensorimotor Control**: Provides event-driven reflex processing for high-speed dynamic actuators, such as the [Robotic Hydro-Suspension System](https://github.com/yagneshkumarkoduru/Robotic-Hydro-Suspension).
 - **Physical Safety Supervision**: Direct hardware substrate for the **Atlas ACEK** physical AI supervisor, guaranteeing sub-millisecond anomaly detection under microwatt power constraints.
 

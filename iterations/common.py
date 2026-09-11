@@ -1,4 +1,11 @@
-"""Helpers for structured iteration construction (v1/v2/v3)."""
+"""Helpers for staged refinement runs (initial -> combined -> refined).
+
+Each stage derives its training configuration from the results of the
+previous stage: the initial stage selects the best single experiment, the
+combined stage merges the top two experiment configurations, and the refined
+stage tunes the combined configuration with a longer schedule and a higher
+sparsity target.
+"""
 
 from __future__ import annotations
 
@@ -73,11 +80,11 @@ def _load_config(path: Path) -> Dict[str, Any]:
     return _load_json(path)
 
 
-def _merge_for_v2(cfg_a: Dict[str, Any], cfg_b: Dict[str, Any]) -> Dict[str, Any]:
+def _merge_for_combined(cfg_a: Dict[str, Any], cfg_b: Dict[str, Any]) -> Dict[str, Any]:
     out = deepcopy(cfg_a)
-    out["run_name"] = "iteration_v2"
+    out["run_name"] = "iteration_combined"
     out["category"] = "iteration"
-    out["proposal_mapping"] = "v2 combine top-2 proposal ideas"
+    out["proposal_mapping"] = "combined stage merges the top-2 experiment ideas"
 
     out["epochs"] = int(max(cfg_a.get("epochs", 5), cfg_b.get("epochs", 5)) + 1)
     out["learning_rate"] = float(min(cfg_a.get("learning_rate", 1e-3), cfg_b.get("learning_rate", 1e-3)))
@@ -120,7 +127,8 @@ def _merge_for_v2(cfg_a: Dict[str, Any], cfg_b: Dict[str, Any]) -> Dict[str, Any
     return out
 
 
-def build_v1_config(results_root: Path, experiments_root: Path) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def build_initial_config(results_root: Path, experiments_root: Path) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """Derive the initial-stage config from the best single experiment."""
     ranked = rank_experiments(load_experiment_results(results_root))
     if not ranked:
         raise RuntimeError("No experiment metrics found. Run experiments first.")
@@ -128,30 +136,32 @@ def build_v1_config(results_root: Path, experiments_root: Path) -> Tuple[Dict[st
     best_run_name = best_exp["run_name"]
     cfg_path = find_experiment_config(experiments_root, best_run_name)
     cfg = _load_config(cfg_path)
-    cfg["run_name"] = "iteration_v1"
+    cfg["run_name"] = "iteration_initial"
     cfg["category"] = "iteration"
-    cfg["proposal_mapping"] = f"v1 best single experiment selected from {best_run_name}"
+    cfg["proposal_mapping"] = f"initial stage: best single experiment selected from {best_run_name}"
     cfg["seed"] = 101
     cfg["epochs"] = int(cfg.get("epochs", 5) + 1)
     return cfg, best_exp
 
 
-def build_v2_config(results_root: Path, experiments_root: Path) -> Tuple[Dict[str, Any], List[str]]:
+def build_combined_config(results_root: Path, experiments_root: Path) -> Tuple[Dict[str, Any], List[str]]:
+    """Derive the combined-stage config by merging the top two experiments."""
     ranked = rank_experiments(load_experiment_results(results_root))
     if len(ranked) < 2:
-        raise RuntimeError("Need at least two experiments for v2 combination.")
+        raise RuntimeError("Need at least two experiments for the combined stage.")
     top1, top2 = ranked[0], ranked[1]
     cfg1 = _load_config(find_experiment_config(experiments_root, top1["run_name"]))
     cfg2 = _load_config(find_experiment_config(experiments_root, top2["run_name"]))
-    cfg = _merge_for_v2(cfg1, cfg2)
+    cfg = _merge_for_combined(cfg1, cfg2)
     return cfg, [top1["run_name"], top2["run_name"]]
 
 
-def build_v3_config(v2_config: Dict[str, Any]) -> Dict[str, Any]:
-    cfg = deepcopy(v2_config)
-    cfg["run_name"] = "iteration_v3"
+def build_refined_config(combined_config: Dict[str, Any]) -> Dict[str, Any]:
+    """Derive the refined-stage config from the combined-stage config."""
+    cfg = deepcopy(combined_config)
+    cfg["run_name"] = "iteration_refined"
     cfg["category"] = "iteration"
-    cfg["proposal_mapping"] = "v3 refined/tuned variant of v2"
+    cfg["proposal_mapping"] = "refined stage: tuned variant of the combined configuration"
     cfg["seed"] = 303
     cfg["epochs"] = int(cfg.get("epochs", 6) + 1)
     cfg["learning_rate"] = float(cfg.get("learning_rate", 1e-3) * 0.7)
@@ -174,4 +184,3 @@ def compare_metric_sets(curr: Dict[str, Any], prev: Dict[str, Any]) -> Dict[str,
         "energy_delta": float(cm["energy_proxy"] - pm["energy_proxy"]),
         "latency_delta": float(cm["latency_proxy"] - pm["latency_proxy"]),
     }
-

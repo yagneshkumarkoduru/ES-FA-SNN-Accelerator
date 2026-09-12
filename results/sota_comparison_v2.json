@@ -1,0 +1,170 @@
+{
+  "accuracy_comparison": [
+    {
+      "system": "LSTM (CPU baseline)",
+      "paper": "Cramer et al., IEEE TNNLS 2022 [1]",
+      "year": 2022,
+      "dataset": "SHD",
+      "architecture": "LSTM 256\u219220",
+      "acc_pct": 94.17,
+      "acc_std": null,
+      "n_seeds": null,
+      "energy_label": "N/A (ANN)",
+      "hardware": "CPU/GPU training",
+      "class": "PUBLISHED"
+    },
+    {
+      "system": "SRNN (rec. LIF)",
+      "paper": "Yin et al., Nature MI 2021 [2]",
+      "year": 2021,
+      "dataset": "SHD",
+      "architecture": "rec-LIF 128\u2192128\u219220",
+      "acc_pct": 92.45,
+      "acc_std": 0.46,
+      "n_seeds": 5,
+      "energy_label": "N/A (no hardware report)",
+      "hardware": "GPU simulation",
+      "class": "PUBLISHED"
+    },
+    {
+      "system": "PLIF (parametric LIF)",
+      "paper": "Fang et al., ICCV 2021 [3]",
+      "year": 2021,
+      "dataset": "SHD",
+      "architecture": "PLIF 128\u2192128\u219220",
+      "acc_pct": 92.66,
+      "acc_std": null,
+      "n_seeds": null,
+      "energy_label": "N/A (no hardware report)",
+      "hardware": "GPU simulation",
+      "class": "PUBLISHED"
+    },
+    {
+      "system": "SpyTorch LIF",
+      "paper": "Zenke & Neftci, Proc. IEEE 2021 [4]",
+      "year": 2021,
+      "dataset": "SHD",
+      "architecture": "LIF 256\u2192128\u219220",
+      "acc_pct": 83.2,
+      "acc_std": null,
+      "n_seeds": null,
+      "energy_label": "N/A",
+      "hardware": "GPU simulation",
+      "class": "PUBLISHED"
+    },
+    {
+      "system": "Dilated conv SNN (delays)",
+      "paper": "Hammouamri et al., ICLR 2024 [7]",
+      "year": 2024,
+      "dataset": "SHD",
+      "architecture": "DECOLLE + learned delays",
+      "acc_pct": 95.0,
+      "acc_std": null,
+      "n_seeds": null,
+      "energy_label": "N/A",
+      "hardware": "GPU simulation",
+      "class": "PUBLISHED"
+    },
+    {
+      "system": "ES-FA PLIF (this work)",
+      "paper": "Esthien Labs, 2026",
+      "year": 2026,
+      "dataset": "SHD",
+      "architecture": "PLIF 700\u2192256\u2192128\u219220",
+      "acc_pct": 74.263839811543,
+      "acc_std": 0.5324835488817743,
+      "n_seeds": 3,
+      "energy_label": "Energy proxy = SOP_per_inference \u00d7 4.43 pJ/SOP (4.43 pJ/SOP ",
+      "hardware": "Python simulation (ECP5 RTL target)",
+      "class": "SIMULATION (this work)"
+    },
+    {
+      "system": "snntorch Leaky (baseline)",
+      "paper": "Eshraghian et al., Proc.IEEE 2023",
+      "year": 2023,
+      "dataset": "SHD",
+      "architecture": "Leaky 700\u2192256\u2192128\u219220",
+      "acc_pct": 70.02355712603062,
+      "acc_std": 2.1027394888706072,
+      "n_seeds": 3,
+      "energy_label": "N/A",
+      "hardware": "Python simulation",
+      "class": "SIMULATION (this work)"
+    }
+  ],
+  "hardware_comparison": [
+    {
+      "system": "Intel Loihi 1",
+      "paper": "Davies et al., IEEE Micro 2018 [A]",
+      "year": 2018,
+      "hardware": "130nm Intel neuromorphic ASIC",
+      "energy_pj_per_sop": 11.0,
+      "energy_label": "~11 pJ/SOP (MEASURED, silicon)",
+      "class": "MEASURED (published)",
+      "note": "Approximate from reported 10 TOPS/W at 1V."
+    },
+    {
+      "system": "Intel Loihi 2",
+      "paper": "Orchard et al., ISSCC 2022 [B]",
+      "year": 2022,
+      "hardware": "Intel 4 process neuromorphic ASIC",
+      "energy_pj_per_sop": 3.0,
+      "energy_label": "~2.5-4 pJ/SOP (MEASURED, silicon)",
+      "class": "MEASURED (published)",
+      "note": "Best-case from reported 15+ TOPS/W figures."
+    },
+    {
+      "system": "FireFly (FPGA)",
+      "paper": "Li et al., IEEE TCAS-I 2023 [C]",
+      "year": 2023,
+      "hardware": "Xilinx Alveo U250 FPGA",
+      "energy_pj_per_sop": 8.2,
+      "energy_label": "~8.2 pJ/SOP (MEASURED, FPGA)",
+      "class": "MEASURED (published)",
+      "note": "5.37 TOPS/W; SOP/s from reported throughput."
+    },
+    {
+      "system": "TiC-SNN",
+      "paper": "Peng et al., DAC 2023 [E]",
+      "year": 2023,
+      "hardware": "GPU tensor-core accelerator",
+      "energy_pj_per_sop": 5.0,
+      "energy_label": "~5 pJ/SOP (MEASURED, GPU)",
+      "class": "MEASURED (published)",
+      "note": "10.5 TOPS/W reported; back-calculated."
+    },
+    {
+      "system": "ES-FA (this work)",
+      "paper": "Esthien Labs, 2026",
+      "year": 2026,
+      "hardware": "ECP5 FPGA (pending KV260 validation)",
+      "energy_pj_per_sop": 4.43,
+      "energy_label": "MODEL (C-engine estimator, 4.43 pJ/SOP base; NOT board-measured)",
+      "class": "MODEL (C-engine estimator)",
+      "note": "Energy = SOP_per_inference \u00d7 4.43 pJ/SOP (c_engine/c_benchmark_results.json event-mode). Board power on KV260 is FUTURE WORK - see EVIDENCE.md."
+    }
+  ],
+  "esfa_aggregate": {
+    "n_seeds": 3,
+    "seeds": [
+      42,
+      123,
+      999
+    ],
+    "test_acc_mean": 0.7426383981154299,
+    "test_acc_std": 0.005324835488817743,
+    "test_acc_max": 0.7482332155477032,
+    "test_acc_min": 0.7376325088339223,
+    "test_acc_pct_mean": 74.263839811543,
+    "test_acc_pct_std": 0.5324835488817743,
+    "sop_per_sample_mean": 2146519.8005401236,
+    "sop_per_sample_std": 26271.202876357773,
+    "sop_reduction_pct_mean": 92.85301485606901,
+    "energy_proxy_pj_mean": 9509082.716392746,
+    "energy_proxy_pj_std": 116381.42874226437,
+    "hidden1_sparsity_mean": 0.9162488759089609,
+    "hidden2_sparsity_mean": 0.7194190454230737,
+    "energy_model_note": "Energy proxy = SOP_per_inference \u00d7 4.43 pJ/SOP (4.43 pJ/SOP from ES-FA C-engine event-mode model, c_engine/c_benchmark_results.json). NOT a board measurement. Label as MODEL in any paper."
+  },
+  "class_note": "PUBLISHED = from paper (not re-measured). SIMULATION = trained by this project on matching hardware. MODEL = analytical estimate, not board power. MEASURED = silicon or FPGA board measurement."
+}

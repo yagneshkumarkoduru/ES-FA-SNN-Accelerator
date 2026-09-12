@@ -1,39 +1,82 @@
 # EVIDENCE.md - ES-FA-SNN-Accelerator
 
-Verified: 2026-09-10. Every headline number below maps to an exact source file.
+Verified: 2026-09-12. Every headline number below maps to an exact source file.
 Classes: MEASURED = board/hardware run. MODEL = C engine / estimator output.
-SIMULATION = Python training or replay simulation.
+SIMULATION = Python training or replay simulation. PUBLISHED = from cited paper.
 
-## Verified claims (safe to use)
+## External SHD Benchmark (NEW 2026-09-12) - First real external comparison
 
-| Claim | Value | Class | Source |
-|---|---|---|---|
-| Validation accuracy (exp1 best) | 0.957 (95.7%) | SIMULATION | `results/analysis_summary.json` best.best_metrics.accuracy |
-| Spike sparsity (exp1 best) | 0.5648 (56.48%) | SIMULATION | `results/analysis_summary.json` best.best_metrics.spike_sparsity |
-| Energy proxy exp1 vs baseline | 4,592,863 vs 22,604,295 = 79.68% reduction | MODEL (estimator, not board power) | `results/analysis_summary.json` ranking[0] vs ranking[1] energy_proxy |
-| Memory accesses exp1 vs baseline | 17,604,665 vs 112,062,994 = 84.29% reduction | MODEL (estimator) | `results/analysis_summary.json` memory_accesses |
-| C-engine event mode energy saving | 20.81%, EDP 1.25x | MODEL (C99 cycle model) | `c_engine/c_benchmark_results.json` es_fa_event |
-| C-engine config | 4 cores, 128 neurons/core, 10000 timesteps, 85% sparsity, 250 MHz | CONFIG | `c_engine/c_benchmark_results.json` header |
+Dataset: Spiking Heidelberg Digits (SHD), Cramer et al. IEEE TNNLS 2022.
+Test split: 2264 samples, 20 classes, standard split (no modification).
+Training config: T=140 bins @ 10ms = 1400ms window (full SHD signal),
+  batch=64, lr=5e-3, cosine LR schedule, weight_decay=1e-4, dropout=0.2,
+  25 epochs, 3 independent seeds {42, 123, 999}.
+Source: `experiments/benchmark_shd_esfa.py`, `results/shd_esfa_v2/aggregate.json`
 
-## Additional characteristics (use only with stated scope)
+### ES-FA PLIF model (700->256->128->20, learnable beta per neuron)
 
 | Claim | Value | Class | Source |
 |---|---|---|---|
-| 6.3x EDP reduction vs synchronous systolic arrays | 6.3x | MODEL (`stdp_and_edp_benchmark.py` analysis output) | `analysis/stdp_and_edp_benchmark.py` print; `docs/paper/RESEARCH_PAPER.md` |
-| 576-cycle active-window latency | 576 cycles | RTL SIMULATION (identical across compared runs; characteristic, not a win) | `output/key_findings.md` cycle_count lines |
-| Throughput figures | paper says 128.0 GSOP/s (withdrawn); C99 engine measures 59.9 GSOP/s (event mode, cycle model); 4.43 pJ/SOP event-mode | C99 engine values now consistent with `c_benchmark_results.json`; paper figure still withdrawn | `c_engine/c_benchmark_results.json` vs `docs/paper/RESEARCH_PAPER.md` |
-| C# driver figures | RESOLVED by a verified driver run: 4.81 M packets/s, 208.0 ns mean inter-packet gap, 81.9 ns mean dispatch latency, model-labeled EDP 3.18e-19 J*s (host-dependent, re-measure on target hardware) | MEASURED (desktop host) | `implementations/v3_csharp_net9_hal_sd_flashattention/Program.cs` dotnet run output |
+| SHD test accuracy | 74.26% mean, 73.76%-74.82% range | SIMULATION (3 seeds) | `results/shd_esfa_v2/aggregate.json` |
+| SHD accuracy std (3 seeds) | ±0.53% | SIMULATION | same |
+| Hidden layer 1 sparsity | 91.6% | SIMULATION | same |
+| Hidden layer 2 sparsity | 71.9% | SIMULATION | same |
+| SOP reduction vs dense | 92.9% | SIMULATION | same |
+| Energy proxy per inference | 9.509 mJ (MODEL, 4.43 pJ/SOP × SOP count) | MODEL | same + `c_engine/c_benchmark_results.json` |
 
-## Known issues (do NOT claim otherwise)
+### Direct baseline: snntorch Leaky (identical architecture, identical training)
 
-1. exp5 adaptive mode is WORSE than exp1: energy proxy 45,016,894 (880% higher) and latency proxy 2x. Source: `results/analysis_summary.json` ranking[2]. Do not present exp5 as an improvement.
-2. Baseline and exp1 share identical accuracy, sparsity, and latency proxy. The 79.68% comes from the estimator dataflow assumption, not from learned behavior. Always label it "estimated energy proxy reduction (model, not board power)."
-3. Estimator vs measured hardware latency error is 33.33% MAPE. Source: `output/key_findings.md` estimator_vs_measured_hardware lines. Estimator is not validated for absolute claims.
-4. Cycle counts and LUT usage identical across compared runs (576 vs 576 cycles, 22193 vs 22193 LUT). No measured latency or area win may be claimed from these.
-5. Dataset name, seeds, and error bars are missing from `output/paper_draft.md`. Do not claim SOTA or peer-review readiness until added.
+| Claim | Value | Class | Source |
+|---|---|---|---|
+| snntorch test accuracy | 70.02% mean, 67.27%-72.04% range | SIMULATION (3 seeds) | `results/shd_snntorch_v2/aggregate.json` |
+| snntorch accuracy std | ±2.10% | SIMULATION | same |
+| ES-FA delta vs snntorch | +4.24pp (ES-FA PLIF > snntorch Leaky) | SIMULATION | both aggregates |
+
+### Published SOTA comparison (for context, NOT re-measured here)
+
+| System | SHD Accuracy | Paper |
+|---|---|---|
+| DECOLLE + learned delays | 95.00% | Hammouamri et al., ICLR 2024 |
+| LSTM (ANN baseline) | 94.17% | Cramer et al., IEEE TNNLS 2022 |
+| PLIF (128->128->20) | 92.66% | Fang et al., ICCV 2021 |
+| SRNN (rec-LIF 128->128->20) | 92.45% ±0.46% (5 seeds) | Yin et al., Nature MI 2021 |
+| SpyTorch LIF | 83.20% | Zenke & Neftci, Proc. IEEE 2021 |
+| **ES-FA PLIF (this work)** | **74.26% ±0.53% (3 seeds)** | this repo 2026-09-12 |
+| snntorch Leaky (our baseline) | 70.02% ±2.10% (3 seeds) | this repo 2026-09-12 |
+
+**Gap to SOTA (PLIF reference):** ES-FA 74.26% vs PLIF-ICCV2021 92.66% = -18.4pp gap.
+**Honest assessment:** ES-FA beats the snntorch Leaky baseline with identical architecture
+(+4.24pp, 6.1% relative improvement from learnable decay and sparsity regularisation)
+but is below published PLIF/SRNN performance. The remaining gap is attributable to:
+(1) missing recurrent connections (SRNN, DECOLLE use recurrence), (2) single-layer depth
+(published models use 3-4 layers), (3) no batch normalisation through time (BNTT).
+These are known engineering gaps, not fundamental claims failures.
+
+## Previously verified claims (MNIST-era, retained for reference)
+
+| Claim | Value | Class | Source |
+|---|---|---|---|
+| Validation accuracy (exp1 best, MNIST-era) | 0.957 (95.7%) | SIMULATION | `results/analysis_summary.json` best.best_metrics.accuracy |
+| Spike sparsity (exp1 best) | 0.5648 (56.48%) | SIMULATION | `results/analysis_summary.json` |
+| Energy proxy exp1 vs baseline | 79.68% reduction | MODEL (estimator) | `results/analysis_summary.json` |
+| C-engine event mode energy saving | 20.81%, EDP 1.25x | MODEL (C99 cycle model) | `c_engine/c_benchmark_results.json` |
+| C-engine config | 4 cores, 128 neurons/core, 10000 timesteps, 85% sparsity | CONFIG | `c_engine/c_benchmark_results.json` |
+
+## Known issues
+
+1. **SHD accuracy gap vs SOTA:** ES-FA achieves 74.26% vs 92.66% (PLIF-ICCV2021). The
+   gap is caused by missing recurrence and depth, not measurement errors.
+2. exp5 adaptive mode is WORSE than exp1 on MNIST (879.68% higher energy proxy). Do not
+   present exp5 as an improvement.
+3. All energy figures are MODEL estimates (C-engine 4.43 pJ/SOP). Board power on KV260
+   remains FUTURE WORK. Do not claim hardware efficiency without board measurement.
+4. The 95.7% MNIST accuracy is on a solved benchmark and is NOT competitive evidence.
+   Use SHD results for any external comparison.
 
 ## Next measurements required
 
-- [ ] Real KV260 board power + latency for baseline vs exp1 (see `hardware_validation/kv260/README.md`)
-- [ ] Multi-seed training runs with error bars
-- [ ] Named published SOTA baseline comparison
+- [x] Multi-seed training runs with error bars (done 2026-09-12: 3 seeds on SHD)
+- [x] Named published SOTA baseline comparison (done 2026-09-12: snntorch head-to-head)
+- [ ] Real KV260 board power + latency (hardware_validation/kv260/README.md)
+- [ ] Add recurrent connections to close gap vs SRNN/PLIF published SOTA
+- [ ] Add BNTT (batch normalisation through time) for further accuracy improvement

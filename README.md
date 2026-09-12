@@ -296,8 +296,7 @@ ES-FA-SNN-Accelerator/
 ## 9. Author & Citation
 
 **Yagnesh Kumar Koduru**  
-*Researcher & Systems Architect*  
-Esthien Labs  
+*Independent Researcher & Systems Architect*  
 GitHub: [@yagneshkumarkoduru](https://github.com/yagneshkumarkoduru)  
 Portfolio: [yagneshkumarkoduru.vercel.app](https://yagneshkumarkoduru.vercel.app/)  
 

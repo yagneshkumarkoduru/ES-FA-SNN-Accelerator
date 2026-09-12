@@ -10,7 +10,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Author:** [Yagnesh Kumar Koduru](https://github.com/yagneshkumarkoduru)  
-**Affiliation:** Esthien Labs  
+**Independent Research**  
 **Domain:** Neuromorphic Computing, Hardware-Software Co-Design, Edge AI Acceleration  
 **Platform:** Parameterizable Multi-Core ASIC (28nm/7nm standard cell) / Xilinx Kria KV260 / Generic FPGA  
 

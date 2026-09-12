@@ -1,0 +1,22 @@
+{
+  "n_seeds": 3,
+  "seeds": [
+    42,
+    123,
+    999
+  ],
+  "test_acc_mean": 0.7580977620730271,
+  "test_acc_std": 0.00982049831899429,
+  "test_acc_max": 0.769434628975265,
+  "test_acc_min": 0.752208480565371,
+  "test_acc_pct_mean": 75.80977620730272,
+  "test_acc_pct_std": 0.982049831899429,
+  "sop_per_sample_mean": 3519446.871334877,
+  "sop_per_sample_std": 61055.14736955011,
+  "sop_reduction_pct_mean": 88.28175985241062,
+  "energy_proxy_pj_mean": 15591149.640013501,
+  "energy_proxy_pj_std": 270474.3028471072,
+  "hidden1_sparsity_mean": 0.6337206226597808,
+  "hidden2_sparsity_mean": 0.5050689939468628,
+  "energy_model_note": "Energy proxy = SOP_per_inference \u00d7 4.43 pJ/SOP (4.43 pJ/SOP from ES-FA C-engine event-mode model, c_engine/c_benchmark_results.json). NOT a board measurement. Label as MODEL in any paper."
+}

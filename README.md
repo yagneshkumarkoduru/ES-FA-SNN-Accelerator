@@ -136,51 +136,73 @@ The synthesizable RTL implementation is structured into modular hardware subsyst
 
 ## 5. Quantitative Experimental Results
 
-Evaluated on the $784 \to 128 \to 64 \to 10$ LIF temporal network across baseline dense execution, hardware-aware regularization (`exp1`), and runtime dataflow adaptation (`exp5`):
+### 5.1 SHD (Spiking Heidelberg Digits) - Standard Neuromorphic Benchmark
 
-### 5.1 Comparative Benchmark Matrix
+Evaluated on the **Spiking Heidelberg Digits (SHD)** test set (2,264 samples, 20 classes).
+All runs: T=140 time bins @ 10 ms = 1400 ms full signal window, 3 seeds, batch=64.
+Dataset: Cramer et al., IEEE TNNLS 2022. See [`EVIDENCE.md`](EVIDENCE.md) for full provenance.
 
-Values below are read directly from [`results/analysis_summary.json`](results/analysis_summary.json) (energy and memory accesses are estimator-model proxies, not board power measurements):
+#### 5.1.1 Accuracy vs Published SOTA
 
-| Execution Strategy | Classification Accuracy | Spike Sparsity (%) | Active Spike Density (%) | Synaptic Memory Accesses | Relative Energy Proxy | Energy Reduction vs Baseline |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Baseline Dense (Unregularized)** | 95.70% | 56.48% | 43.52% | 112,062,995 | 22,604,296 | *Baseline* |
-| **Adaptive Dataflow (`exp5`)** | 95.70% | 56.48% | 43.52% | 224,125,990 | 45,016,895 | - |
-| **ES-FA Hardware-Aware Loss (`exp1`)** | **95.70%** | **56.48%** | **43.52%** | **17,604,666** | **4,592,863** | **79.68% Estimated Energy-Proxy Reduction** |
+| System | SHD Accuracy | Architecture | Class |
+|:---|:---:|:---|:---:|
+| DECOLLE + learned delays | 95.00% | Spiking conv + delays | PUBLISHED (Hammouamri et al., ICLR 2024) |
+| LSTM baseline (ANN) | 94.17% | LSTM 256→20 | PUBLISHED (Cramer et al., TNNLS 2022) |
+| PLIF | 92.66% | PLIF 128→128→20 | PUBLISHED (Fang et al., ICCV 2021) |
+| SRNN (rec. LIF) | 92.45% ±0.46% | rec-LIF 128→128→20 | PUBLISHED (Yin et al., Nature MI 2021) |
+| SpyTorch LIF | 83.20% | LIF 256→128→20 | PUBLISHED (Zenke & Neftci, 2021) |
+| **ES-FA RPLIF (this work)** | **77.87% ±1.10%** | **RPLIF 700→256→128→20** | **SIMULATION (3 seeds, 2026-09-12)** |
+| **ES-FA PLIF (this work)** | **74.26% ±0.53%** | **PLIF 700→256→128→20** | **SIMULATION (3 seeds, 2026-09-12)** |
+| snntorch Leaky (our baseline) | 70.02% ±2.10% | Leaky 700→256→128→20 | SIMULATION (3 seeds, 2026-09-12) |
 
-### 5.2 Key Empirical Findings:
-- **79.68% Estimated Energy-Proxy Reduction**: Regularizing spike frequency eliminates unnecessary synaptic read cycles, cutting the estimated memory access count from $112.1\times 10^6$ down to $17.6\times 10^6$ (a 84.29% memory-access reduction; both figures are estimator-model values, not board power).
-- **Zero Accuracy Degradation**: Retains identical $95.70\%$ test accuracy while operating under a strict $56.48\%$ sparsity regime.
-- **Cycle-Accurate Hardware Alignment**: Verilog simulation (`tb_top.v`) confirms that the event-driven advanced scheduler executes significantly fewer PE clock cycles than the synchronous round-robin baseline.
+**ES-FA RPLIF beats snntorch Leaky baseline by +7.85pp** on identical architecture.
+**ES-FA PLIF beats snntorch Leaky by +4.24pp** from learnable decay (PLIF).
+**ES-FA RPLIF beats PLIF by +3.61pp** from recurrent connections.
+Gap to published SRNN: -14.58pp (addressable with ALIF + BNTT - see roadmap).
 
-### 5.3 Visual Evidence & Performance Curves
+#### 5.1.2 Hardware Efficiency (Energy-Delay Product)
 
-<p align="center">
-  <img src="results/plots/accuracy_vs_energy.png" alt="Accuracy vs Energy" width="48%" />
-  <img src="results/plots/sparsity_vs_accuracy.png" alt="Sparsity vs Accuracy" width="48%" />
-</p>
+All energy figures are **MODEL estimates** from the C-engine (4.43 pJ/SOP event-mode).
+Board measurement on KV260 is FUTURE WORK. See [`EVIDENCE.md`](EVIDENCE.md).
 
-<p align="center">
-  <img src="results/plots/adaptive_vs_static.png" alt="Adaptive vs Static" width="48%" />
-  <img src="results/plots/training_curves.png" alt="Training Curves" width="48%" />
-</p>
+| System | pJ/SOP | Source | Class |
+|:---|:---:|:---|:---:|
+| Intel Loihi 2 | ~3.0 | Orchard et al., ISSCC 2022 | MEASURED (ASIC silicon) |
+| **ES-FA (this work)** | **4.43** | C-engine event mode | **MODEL (C99 cycle estimator)** |
+| TiC-SNN | ~5.0 | Peng et al., DAC 2023 | MEASURED (GPU) |
+| FireFly (FPGA) | ~8.2 | Li et al., IEEE TCAS-I 2023 | MEASURED (FPGA) |
+| Intel Loihi 1 | ~11.0 | Davies et al., IEEE Micro 2018 | MEASURED (ASIC silicon) |
 
-### 5.4 On-Chip STDP Learning & Energy-Delay Product (EDP) Frontier
+**ES-FA energy model (4.43 pJ/SOP) is between Loihi 2 and TiC-SNN** on the hardware
+efficiency table. Validation on real FPGA hardware would confirm this positioning.
 
-To support continuous edge adaptation without host CPU intervention, we co-designed an on-chip fixed-point **Spike-Timing-Dependent Plasticity (STDP)** engine ([`implementations/v1_synthesizable_rtl_verilog/stdp_weight_updater.v`](implementations/v1_synthesizable_rtl_verilog/stdp_weight_updater.v)) implementing bi-exponential synaptic weight updates:
+#### 5.1.3 Sparsity and SOP Reduction
 
-$$\Delta W_{ij} = \begin{cases} A_+ \exp\left(-\frac{\Delta t}{\tau_+}\right), & \Delta t > 0 \quad (\text{LTP}) \\ -A_- \exp\left(\frac{\Delta t}{\tau_-}\right), & \Delta t < 0 \quad (\text{LTD}) \end{cases}$$
+| Model | H1 Sparsity | H2 Sparsity | SOP Reduction vs Dense |
+|:---|:---:|:---:|:---:|
+| ES-FA RPLIF (this work) | 70.8% | 51.1% | **89.4%** |
+| ES-FA PLIF (this work) | 91.6% | 71.9% | **92.9%** |
+| snntorch Leaky (baseline) | ~90% | ~72% | ~92.5% |
 
-Combined with event-driven clock-gating, the architecture establishes a superior **Energy-Delay Product (EDP = Energy $\times$ Latency)** operating frontier:
+### 5.2 Comparative Benchmark Matrix (MNIST-era, retained for reference)
 
-<p align="center">
-  <img src="results/plots/fig_stdp_weight_adaptation.png" alt="STDP Learning Window" width="48%" />
-  <img src="results/plots/fig_edp_energy_delay_product.png" alt="EDP Benchmark vs Systolic Array" width="48%" />
-</p>
+The original MNIST benchmark (784→128→64→10 LIF network) is retained for
+comparison against the original baseline. **For external comparisons, use SHD results above.**
 
-#### Neuromorphic Hardware Verdict:
-- **Energy-Delay Product Efficiency**: Achieves a **$6.3\times$ reduction in EDP** compared to synchronous INT8 systolic arrays on representative edge perception workloads.
-- **On-Chip Plasticity**: Verified synthesizable Verilog module performs single-cycle correlation window checking ($\tau_+ = 16.8\,\text{ms}, \tau_- = 22.4\,\text{ms}$) under strict $Q1.7$ fixed-point saturating arithmetic.
+| Execution Strategy | Accuracy | Spike Sparsity | Synaptic Memory Accesses | Energy Proxy | Reduction |
+|:---|:---:|:---:|:---:|:---:|:---:|
+| Baseline Dense | 95.70% | 56.48% | 112,062,995 | 22,604,296 | *Baseline* |
+| **ES-FA Hardware-Aware (`exp1`)** | **95.70%** | **56.48%** | **17,604,666** | **4,592,863** | **79.68% (MODEL)** |
+
+Values are estimator-model proxies, not board power. See [`EVIDENCE.md`](EVIDENCE.md).
+
+### 5.3 EDP Frontier and On-Chip STDP
+
+Combined with event-driven clock-gating, the architecture establishes a superior
+**Energy-Delay Product (EDP)** operating frontier:
+
+- **$6.3\times$ EDP reduction** vs synchronous INT8 systolic arrays (MODEL output from `analysis/stdp_and_edp_benchmark.py`)
+- **On-chip STDP plasticity**: single-cycle $\pm 32$-cycle window, $Q1.7$ fixed-point
 
 ---
 

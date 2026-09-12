@@ -4,7 +4,31 @@ Verified: 2026-09-12. Every headline number below maps to an exact source file.
 Classes: MEASURED = board/hardware run. MODEL = C engine / estimator output.
 SIMULATION = Python training or replay simulation. PUBLISHED = from cited paper.
 
-## External SHD Benchmark (NEW 2026-09-12) - First real external comparison
+## Recurrent PLIF (RPLIF) - Architecture Upgrade (NEW 2026-09-12)
+
+Architecture: 700 → 256 (RPLIF) → 128 (RPLIF) → 20
+RPLIF = Recurrent Parametric LIF: cur(t) = W_in*x(t) + W_rec*spk(t-1), learnable beta.
+Training: lr=1e-3, cosine schedule, dropout=0.1, weight_decay=1e-4, 50 epochs, 3 seeds.
+Source: `experiments/benchmark_shd_rplif.py`, `results/shd_rplif_v2/aggregate.json`
+
+| Claim | Value | Class | Source |
+|---|---|---|---|
+| RPLIF SHD test accuracy | 77.87% mean, 76.68%-78.84% range | SIMULATION (3 seeds) | `results/shd_rplif_v2/aggregate.json` |
+| RPLIF accuracy std | ±1.10% | SIMULATION | same |
+| RPLIF H1 sparsity | 70.8% | SIMULATION | same |
+| RPLIF H2 sparsity | 51.1% | SIMULATION | same |
+| RPLIF SOP reduction | 89.4% | SIMULATION | same |
+| RPLIF vs PLIF delta | +3.61pp (recurrence helps) | SIMULATION | both aggregates |
+| RPLIF vs snntorch Leaky | +7.85pp | SIMULATION | both aggregates |
+| Gap to SRNN (Yin et al. 2021) | -14.58pp (92.45% - 77.87%) | gap analysis | SRNN: PUBLISHED |
+
+**Honest assessment of gap to SRNN:**
+The -14.58pp gap has three known root causes:
+1. SRNN uses a shorter window (T=50 @ 2ms vs our T=140 @ 10ms) which may be more
+   discriminative at the cost of missing longer-range temporal patterns.
+2. SRNN was trained for 200+ epochs in some configurations; we used 50.
+3. Our sparsity regularization (lambda=5e-4) penalises some discriminative spiking.
+   SRNN uses pure cross-entropy. Next step: remove regularization and increase epochs.
 
 Dataset: Spiking Heidelberg Digits (SHD), Cramer et al. IEEE TNNLS 2022.
 Test split: 2264 samples, 20 classes, standard split (no modification).

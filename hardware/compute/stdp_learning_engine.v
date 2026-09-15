@@ -1,7 +1,7 @@
 // =============================================================================
 // Module: stdp_learning_engine.v
 // Project: ES-FA (Event-Driven Spiking FPGA Accelerator)
-// Author: Yagnesh Kumar Koduru
+// Author: Koduru Yagnesh Kumar
 // Domain: On-Chip Unsupervised Synaptic Plasticity, Neuromorphic Hardware
 // Description: Synthesizable fixed-point Spike-Timing-Dependent Plasticity (STDP)
 //              engine for local on-chip weight adaptation (LTP / LTD).

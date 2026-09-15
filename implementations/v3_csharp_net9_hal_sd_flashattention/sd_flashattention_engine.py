@@ -3,7 +3,7 @@
 =============================================================================
 Spike-Driven FlashAttention (SD-FlashAttention) Mathematical Reference
 Project: ES-FA Neuromorphic Accelerator (.NET 9 HAL & SD-FlashAttention)
-Author: Yagnesh Kumar Koduru (Esthien Labs)
+Author: Koduru Yagnesh Kumar
 =============================================================================
 """
 
@@ -25,7 +25,7 @@ def sd_attention(s_q, s_k, values, head_dim):
 def run_sd_flashattention_benchmark(seq_len=256, head_dim=64, num_heads=4, sparsity=0.85):
     print("=" * 70)
     print("  SPIKE-DRIVEN FLASHATTENTION MATHEMATICAL REFERENCE BENCHMARK")
-    print("  Author: Yagnesh Kumar Koduru | Esthien Labs")
+    print("  Author: Koduru Yagnesh Kumar               ")
     print("=" * 70)
     
     np.random.seed(42)

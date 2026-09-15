@@ -1,8 +1,8 @@
 # ES-FA: A Parameterizable Event-Driven Spiking Neural Network Accelerator with On-Chip STDP Learning and Banked Synaptic Memory for Edge Physical Intelligence
 
-**Author:** Yagnesh Kumar Koduru  
-**Affiliation:** Esthien Labs  
-**Contact:** `yagneshkumar@esthien.com`  
+**Author:** Koduru Yagnesh Kumar  
+**Affiliation:** Independent Researcher  
+**Contact:** `yagneshkumarkoduru@gmail.com`  
 **Target Publication Venue:** IEEE Transactions on Very Large Scale Integration Systems (TVLSI) / IEEE TCAS-I  
 
 ---

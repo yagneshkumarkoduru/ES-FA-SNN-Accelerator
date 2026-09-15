@@ -1,7 +1,7 @@
 // =============================================================================
 // Module: stdp_weight_updater.v
 // Architecture: ES-FA Synthesizable RTL
-// Author: Yagnesh Kumar Koduru (Esthien Labs)
+// Author: Koduru Yagnesh Kumar
 // Description: Synthesizable Spike-Timing-Dependent Plasticity (STDP) Weight
 //              Updater with bounded symmetric/asymmetric Hebbian adaptation.
 // =============================================================================

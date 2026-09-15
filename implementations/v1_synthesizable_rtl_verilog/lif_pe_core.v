@@ -1,7 +1,7 @@
 // =============================================================================
 // Module: lif_pe_core.v
 // Architecture: ES-FA Synthesizable RTL
-// Author: Yagnesh Kumar Koduru (Esthien Labs)
+// Author: Koduru Yagnesh Kumar
 // Description: 4-stage pipelined Leaky Integrate-and-Fire (LIF) neuron PE.
 //              Stage 1: State Latch & Synaptic Weight Fetch
 //              Stage 2: Shift-and-Subtract Leak & Synaptic Accumulation

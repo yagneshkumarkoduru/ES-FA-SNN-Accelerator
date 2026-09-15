@@ -1,7 +1,7 @@
 // =============================================================================
 // Module: bram_bank_arbiter.v
 // Architecture: ES-FA Synthesizable RTL
-// Author: Yagnesh Kumar Koduru (Esthien Labs)
+// Author: Koduru Yagnesh Kumar
 // Description: Dual-bank synchronous BRAM arbiter resolving concurrent access
 //              between spike-driven PE weight reads (port 0) and STDP
 //              writebacks (port 1). Bank assignment is fixed by address LSB

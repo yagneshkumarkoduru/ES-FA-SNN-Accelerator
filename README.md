@@ -9,7 +9,7 @@
 [![Paper](https://img.shields.io/badge/Manuscript-IEEE%20TVLSI%20%2F%20TCAS--I-7c3aed.svg)](docs/paper/RESEARCH_PAPER.md)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Author:** [Yagnesh Kumar Koduru](https://github.com/yagneshkumarkoduru)  
+**Author:** [Koduru Yagnesh Kumar](https://github.com/yagneshkumarkoduru)  
 **Independent Research**  
 **Domain:** Neuromorphic Computing, Hardware-Software Co-Design, Edge AI Acceleration  
 **Platform:** Parameterizable Multi-Core ASIC (28nm/7nm standard cell) / Xilinx Kria KV260 / Generic FPGA  
@@ -295,8 +295,7 @@ ES-FA-SNN-Accelerator/
 
 ## 9. Author & Citation
 
-**Yagnesh Kumar Koduru**  
-*Independent Researcher & Systems Architect*  
+**Koduru Yagnesh Kumar**  
 GitHub: [@yagneshkumarkoduru](https://github.com/yagneshkumarkoduru)  
 Portfolio: [yagneshkumarkoduru.vercel.app](https://yagneshkumarkoduru.vercel.app/)  
 

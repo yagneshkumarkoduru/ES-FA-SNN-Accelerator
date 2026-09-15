@@ -31,8 +31,8 @@
 //              approximation error is bounded by construction (each class is
 //              within [1/2, 1] of its target weight) and shrinks as d_k grows.
 //
-// Author:      Yagnesh Kumar Koduru
-// Affiliation: Researcher | Esthien Labs
+// Author:      Koduru Yagnesh Kumar
+// Affiliation: Independent Researcher
 // Target:      Generic ASIC (TSMC 28nm/16nm) & Modern FPGA (AMD Versal/UltraScale+)
 // ============================================================================
 

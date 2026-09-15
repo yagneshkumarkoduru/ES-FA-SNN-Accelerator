@@ -1,7 +1,7 @@
 // =============================================================================
 // Module: tb_esfa_rtl.v
 // Architecture: ES-FA Synthesizable RTL Verification Testbench
-// Author: Yagnesh Kumar Koduru (Esthien Labs)
+// Author: Koduru Yagnesh Kumar
 // Description: Testbench verifying pipelined LIF accumulation across events
 //              (membrane state persistence), threshold firing through the
 //              dual-bank weight arbiter, and STDP weight writeback under

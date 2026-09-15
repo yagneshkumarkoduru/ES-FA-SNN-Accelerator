@@ -1,7 +1,7 @@
 // =============================================================================
 // Module: esfa_top_core.v
 // Architecture: ES-FA Synthesizable RTL Top-Level Core
-// Author: Yagnesh Kumar Koduru (Esthien Labs)
+// Author: Koduru Yagnesh Kumar
 // Description: Fully synthesizable neuromorphic accelerator top-level core
 //              integrating the 4-stage pipelined LIF PE, a dual-bank weight
 //              memory driven through the bank arbiter (PE reads on port 0,

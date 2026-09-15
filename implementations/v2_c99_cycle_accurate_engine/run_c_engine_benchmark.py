@@ -3,7 +3,7 @@
 =============================================================================
 Run the C99 Cycle-Accurate Engine Benchmarks
 Project: ES-FA Neuromorphic Accelerator (C99 Cycle-Accurate Engine)
-Author: Yagnesh Kumar Koduru (Esthien Labs)
+Author: Koduru Yagnesh Kumar
 
 Builds and runs BOTH C99 binaries when a GCC toolchain is available:
   1. snn_simulator.exe     - multi-core cycle-accurate LIF/STDP simulation,
@@ -38,7 +38,7 @@ def run_logged(cmd, cwd):
 def main():
     print("=" * 70)
     print("  ES-FA C99 CYCLE-ACCURATE ENGINE SIMULATION BENCHMARK")
-    print("  Author: Yagnesh Kumar Koduru | Esthien Labs")
+    print("  Author: Koduru Yagnesh Kumar               ")
     print("=" * 70)
 
     gcc = shutil.which("gcc") or shutil.which("cc") or shutil.which("clang")

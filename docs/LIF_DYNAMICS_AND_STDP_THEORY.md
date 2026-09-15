@@ -1,7 +1,7 @@
 # Theoretical Foundations: LIF Neuronal Dynamics, STDP Synaptic Plasticity, and Spike-Driven FlashAttention
 
-**Author:** [Yagnesh Kumar Koduru](https://github.com/yagneshkumarkoduru)  
-**Affiliation:** Esthien Labs  
+**Author:** [Koduru Yagnesh Kumar](https://github.com/yagneshkumarkoduru)  
+**Affiliation:** Independent Researcher  
 **Domain:** Theoretical Neuromorphic Computing, Computational Neuroscience, VLSI Microarchitecture  
 
 ---

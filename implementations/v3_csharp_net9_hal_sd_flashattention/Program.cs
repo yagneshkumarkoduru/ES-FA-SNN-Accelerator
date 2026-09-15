@@ -1,7 +1,7 @@
 // =============================================================================
 // File: Program.cs
 // Project: ES-FA Neuromorphic Accelerator (.NET 9 HAL & SD-FlashAttention)
-// Author: Yagnesh Kumar Koduru (Esthien Labs)
+// Author: Koduru Yagnesh Kumar
 // Architecture: .NET 9 Main Benchmark Console Runner
 // =============================================================================
 
@@ -16,7 +16,7 @@ namespace ESFA
         {
             Console.WriteLine("====================================================================");
             Console.WriteLine("  ES-FA .NET 9 HAL DRIVER & SD-FLASHATTENTION BENCHMARK             ");
-            Console.WriteLine("  Author: Yagnesh Kumar Koduru | Esthien Labs                       ");
+            Console.WriteLine("  Author: Koduru Yagnesh Kumar                                      ");
             Console.WriteLine("====================================================================");
 
             // Part 1: HAL DMA Streaming Stress Test

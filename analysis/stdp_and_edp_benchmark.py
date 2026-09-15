@@ -1,6 +1,6 @@
 """
 Spike-Timing-Dependent Plasticity (STDP) & Energy-Delay Product (EDP) Benchmark
-Author: Yagnesh Kumar Koduru
+Author: Koduru Yagnesh Kumar
 Repository: ES-FA-SNN-Accelerator
 Domain: Neuromorphic Hardware, On-Chip Synaptic Plasticity, Energy-Delay Frontiers
 """
@@ -104,7 +104,7 @@ class STDP_EDP_Engine:
 def run_stdp_edp_benchmark():
     print("=" * 80)
     print("ES-FA ON-CHIP STDP & ENERGY-DELAY PRODUCT BENCHMARK")
-    print("Author: Yagnesh Kumar Koduru")
+    print("Author: Koduru Yagnesh Kumar")
     print("=" * 80)
 
     engine = STDP_EDP_Engine()

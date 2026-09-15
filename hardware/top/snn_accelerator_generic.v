@@ -2,7 +2,7 @@
 // =============================================================================
 // File        : snn_accelerator_generic.v
 // Module      : snn_accelerator_generic
-// Author      : Yagnesh Kumar Koduru, Esthien Labs
+// Author      : Koduru Yagnesh Kumar
 // Description : Technology-Independent, Parameterizable Multi-Core SNN Accelerator
 //               Targeting Generic ASIC (TSMC/GF/Samsung) and Multi-FPGA Architectures.
 //               Features:

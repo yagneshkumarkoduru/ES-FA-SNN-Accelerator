@@ -217,7 +217,7 @@ HARDWARE_SOTA: List[Dict] = [
     },
     {
         "system": "ES-FA (this work)",
-        "paper": "Esthien Labs, 2026",
+        "paper": "Koduru Yagnesh Kumar, 2026",
         "year": 2026,
         "hardware": "ECP5 FPGA (pending KV260 validation)",
         "energy_pj_per_sop": None,  # filled at runtime from results
@@ -303,7 +303,7 @@ def main() -> None:
             esfa_result = json.load(f)
         acc_rows.append({
             "system": "ES-FA PLIF (this work)",
-            "paper": "Esthien Labs, 2026",
+            "paper": "Koduru Yagnesh Kumar, 2026",
             "year": 2026,
             "dataset": "SHD",
             "architecture": "PLIF 700→256→128→20",

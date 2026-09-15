@@ -2,7 +2,7 @@
 // =============================================================================
 // File        : adaptive_leak_engine.v
 // Module      : adaptive_leak_engine
-// Author      : Yagnesh Kumar Koduru, Esthien Labs
+// Author      : Koduru Yagnesh Kumar
 // Description : Homeostatic Membrane Potential & Dynamic Leak Rate Controller
 //               Features:
 //                 - Online moving-average spike rate estimation

@@ -1,7 +1,7 @@
 // =============================================================================
 // File: SpikeDrivenFlashAttention.cs
 // Project: ES-FA Neuromorphic Accelerator (.NET 9 HAL & SD-FlashAttention)
-// Author: Yagnesh Kumar Koduru (Esthien Labs)
+// Author: Koduru Yagnesh Kumar
 // Architecture: Multiplier-Free Spike-Driven FlashAttention (SD-FlashAttention)
 // =============================================================================
 

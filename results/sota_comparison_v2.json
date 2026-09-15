@@ -67,7 +67,7 @@
     },
     {
       "system": "ES-FA PLIF (this work)",
-      "paper": "Esthien Labs, 2026",
+      "paper": "Koduru Yagnesh Kumar, 2026",
       "year": 2026,
       "dataset": "SHD",
       "architecture": "PLIF 700\u2192256\u2192128\u219220",
@@ -135,7 +135,7 @@
     },
     {
       "system": "ES-FA (this work)",
-      "paper": "Esthien Labs, 2026",
+      "paper": "Koduru Yagnesh Kumar, 2026",
       "year": 2026,
       "hardware": "ECP5 FPGA (pending KV260 validation)",
       "energy_pj_per_sop": 4.43,

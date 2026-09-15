@@ -1,7 +1,7 @@
 // =============================================================================
 // File: EsfaDriverNet9.cs
 // Project: ES-FA Neuromorphic Accelerator (.NET 9 HAL & SD-FlashAttention)
-// Author: Yagnesh Kumar Koduru (Esthien Labs)
+// Author: Koduru Yagnesh Kumar
 // Architecture: High-Performance .NET 9 Hardware Abstraction Layer (HAL) Driver
 // Features: Zero-allocation Span<T> packet buffers, lock-free ring buffers,
 //           memory-mapped AXI-Lite telemetry, and sub-microsecond dispatch.

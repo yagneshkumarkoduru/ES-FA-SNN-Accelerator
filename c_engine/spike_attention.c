@@ -7,8 +7,8 @@
  * FP32 softmax attention (see the printed "Net Energy Reduction Factor";
  * value derives from the operation counts below, not a fixed constant).
  *
- * Author: Yagnesh Kumar Koduru
- * Affiliation: Researcher | Esthien Labs
+ * Author: Koduru Yagnesh Kumar
+ * Affiliation: Independent Researcher
  */
 
 #include <stdio.h>
@@ -32,7 +32,7 @@ typedef struct {
 void run_spike_attention_benchmark() {
     printf("====================================================================\n");
     printf("  ES-FA SPIKE-DRIVEN FLASHATTENTION (SD-FLASHATTENTION) BENCHMARK   \n");
-    printf("  Author: Yagnesh Kumar Koduru | Esthien Labs                       \n");
+    printf("  Author: Koduru Yagnesh Kumar                                      \n");
     printf("====================================================================\n");
 
     SpikingAttentionLayer *layer = (SpikingAttentionLayer*)malloc(sizeof(SpikingAttentionLayer));

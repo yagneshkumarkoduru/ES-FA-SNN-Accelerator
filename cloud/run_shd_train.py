@@ -208,13 +208,16 @@ def cmd_launch(_args) -> None:
                     MaxCount=1,
                     SubnetId=subnet,
                     InstanceInitiatedShutdownBehavior="terminate",
-                    InstanceMarketOptions={
-                        "MarketType": "spot",
-                        "SpotOptions": {
-                            "SpotInstanceType": "one-time",
-                            "InstanceInterruptionBehavior": "terminate",
-                        },
-                    },
+                    BlockDeviceMappings=[
+                        {
+                            "DeviceName": "/dev/sda1",
+                            "Ebs": {
+                                "VolumeSize": 60,
+                                "VolumeType": "gp3",
+                                "DeleteOnTermination": True,
+                            },
+                        }
+                    ],
                     UserData=base64.b64encode(user_data.encode("utf-8")).decode("ascii"),
                     TagSpecifications=[
                         {
@@ -263,7 +266,7 @@ def cmd_launch(_args) -> None:
         ),
         encoding="utf-8",
     )
-    print(f"Launched {chosen_type} spot instance: {instance_id} (subnet {chosen_subnet})")
+    print(f"Launched {chosen_type} on-demand instance: {instance_id} (subnet {chosen_subnet})")
     print(f"  run id : {run_id}")
     print(f"  AMI    : {ami}")
     print("Watchdog: 6 hours. Check progress: py -3 cloud/run_shd_train.py status")

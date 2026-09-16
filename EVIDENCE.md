@@ -144,6 +144,39 @@ is withdrawn pending one reconciled measurement run (the engine's ledgered
 outputs are cycles and toggle energy; see the withdrawal note in
 `docs/paper/RESEARCH_PAPER.md`).
 
+## Accuracy diagnosis and v5 innovation experiment (2026-09-16/17)
+
+Findings from the v4 run (v2 recipe, 100 epochs, seed 42):
+- best test 81.18% (epoch 68), final 77.83%; train accuracy reaches 99.6%.
+  The recipe overfits: capacity is not the limiting factor, generalization
+  and input representation are.
+- seed 123 crashed mid-run (exit 0xC0000005); the seed 42 artifact stands.
+
+Eight concrete gaps versus the public reference recipe class (~90% with the
+same neuron family) were identified and are addressed in
+`experiments/benchmark_shd_v5.py`: (1) 10 ms bins vs 4 ms reference bins;
+(2) spike-sum readout vs leaky-integrated non-spiking readout; (3) soft
+reset vs hard reset; (4) unscaled vs (1-beta)-scaled input current;
+(5) sparsity pressure toward zero vs activity target tracking; (6) no
+augmentation vs event-drop; (7) no label smoothing; (8) surrogate slope 5
+vs 25. Protocol elements are attributed to the Catalyst neuromorphic
+benchmarks (github.com/catalyst-neuromorphic/catalyst-benchmarks, MIT) and
+are protocol corrections, not ES-FA claims.
+
+ES-FA innovations implemented for the v5 run:
+- Event-rate governor: closed-loop adjustment of the sparsity pressure so
+  the hidden event rate tracks an annealed budget (start 0.15 to end 0.03),
+  tying training to the accelerator SOP cost model; per-epoch event rates,
+  budgets, and governor state are ledgered.
+- Dual-timescale leaky readout: fast and slow leaky accumulators with
+  learnable mixing (two accumulators, no multipliers in hardware).
+- Retained recurrent PLIF backbone (learnable per-neuron decay).
+- int16 post-training quantization evaluated on the same test split.
+
+Run: hidden 512, 4 ms bins (T=250), 200 epochs, seeds 42/123, governor and
+dual readout enabled, crash-resilient checkpoints every 5 epochs. Results
+pending at the time of writing (`results/shd_v5_innovation/`).
+
 ## Known issues
 
 1. **SHD accuracy gap vs SOTA:** ES-FA achieves 74.26% vs 92.66% (PLIF-ICCV2021). The

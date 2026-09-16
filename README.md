@@ -22,7 +22,7 @@ Edge-deployed physical intelligence systems—such as autonomous micro-drones, q
 
 **ES-FA (Event-Driven Spiking FPGA/ASIC Accelerator)** resolves this bottleneck via an end-to-end hardware-software co-designed neuromorphic architecture:
 1. **Synthesizable RTL**: Parameterizable multi-core array ([`implementations/v1_synthesizable_rtl_verilog/`](implementations/v1_synthesizable_rtl_verilog/)) with 4-stage pipelined LIF PEs, dual-bank BRAM arbitration, and on-chip STDP plasticity.
-2. **C99 Cycle-Accurate Engine**: High-performance ANSI C99 bit-exact engine ([`implementations/v2_c99_cycle_accurate_engine/`](implementations/v2_c99_cycle_accurate_engine/)) executing at **$59.9\text{ GSOP/s}$** with gate-level toggle energy telemetry ($4.43\text{ pJ/SOP}$).
+2. **C99 Cycle-Accurate Engine**: ANSI C99 bit-exact engine ([`implementations/v2_c99_cycle_accurate_engine/`](implementations/v2_c99_cycle_accurate_engine/)) with gate-level toggle energy telemetry ($4.43\text{ pJ/SOP}$ model). The previously cited $59.9\text{ GSOP/s}$ throughput figure is withdrawn pending one reconciled measurement run (see `docs/paper/RESEARCH_PAPER.md` and `EVIDENCE.md`).
 3. **.NET 9 HAL & Spike-Driven FlashAttention**: High-throughput driver ([`implementations/v3_csharp_net9_hal_sd_flashattention/`](implementations/v3_csharp_net9_hal_sd_flashattention/)) streaming millions of packets/second with measured sub-microsecond dispatch latency and multiplier-free transformer attention.
 4. **Comprehensive Theoretical Derivations**: Complete biophysical and VLSI mathematical proofs in [`docs/LIF_DYNAMICS_AND_STDP_THEORY.md`](docs/LIF_DYNAMICS_AND_STDP_THEORY.md).
 5. **Architectural Comparison Guide**: In-depth implementation matrix and benchmark analysis in [`docs/IMPLEMENTATION_VERSIONS.md`](docs/IMPLEMENTATION_VERSIONS.md).
@@ -102,8 +102,8 @@ The accelerator features three implementation targets providing unified function
 ├─────────────────────────┼─────────────────────────────┼────────────────────────────────┤
 │ • 4-stage LIF PE array  │ • Bit-exact fixed-point     │ • Zero-allocation buffer pool  │
 │ • Banked BRAM arbiter   │ • Gate toggle energy model  │ • Lock-free concurrent DMA     │
-│ • On-chip STDP engine   │ • 59.9 GSOP/s (cycle model) │ • Packet streaming + telemetry │
-│ • 0.42 pJ/SOP (28nm)    │ • Memory contention counters│ • Multiplier-free attention    │
+│ • On-chip STDP engine   │ • 4.43 pJ/SOP (model)       │ • Packet streaming + telemetry │
+│ • 0.42 pJ/SOP (ASIC est)│ • Memory contention counters│ • Multiplier-free attention    │
 │ 📁 implementations/v1_  │ 📁 implementations/v2_      │ 📁 implementations/v3_         │
 └─────────────────────────┴─────────────────────────────┴────────────────────────────────┘
 ```
@@ -112,9 +112,9 @@ The accelerator features three implementation targets providing unified function
 
 | Implementation | Target Substrate | Algorithmic Formulation | Precision Mode | Primary Performance Metric | Source Code |
 | :--- | :--- | :--- | :--- | :---: | :---: |
-| **Synthesizable RTL** | ASIC (28nm/16nm) & FPGA (vendor-neutral) | 4-Stage Pipelined LIF + STDP Plasticity | INT16 State, INT8 Weight | **$0.42\text{ pJ/SOP}$**, $250\text{ MHz}$ | [`implementations/v1_synthesizable_rtl_verilog/`](implementations/v1_synthesizable_rtl_verilog/) |
-| **C99 Cycle-Accurate Engine** | High-Performance Simulation & SIL | Bit-Exact Fixed-Point + BRAM Profiler | INT16 State, INT8 Weight | **$59.9\text{ GSOP/s}$**, $4.43\text{ pJ/SOP}$ | [`implementations/v2_c99_cycle_accurate_engine/`](implementations/v2_c99_cycle_accurate_engine/) |
-| **.NET 9 HAL & SD-FlashAttention** | Modern Edge Host & Edge Inference | Lock-free DMA Pipe + SD-FlashAttention | Zero-Alloc Span, Ternary Attention | **$4.8\text{ Mpps}$**, **$81.9\text{ ns}$** dispatch (measured) | [`implementations/v3_csharp_net9_hal_sd_flashattention/`](implementations/v3_csharp_net9_hal_sd_flashattention/) |
+| **Synthesizable RTL** | ASIC (28nm/16nm) & FPGA (vendor-neutral) | 4-Stage Pipelined LIF + STDP Plasticity | INT16 State, INT8 Weight | **$0.42\text{ pJ/SOP}$** (ASIC model), $250\text{ MHz}$ | [`implementations/v1_synthesizable_rtl_verilog/`](implementations/v1_synthesizable_rtl_verilog/) |
+| **C99 Cycle-Accurate Engine** | High-Performance Simulation & SIL | Bit-Exact Fixed-Point + BRAM Profiler | INT16 State, INT8 Weight | **$4.43\text{ pJ/SOP}$** (model) | [`implementations/v2_c99_cycle_accurate_engine/`](implementations/v2_c99_cycle_accurate_engine/) |
+| **.NET 9 HAL & SD-FlashAttention** | Modern Edge Host & Edge Inference | Lock-free DMA Pipe + SD-FlashAttention | Zero-Alloc Span, Ternary Attention | **$8.97\text{ Mpps}$**, **$55.7\text{ ns}$** dispatch (measured 2026-09-16, host-dependent) | [`implementations/v3_csharp_net9_hal_sd_flashattention/`](implementations/v3_csharp_net9_hal_sd_flashattention/) |
 
 ---
 

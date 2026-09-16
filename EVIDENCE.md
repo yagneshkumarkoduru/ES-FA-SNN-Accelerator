@@ -86,6 +86,23 @@ These are known engineering gaps, not fundamental claims failures.
 | C-engine event mode energy saving | 20.81%, EDP 1.25x | MODEL (C99 cycle model) | `c_engine/c_benchmark_results.json` |
 | C-engine config | 4 cores, 128 neurons/core, 10000 timesteps, 85% sparsity | CONFIG | `c_engine/c_benchmark_results.json` |
 
+## .NET v3 HAL benchmark (re-measured 2026-09-16)
+
+| Claim | Value | Class | Source |
+|---|---|---|---|
+| HAL streaming throughput | 8.97 Mpps (1,000,000 packets, 8 cores x 512 neurons/core) | MEASURED (host-dependent) | `dotnet run -c Release`, `implementations/v3_csharp_net9_hal_sd_flashattention/Program.cs`, .NET 9.0.305 |
+| Mean dispatch latency | 55.7 ns around the dispatch call; 111.5 ns mean inter-packet gap | MEASURED (host-dependent) | same |
+| SD-FlashAttention kernel | 8.212 ms for 96,219 executed ops; 4,098,085 (97.71%) bypassed; 43.6x reduction | MEASURED (host-dependent) | same |
+| Energy-delay product | 2.17e-19 J*s | MODEL (3.89 pJ/packet constant x measured latency) | same |
+
+The README previously cited 4.8 Mpps and 81.9 ns dispatch without a ledger
+entry; those figures are replaced by the measured run above. Throughput and
+latency are host-dependent: treat them as order-of-magnitude evidence, not
+specifications. The 59.9 GSOP/s C-engine throughput figure cited in the README
+is withdrawn pending one reconciled measurement run (the engine's ledgered
+outputs are cycles and toggle energy; see the withdrawal note in
+`docs/paper/RESEARCH_PAPER.md`).
+
 ## Known issues
 
 1. **SHD accuracy gap vs SOTA:** ES-FA achieves 74.26% vs 92.66% (PLIF-ICCV2021). The

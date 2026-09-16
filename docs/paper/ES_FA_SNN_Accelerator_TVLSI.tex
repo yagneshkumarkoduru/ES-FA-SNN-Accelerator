@@ -31,9 +31,9 @@ In this paper, we present \textbf{ES-FA}, an open, parameterizable, technology-i
 (1) A 4-stage pipelined Leaky Integrate-and-Fire (LIF) processing element that executes exact fixed-point discrete leaky integration with homeostatic threshold adaptation without hardware floating-point multipliers;
 (2) A dual-banked parity-interleaved synaptic SRAM arbiter for concurrent access arbitration (contention-reduction figures pending a dedicated arbiter benchmark; the 68.4\% figure elsewhere belongs to the NPU bank model, not this arbiter);
 (3) A synthesizable on-chip Spike-Timing-Dependent Plasticity (STDP) learning engine enabling autonomous local adaptation in the field; and
-(4) A dual-language core verification stack comprising a cycle-accurate C99 simulation engine and a real-time C\# embedded hardware abstraction driver (driver throughput/latency figures conflict between this draft and the README and are withdrawn pending one verified driver run).
+(4) An open verification stack spanning a bit-exact C99 cycle engine, a .NET 9 host driver, a self-checking Verilog testbench, and a vendor-free synthesis and place-and-route flow, with every artifact number ledgered in \texttt{EVIDENCE.md}.
 
-We provide mathematical derivations for synaptic weight boundedness under Poisson jitter and worst-case memory arbitration stalls (proof review pending). ES-FA is evaluated as a simulation and modeling pipeline: 95.7\% validation accuracy preserved with a 79.68\% estimated energy-proxy reduction (model, not board power), 20.81\% C-engine modeled energy saving, and a 6.3$\times$ EDP figure from the analysis script (model output, not a board measurement). Peak-throughput figures disagree across this draft and the README and are withdrawn pending one reconciled measurement run. Board power measurements remain future work; see \texttt{EVIDENCE.md}.
+The manuscript provides mathematical derivations for synaptic weight boundedness under Poisson jitter and worst-case memory arbitration stalls (proof review pending). Evaluation (3 seeds unless noted): on the Spiking Heidelberg Digits benchmark, the recurrent PLIF configuration reaches \textbf{77.87\% $\pm$ 1.10\%} (versus 74.26\% $\pm$ 0.53\% for the non-recurrent ablation and 70.02\% $\pm$ 2.10\% for an identically trained snntorch baseline) with an 89.4\% modeled reduction in synaptic operations. The published SRNN and PLIF references remain 14.6--14.8 points higher; the gap decomposition is recorded in \texttt{EVIDENCE.md}. The RTL core passes its self-checking simulation, synthesizes to 890 cells on ECP5, and routes at a 132.29~MHz maximum-frequency estimate against a 50~MHz target; the .NET driver measures 8.97~Mpps with 55.7~ns mean dispatch latency (host-dependent). Energy remains a C-engine model estimate (4.43~pJ/SOP event mode); the MNIST-era figures are retained as historical records only, and peak-throughput figures are withdrawn pending one reconciled measurement run. Board power measurements remain future work.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -168,9 +168,33 @@ Calibrated against physical 28~nm standard-cell characterization:
 $E_{\text{PE}} = 1.25$~pJ/active op, $E_{\text{idle}} = 0.04$~pJ/cycle (clock-gated), $E_{\text{SRAM\_R}} = 0.82$~pJ/read, and $E_{\text{router}} = 0.45$~pJ/hop.
 
 \subsection{High-Throughput C\# Embedded HAL Driver}
-To demonstrate end-to-end industrial software engineering, we engineered a zero-allocation, lock-free ring-buffer driver in C\# .NET 9 ([`csharp_driver/`](csharp_driver/)). The driver interacts with hardware DMA descriptors via sequential P/Invoke bindings, sustaining an ingress throughput of \textbf{2.46 million spike packets/second} with an average dispatch latency of \textbf{405~ns}.
+To demonstrate end-to-end industrial software engineering, we engineered a zero-allocation, lock-free ring-buffer driver in C\# .NET 9 ([`csharp_driver/`](csharp_driver/)). The driver interacts with hardware DMA descriptors via sequential P/Invoke bindings. A ledgered run (2026-09-16, .NET 9.0.305, author workstation) measures \textbf{8.97 million spike packets/second} with a mean dispatch latency of \textbf{55.7~ns} (host-dependent; earlier 2.46~Mpps / 405~ns and 4.8~Mpps / 81.9~ns figures are superseded; see \texttt{EVIDENCE.md}).
 
 \section{Experimental Results}
+\subsection{Standard-Benchmark Evaluation (Spiking Heidelberg Digits)}
+Protocol: 2{,}264-sample test split, 20 classes, $T=140$ bins at 10~ms (1{,}400~ms window), batch 64, three seeds; dataset from Cramer et al.\ (IEEE TNNLS 2022). All figures are ledgered in \texttt{EVIDENCE.md}.
+
+\begin{table}[ht]
+\centering
+\caption{SHD accuracy at matched evaluation protocols.}
+\label{tab:shd}
+\begin{tabular}{lcc}
+\hline
+System & SHD accuracy & Class \\
+\hline
+SRNN (Yin et al.) & $92.45\% \pm 0.46\%$ & PUBLISHED \\
+PLIF (Fang et al.) & $92.66\%$ & PUBLISHED \\
+\textbf{ES-FA RPLIF (ours)} & $\mathbf{77.87\% \pm 1.10\%}$ & SIMULATION (3 seeds) \\
+ES-FA PLIF ablation (ours) & $74.26\% \pm 0.53\%$ & SIMULATION (3 seeds) \\
+snntorch Leaky (ours) & $70.02\% \pm 2.10\%$ & SIMULATION (3 seeds) \\
+\hline
+\end{tabular}
+\end{table}
+
+Recurrence contributes $+3.61$ points over the PLIF ablation and $+7.85$ points over the identically trained snntorch baseline. The remaining $-14.58$-point gap to SRNN is decomposed into window geometry, training length, and regularization factors in \texttt{EVIDENCE.md}; removing the sparsity regularization was measured and did not help ($75.81\%$, a ledgered negative result). The spike-operation reduction is $89.4\%$ at the RPLIF operating point (model).
+
+The RTL core additionally passes its self-checking simulation under Icarus Verilog, maps to 890 cells on the Lattice ECP5 fabric under Yosys, and routes in nextpnr-ecp5 with a maximum-frequency estimate of $132.29$~MHz against a 50~MHz target; the flow is reproducible via \texttt{hardware\_validation/open\_cad/}.
+
 \subsection{Comparative Neuromorphic Silicon Benchmarking}
 We benchmark ES-FA against leading academic and industrial neuromorphic processors in Table~\ref{tab:silicon}.
 
@@ -186,21 +210,21 @@ Process Technology & 28~nm & 14~nm FinFET & Intel 4 & 28~nm & 22~nm FD-SOI & \te
 Target Platform & Custom ASIC & Custom ASIC & Custom ASIC & Hybrid ASIC & Many-core ASIC & \textbf{Param. ASIC / FPGA} \\
 Core Architecture & 4096 Cores & 128 Cores & 128 Cores & 156 FCore & 152 ARM Cores & \textbf{Param. 1--64 Cores} \\
 On-Chip Learning & None (Offline) & Programmable & Microcode & None & Software C & \textbf{Synthesizable STDP} \\
-Clock Frequency & 1~MHz & 1000~MHz & 1000~MHz & 300~MHz & 250~MHz & \textbf{250~MHz} \\
-Energy / Synaptic Op & 26.0~pJ & 23.6~pJ & 19.4~pJ & 12.0~pJ & 18.0~pJ & \textbf{3.89~pJ} \\
-Peak Throughput & 46.0~GSOP/s & 100.0~GSOP/s & 120.0~GSOP/s & 150.0~GSOP/s & 125.0~GSOP/s & \textbf{128.0~GSOP/s (16C)} \\
+Clock Frequency & 1~MHz & 1000~MHz & 1000~MHz & 300~MHz & 250~MHz & \textbf{132.29~MHz (ECP5 route estimate)} \\
+Energy / Synaptic Op & 26.0~pJ & 23.6~pJ & 19.4~pJ & 12.0~pJ & 18.0~pJ & \textbf{4.43~pJ/SOP (model)} \\
+Peak Throughput & 46.0~GSOP/s & 100.0~GSOP/s & 120.0~GSOP/s & 150.0~GSOP/s & 125.0~GSOP/s & \textbf{withdrawn (no verified run)} \\
 Memory Banking & Monolithic & Interleaved & Interleaved & Banked & SRAM/Core & \textbf{Parity Dual-Bank} \\
 Host Interface & Proprietary & PCIe & PCIe & Custom & AXI4 / Ethernet & \textbf{AXI4-Lite / Stream} \\
-EDP Advantage & $1.0\times$ (Ref) & $4.2\times$ & $5.1\times$ & $3.8\times$ & $4.0\times$ & \textbf{6.3}$\times$ \\
+EDP Advantage & $1.0\times$ (Ref) & $4.2\times$ & $5.1\times$ & $3.8\times$ & $4.0\times$ & \textbf{6.3}$\times$ (model) \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
 \subsection{Energy-Delay Product (EDP) Scaling}
-Figure~\ref{fig:edp} illustrates the empirical EDP scaling as input spike sparsity sweeps from $10\%$ to $95\%$. At $85\%$ sparsity, event-driven clock gating suppresses unactivated neuron evaluations, yielding a \textbf{79.68\% dynamic power reduction} and achieving a \textbf{6.3x net EDP reduction} over synchronous baselines.
+Figure~\ref{fig:edp} illustrates the empirical EDP scaling as input spike sparsity sweeps from $10\%$ to $95\%$. At $85\%$ sparsity, event-driven clock gating suppresses unactivated neuron evaluations, yielding a modeled \textbf{79.68\% dynamic power reduction} and a modeled \textbf{6.3$\times$ net EDP reduction} over synchronous baselines (analysis-script model output, not board measurements; see \texttt{EVIDENCE.md}).
 
 \section{Conclusion}
-ES-FA proves that parameterizable event-driven neuromorphic architectures with hardware-native STDP learning and banked SRAM arbitration break the energy and throughput limits of synchronous edge AI accelerators. By delivering synthesizable Verilog RTL, bit-accurate C99 simulation, and real-time C\# drivers, ES-FA provides a complete, publication-ready foundation for next-generation physical intelligence.
+ES-FA proves that parameterizable event-driven neuromorphic architectures with hardware-native STDP learning and banked SRAM arbitration can be verified end to end without vendor tools: the RTL core passes its self-checking simulation, maps to 890 cells on ECP5, and routes at a 132.29~MHz maximum-frequency estimate; the recurrent PLIF configuration reaches $77.87\% \pm 1.10\%$ on SHD with an 89.4\% modeled reduction in synaptic operations; and the .NET driver measures 8.97~Mpps with 55.7~ns dispatch. The remaining accuracy gap to published recurrent models and board-level power measurements are stated openly as next milestones; every number is ledgered in \texttt{EVIDENCE.md}.
 
 \bibliographystyle{IEEEtran}
 \begin{thebibliography}{99}

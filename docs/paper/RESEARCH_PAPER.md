@@ -15,9 +15,9 @@ In this paper, we present **ES-FA**, an open, parameterizable, technology-indepe
 1. **A 4-stage pipelined Leaky Integrate-and-Fire (LIF) processing element** that executes exact fixed-point discrete leaky integration with homeostatic threshold adaptation without hardware floating-point multipliers;
 2. **A dual-banked parity-interleaved synaptic SRAM arbiter** for concurrent access arbitration (contention-reduction figures pending a dedicated arbiter benchmark; the 68.4% figure elsewhere belongs to the NPU bank model, not this arbiter);
 3. **A synthesizable on-chip Spike-Timing-Dependent Plasticity (STDP) learning engine** enabling autonomous local adaptation in the field; and
-4. **A dual-language core verification stack** comprising a cycle-accurate C99 simulation engine and a real-time C# embedded hardware abstraction driver (driver throughput/latency figures conflict between this draft and the README and are withdrawn pending one verified driver run).
+4. **An open verification stack** spanning a bit-exact C99 cycle engine, a .NET 9 host driver, a self-checking Verilog testbench, and a vendor-free synthesis and place-and-route flow, with every artifact number ledgered in `EVIDENCE.md`.
 
-We provide mathematical derivations for synaptic weight boundedness under Poisson jitter and worst-case memory arbitration stalls (proof review pending). ES-FA is evaluated as a simulation and modeling pipeline: 95.7% validation accuracy preserved with a 79.68% estimated energy-proxy reduction (model, not board power), 20.81% C-engine modeled energy saving, and a 6.3x EDP figure from the `stdp_and_edp_benchmark.py` analysis script (model output, not a board measurement). Peak-throughput figures (128.0 GSOP/s, 59.9 GSOP/s, 3.89 pJ/SOP) disagree across this draft and the README and are withdrawn pending one reconciled measurement run. Board power measurements remain future work; see `EVIDENCE.md`.
+**Evaluation (3 seeds unless noted).** The manuscript also provides mathematical derivations for synaptic weight boundedness under Poisson jitter and worst-case memory arbitration stalls (proof review pending). On the Spiking Heidelberg Digits benchmark, the recurrent PLIF configuration reaches **77.87% ± 1.10** (versus 74.26% ± 0.53 for the non-recurrent ablation and 70.02% ± 2.10 for an identically trained snntorch baseline) while cutting synaptic operations by 89.4% (model). The published SRNN and PLIF references remain 14.6-14.8 points higher; the gap is decomposed into window, epoch, and regularization factors in `EVIDENCE.md`. The RTL core passes its self-checking simulation (Icarus Verilog), synthesizes to 890 cells on ECP5, and routes at a 132.29 MHz maximum-frequency estimate against a 50 MHz target. The .NET host driver streams at 8.97 Mpps with 55.7 ns mean dispatch latency on the author's workstation (host-dependent). Energy figures remain model estimates from the C engine (4.43 pJ/SOP event-mode); the earlier MNIST-era figures (95.7% accuracy, 79.68% proxy reduction) are retained only as historical records, and peak-throughput figures (128.0 GSOP/s, 59.9 GSOP/s, 3.89 pJ/SOP) are withdrawn pending one reconciled measurement run. Board power measurements remain future work; see `EVIDENCE.md`.
 
 ---
 
@@ -138,26 +138,78 @@ $$P_{\text{conflict}}(M, B) = 1 - \prod_{k=0}^{M-1} \left(1 - \frac{k}{B}\right)
    - Compiles via GCC/Clang: `gcc -O3 main.c snn_engine.c -o snn_simulator.exe -lm`.
 2. **Real-Time C# Embedded HAL Driver ([`csharp_driver/`](../../csharp_driver/))**:
    - Zero-allocation lock-free ring buffering in .NET 9.
-   - Verified throughput: **2.46 Million packets/sec** with **405 ns** dispatch latency.
+   - Measured throughput: **8.97 Million packets/sec** with **55.7 ns** mean dispatch latency (author workstation, .NET 9.0.305, 2026-09-16; host-dependent; see `EVIDENCE.md`). Earlier 2.46 Mpps / 405 ns and 4.8 Mpps / 81.9 ns figures are superseded by this ledgered run.
 
 ---
 
-## 5. Comparative Silicon Benchmarking
+## 5. Evaluation on Spiking Heidelberg Digits
+
+Protocol: 2,264-sample test split, 20 classes, T=140 bins at 10 ms (1,400 ms
+window), batch 64, three seeds {42, 123, 999}; dataset from Cramer et al.,
+IEEE TNNLS 2022. All figures below are ledgered in `EVIDENCE.md`.
+
+| System | SHD accuracy | Architecture | Class |
+| :--- | :---: | :--- | :---: |
+| SRNN (reference) | 92.45% ± 0.46% | rec-LIF 128-128-20 | PUBLISHED (Yin et al., Nature MI 2021) |
+| PLIF (reference) | 92.66% | PLIF 128-128-20 | PUBLISHED (Fang et al., ICCV 2021) |
+| **ES-FA RPLIF (this work)** | **77.87% ± 1.10%** | RPLIF 700-256-128-20 | SIMULATION (3 seeds) |
+| ES-FA PLIF ablation | 74.26% ± 0.53% | PLIF 700-256-128-20 | SIMULATION (3 seeds) |
+| snntorch Leaky baseline | 70.02% ± 2.10% | Leaky 700-256-128-20 | SIMULATION (3 seeds) |
+
+- Recurrence alone accounts for +3.61 points over the PLIF ablation and
+  +7.85 points over the identically trained snntorch baseline.
+- The remaining gap to the published references (-14.58 points to SRNN) is
+  decomposed into three measured factors in `EVIDENCE.md`: window geometry
+  (T=140 at 10 ms versus SRNN's T=50 at 2 ms), training length (50 epochs
+  versus 200+), and sparsity regularization; removing the regularization
+  was measured and did not help (75.81%, ledgered as a negative result).
+- Spike-operation reduction of 89.4% (model) applies at the RPLIF
+  operating point; energy remains a C-engine model estimate (4.43 pJ/SOP
+  event mode), not a board measurement.
+
+### 5.1 Open-source CAD verification of the RTL core
+
+The four RTL modules plus a self-checking testbench pass under Icarus
+Verilog (membrane accumulation, threshold firing through the bank arbiter,
+STDP writeback). Yosys maps the top core to 890 cells on the Lattice ECP5
+fabric, and nextpnr-ecp5 routes the netlist with a maximum-frequency
+estimate of **132.29 MHz** against a 50 MHz target. The flow is
+reproducible with `py -3 hardware_validation/open_cad/run_open_cad.py`;
+full provenance in `EVIDENCE.md`.
+
+---
+
+## 6. Comparative Silicon Benchmarking
 
 | Metric | IBM TrueNorth | Intel Loihi 1 | Intel Loihi 2 | Tsinghua Tianjic | SpiNNaker-2 | ES-FA (Ours) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Process Node** | 28 nm | 14 nm FinFET | Intel 4 | 28 nm | 22 nm FD-SOI | **Generic / 28 nm** |
+| **Process Node** | 28 nm | 14 nm FinFET | Intel 4 | 28 nm | 22 nm FD-SOI | **Generic / 28 nm target** |
 | **Target Platform** | Custom ASIC | Custom ASIC | Custom ASIC | Hybrid ASIC | Many-core ASIC | **Param. ASIC / FPGA** |
 | **On-Chip Learning** | None (Offline) | Programmable | Microcode | None | Software C | **Synthesizable STDP** |
-| **Clock Frequency** | 1 MHz | 1000 MHz | 1000 MHz | 300 MHz | 250 MHz | **250 MHz** |
-| **Energy / Synaptic Op** | 26.0 pJ | 23.6 pJ | 19.4 pJ | 12.0 pJ | 18.0 pJ | **3.89 pJ** |
-| **Peak Throughput** | 46.0 GSOP/s | 100.0 GSOP/s | 120.0 GSOP/s | 150.0 GSOP/s | 125.0 GSOP/s | **128.0 GSOP/s (16C)** |
+| **Clock Frequency** | 1 MHz | 1000 MHz | 1000 MHz | 300 MHz | 250 MHz | **132.29 MHz (ECP5 routed estimate)** |
+| **Energy / Synaptic Op** | 26.0 pJ | 23.6 pJ | 19.4 pJ | 12.0 pJ | 18.0 pJ | **4.43 pJ/SOP (C-engine model)** |
+| **Peak Throughput** | 46.0 GSOP/s | 100.0 GSOP/s | 120.0 GSOP/s | 150.0 GSOP/s | 125.0 GSOP/s | **withdrawn (no verified run)** |
 | **Memory Banking** | Monolithic | Interleaved | Interleaved | Banked | SRAM/Core | **Parity Dual-Bank** |
 | **Host Interface** | Proprietary | PCIe | PCIe | Custom | AXI4 / Ethernet | **AXI4-Lite / Stream** |
-| **EDP Advantage** | 1.0x (Ref) | 4.2x | 5.1x | 3.8x | 4.0x | **6.3x** |
+| **EDP Advantage** | 1.0x (Ref) | 4.2x | 5.1x | 3.8x | 4.0x | **6.3x (model)** |
+
+Reference-system figures are published specifications. The ES-FA column
+carries measured or model values from `EVIDENCE.md`: the routed estimate,
+the C-engine model energy, and the modeled EDP; the peak-throughput and
+28 nm silicon-frequency figures are not verified and are marked
+accordingly rather than quoted.
 
 ---
 
-## 6. Conclusion
+## 7. Conclusion
 
-ES-FA proves that a parameterizable, event-driven hardware architecture with native on-chip STDP adaptation, parity-banked SRAM, and homeostatic threshold scaling achieves a **6.3x Energy-Delay Product reduction** while consuming just **3.89 pJ per synaptic operation**. The complete open-source RTL, cycle-accurate C simulation engine, and real-time C# driver provide an end-to-end foundation for robust edge physical intelligence.
+ES-FA is an open, parameterizable event-driven architecture with native
+on-chip STDP adaptation, parity-banked synaptic memory, and homeostatic
+threshold scaling, verified end to end without vendor tools: the RTL core
+passes its self-checking simulation, maps to 890 cells on ECP5, and routes
+at a 132.29 MHz maximum-frequency estimate; the .NET host driver measures
+8.97 Mpps with 55.7 ns dispatch; and the recurrent PLIF configuration
+reaches 77.87% ± 1.10% on SHD with an 89.4% modeled reduction in synaptic
+operations. The remaining accuracy gap to published recurrent models and
+the board-level power measurements are stated openly as the next
+milestones; see `EVIDENCE.md` for every ledgered number.

@@ -26,7 +26,7 @@
 
 ## What Was Missing Before This Evolution
 - Target structure elements for system layer and deployment runtime.
-- KV260-local `xsim` + Vivado Tcl batch reporting flow.
+- Board-local `xsim` + Vivado Tcl batch reporting flow.
 - Standardized run manifest schema across all runs.
 - Structured hardware report parser for utilization/timing summary.
 - Mandatory evidence tables with baseline/optimized absolute + percentage deltas.
@@ -44,7 +44,7 @@
 - Extend analysis to produce evidence-first baseline comparison tables.
 
 ### Add
-- `hardware_validation/kv260/`: Tcl-driven build flow, xsim regressions, report parsers.
+- `hardware_validation/fpga_board/`: Tcl-driven build flow, xsim regressions, report parsers.
 - `system_layer/`: intent engine, task router, and modular execution components.
 - `deployment/cli_interface/`: runtime CLI with execution metadata.
 - `deployment/runtime/`: adaptive policy and runtime helpers.
@@ -55,16 +55,16 @@
 ## Current -> Target Path Mapping
 - Existing `p1_training` -> retained as target `p1_training`.
 - Existing `p2_hardware_model` -> retained as target `p2_hardware_model`.
-- Existing `hardware/` -> source RTL retained; wrapped by `hardware_validation/kv260/verilog` filelists and build scripts.
+- Existing `hardware/` -> source RTL retained; wrapped by `hardware_validation/fpga_board/verilog` filelists and build scripts.
 - Existing `analysis/` -> retained and extended with evidence generators.
 - Existing `output/` -> retained and extended with `final_paper.tex`.
 - New target additions: `p3`, `system_layer`, `deployment`, `hardware_validation`.
 
-## Toolchain Flow Mapping (xsim -> Vivado -> KV260)
+## Toolchain Flow Mapping (xsim -> Vivado -> FPGA board)
 1. Local simulation: run `xvlog/xelab/xsim` regressions for dense/event mode and gather cycle/latency logs.
 2. Local implementation metrics: run `vivado -mode batch -source build.tcl` and persist all `.rpt` + `.log`.
 3. Local parsing: normalize utilization/timing/cycle metrics into JSON under `results/hardware_validation`.
-4. Final physical stage: run board measurements on KV260 with the same model/scheduler settings and merge into the same schema.
+4. Final physical stage: run board measurements on FPGA board with the same model/scheduler settings and merge into the same schema.
 
 ## Methodology Guardrails
 - No deletion of working code.

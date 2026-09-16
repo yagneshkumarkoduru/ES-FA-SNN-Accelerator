@@ -21,7 +21,7 @@
 \setlength{\emergencystretch}{3em}
 
 \title{ES-FA / BTP Setup Notes}
-\author{First local setup for the KV260-based demo}
+\author{First local setup for the FPGA board-based demo}
 \date{Updated \today}
 
 \begin{document}
@@ -29,7 +29,7 @@
 
 \section*{Before starting}
 These notes are written as a practical setup record for the ES-FA / BTP project,
-not as a paper. The expected use case is simple: prepare the KV260 boot media,
+not as a paper. The expected use case is simple: prepare the FPGA board boot media,
 set up the local machine once, pull the \texttt{btp} repository, run the project,
 and generate the reports/plots/PDFs inside the local repo.
 
@@ -39,16 +39,16 @@ training outputs, Vivado/xsim logs, plots, runtime logs, and PDFs should stay
 under local repo folders such as \path{results/}, \path{output/}, and
 \path{docs/}.
 
-\section{1. Prepare the KV260 SD Card First}
+\section{1. Prepare the FPGA board SD Card First}
 \subsection{Image to flash}
 Start with the board, because the rest of the setup is easier to understand once
-the target platform is clear. The KV260 has QSPI boot firmware on the SOM and
+the target platform is clear. The FPGA board has QSPI boot firmware on the SOM and
 uses the microSD card as the secondary boot device for Linux. For this project,
-flash an official Kria Ubuntu image onto the microSD card.
+flash an official FPGA Ubuntu image onto the microSD card.
 
 \begin{itemize}[leftmargin=*]
-\item First choice for a fresh setup: \textbf{Kria Ubuntu 24.04 LTS}.
-\item Use Ubuntu 22.04 only if a specific Kria app or tutorial you need still
+\item First choice for a fresh setup: \textbf{FPGA Ubuntu 24.04 LTS}.
+\item Use Ubuntu 22.04 only if a specific FPGA app or tutorial you need still
 targets 22.04.
 \item For older boards, check boot firmware compatibility before blaming the SD
 card or project code. Newer Ubuntu images may require newer K26 boot firmware.
@@ -61,7 +61,7 @@ https://ubuntu.com/download/amd-xilinx
 
 \subsection{Flashing steps}
 \begin{enumerate}[leftmargin=*]
-\item Download the Kria Ubuntu image for KV260/K26.
+\item Download the FPGA Ubuntu image for FPGA board/K26.
 \item Install Raspberry Pi Imager or Win32 Disk Imager on the host machine.
 \item Insert a 32 GB or larger microSD card.
 \item Select the downloaded image and write it to the card.
@@ -70,7 +70,7 @@ https://ubuntu.com/download/amd-xilinx
 
 \subsection{First boot checklist}
 \begin{enumerate}[leftmargin=*]
-\item Insert the flashed microSD card into the KV260 carrier.
+\item Insert the flashed microSD card into the FPGA board carrier.
 \item Connect Ethernet and either HDMI/keyboard or USB-UART serial.
 \item Power the board.
 \item Login with the default Ubuntu account if prompted:
@@ -153,7 +153,7 @@ The helper script does the pip part:
 .\scripts\setup_env.ps1 -PythonExe .\.venv312\Scripts\python.exe
 \end{lstlisting}
 
-\subsection{Linux or KV260 Ubuntu shell}
+\subsection{Linux or FPGA board Ubuntu shell}
 \begin{lstlisting}[style=cmd]
 cd btp
 python3 -m venv .venv312
@@ -217,12 +217,12 @@ python deployment/cli_interface/main.py --query "classify results/runtime/sample
 \section{6. Hardware Validation}
 After Vivado/xsim is available, run:
 \begin{lstlisting}[style=cmd]
-python hardware_validation/kv260/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100
+python hardware_validation/fpga_board/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100
 \end{lstlisting}
 
 If you only want simulator-side validation:
 \begin{lstlisting}[style=cmd]
-python hardware_validation/kv260/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100 --skip-vivado
+python hardware_validation/fpga_board/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100 --skip-vivado
 \end{lstlisting}
 
 The run folder is:
@@ -280,7 +280,7 @@ PyTorch install fails & Use Python 3.10--3.12, not a preview Python build. \\
 \texttt{vivado} or \texttt{xsim} not found & Check \texttt{PATH} or set \texttt{XILINX\_VIVADO}/\texttt{XILINX\_VITIS}. \\
 xsim compile fails & Open \path{results/hardware_validation/.../logs/xvlog_*.log}. \\
 Negative Vivado slack & This is a design/timing result, not a failed setup. Save it and use it for timing closure. \\
-KV260 does not boot & Reflash the SD card, check serial output, and confirm boot firmware compatibility. \\
+FPGA board does not boot & Reflash the SD card, check serial output, and confirm boot firmware compatibility. \\
 CLI cannot find signal file & Use a path relative to repo root, for example \path{results/runtime/sample_signal.bin}. \\
 No plots are produced & Rerun \texttt{python analysis/compare.py} after checking that metric JSON files exist. \\
 \bottomrule
@@ -289,7 +289,7 @@ No plots are produced & Rerun \texttt{python analysis/compare.py} after checking
 
 \section{10. Presentation Checklist}
 \begin{enumerate}[leftmargin=*]
-\item KV260 SD card is flashed and the board boots Ubuntu.
+\item FPGA board SD card is flashed and the board boots Ubuntu.
 \item Python environment is active and the import check passes.
 \item Smoke pipeline completes locally.
 \item \path{results/ranking_table.md} and \path{results/analysis_summary.json}
@@ -303,16 +303,12 @@ exist.
 \section{References Used for Board Setup}
 \begingroup
 \small
-\begin{itemize}[leftmargin=*]
-\item AMD KV260 Ubuntu SD-card setup:
-\url{https://xilinx.github.io/kria-apps-docs/kv260/2022.1/linux_boot/ubuntu_24_04/build/html/docs/sdcard.html}
-\item Ubuntu AMD-Xilinx image download:
-\url{https://ubuntu.com/download/amd-xilinx}
-\item AMD Kria SOM and Starter Kit image/firmware matrix:
-\url{https://xilinx-wiki.atlassian.net/wiki/pages/viewpage.action?pageId=3307995140}
-\item AMD KV260 boot device overview:
-\url{https://docs.amd.com/r/en-US/ug1089-kv260-starter-kit/Boot-Devices-and-Firmware-Overview}
-\end{itemize}
+The hardware validation flow is board-agnostic: it targets a generic FPGA
+development board and does not depend on a specific vendor kit. For board
+bring-up, use the documentation of your board vendor together with the
+documentation of the FPGA toolchain you build with (for example, the Vivado
+documentation when building with Vivado). See
+\path{hardware_validation/fpga_board/README.md} for the batch flow itself.
 \endgroup
 
 \end{document}

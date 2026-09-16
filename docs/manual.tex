@@ -60,12 +60,12 @@ python output/generate_paper_output.py
 \section{Hardware Validation Command}
 Use this when hardware validation is required:
 \begin{lstlisting}[language=bash]
-python hardware_validation/kv260/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100
+python hardware_validation/fpga_board/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100
 \end{lstlisting}
 
 For simulator-only validation:
 \begin{lstlisting}[language=bash]
-python hardware_validation/kv260/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100 --skip-vivado
+python hardware_validation/fpga_board/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100 --skip-vivado
 \end{lstlisting}
 
 \section{CLI Demo}
@@ -78,6 +78,6 @@ python deployment/cli_interface/main.py --query "classify results/runtime/sample
 \section{Presentation Reminder}
 For the current run, present software and analysis results as fresh. Present
 hardware/Vivado numbers only as existing local validation evidence, not as a
-fresh board run. The KV260 physical measurement stage is still pending.
+fresh board run. The FPGA board physical measurement stage is still pending.
 
 \end{document}

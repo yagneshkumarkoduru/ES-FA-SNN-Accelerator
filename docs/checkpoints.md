@@ -15,7 +15,7 @@
 ## Completed Work
 - Preserved existing training, estimator, experiments, iterations, and analysis foundations.
 - Added standardized `run_manifest.json` and expanded per-layer activity exports.
-- Added `hardware_validation/kv260` with:
+- Added `hardware_validation/fpga_board` with:
   - xsim regression (`dense`/`event`),
   - Vivado batch implementation flow (`build.tcl`),
   - full `.rpt`/`.log` persistence and parser outputs (`vivado_metrics.json`, `hardware_metrics.json`).
@@ -40,13 +40,13 @@
 - Pipeline is runnable in smoke/full modes with strict phase ordering.
 
 ## Next Tasks
-1. Add KV260 board-level physical runs (same model/mode matrix) into the existing hardware schema.
+1. Add board-level physical runs (same model/mode matrix) into the existing hardware schema.
 2. Calibrate estimator parameters to reduce current estimator-vs-measured latency error.
 3. Expand model matrix beyond 2 models for stronger dense/event and adaptive conclusions.
 
 ## Blockers
 - No active software/toolchain blocker for local xsim + Vivado flow.
-- Remaining blocker is physical board measurement scheduling for final KV260 evidence closure.
+- Remaining blocker is physical board measurement scheduling for final FPGA board evidence closure.
 
 ## Run History
 - 2026-05-04T20:04:02.795142Z | Phase 0 | ok | Mapping file validated

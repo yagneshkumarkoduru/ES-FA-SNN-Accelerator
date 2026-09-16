@@ -137,11 +137,11 @@
       "system": "ES-FA (this work)",
       "paper": "Koduru Yagnesh Kumar, 2026",
       "year": 2026,
-      "hardware": "ECP5 FPGA (pending KV260 validation)",
+      "hardware": "ECP5 FPGA (pending FPGA board validation)",
       "energy_pj_per_sop": 4.43,
       "energy_label": "MODEL (C-engine estimator, 4.43 pJ/SOP base; NOT board-measured)",
       "class": "MODEL (C-engine estimator)",
-      "note": "Energy = SOP_per_inference \u00d7 4.43 pJ/SOP (c_engine/c_benchmark_results.json event-mode). Board power on KV260 is FUTURE WORK - see EVIDENCE.md."
+      "note": "Energy = SOP_per_inference \u00d7 4.43 pJ/SOP (c_engine/c_benchmark_results.json event-mode). Board power on hardware is FUTURE WORK - see EVIDENCE.md."
     }
   ],
   "esfa_aggregate": {

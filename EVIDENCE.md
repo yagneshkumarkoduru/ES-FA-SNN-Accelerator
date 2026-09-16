@@ -92,7 +92,7 @@ These are known engineering gaps, not fundamental claims failures.
    gap is caused by missing recurrence and depth, not measurement errors.
 2. exp5 adaptive mode is WORSE than exp1 on MNIST (879.68% higher energy proxy). Do not
    present exp5 as an improvement.
-3. All energy figures are MODEL estimates (C-engine 4.43 pJ/SOP). Board power on KV260
+3. All energy figures are MODEL estimates (C-engine 4.43 pJ/SOP). Board power on hardware
    remains FUTURE WORK. Do not claim hardware efficiency without board measurement.
 4. The 95.7% MNIST accuracy is on a solved benchmark and is NOT competitive evidence.
    Use SHD results for any external comparison.
@@ -101,6 +101,6 @@ These are known engineering gaps, not fundamental claims failures.
 
 - [x] Multi-seed training runs with error bars (done 2026-09-12: 3 seeds on SHD)
 - [x] Named published SOTA baseline comparison (done 2026-09-12: snntorch head-to-head)
-- [ ] Real KV260 board power + latency (hardware_validation/kv260/README.md)
+- [ ] Real board power + latency (hardware_validation/fpga_board/README.md)
 - [ ] Add recurrent connections to close gap vs SRNN/PLIF published SOTA
 - [ ] Add BNTT (batch normalisation through time) for further accuracy improvement

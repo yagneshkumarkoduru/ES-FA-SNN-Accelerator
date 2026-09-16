@@ -7,7 +7,7 @@ tables and plots, which go under `results/`.
 ## Files
 
 - `first_time_user_setup_guide.tex`  
-  Step-by-step setup guide, starting from the KV260 SD card and ending with a
+  Step-by-step setup guide, starting from the board SD card and ending with a
   local demo run.
 
 - `architecture.md`  

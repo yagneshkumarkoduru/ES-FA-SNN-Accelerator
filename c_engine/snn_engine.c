@@ -248,7 +248,7 @@ void snn_compute_telemetry(SNNSystem *sys) {
     double period_ns = 1000.0 / (double)sys->clock_freq_mhz;
     double total_time_s = (double)sys->global_cycle_count * period_ns * 1e-9;
 
-    // Physical energy parameters (28nm standard cell / Kria UltraScale+)
+    // Physical energy parameters (28nm standard cell / FPGA UltraScale+)
     // Energy per active PE op: 1.25 pJ = 1.25e-3 nJ
     // Energy per idle PE cycle (clock gated): 0.04 pJ = 0.04e-3 nJ
     // Energy per un-gated PE cycle: 0.98 pJ = 0.98e-3 nJ

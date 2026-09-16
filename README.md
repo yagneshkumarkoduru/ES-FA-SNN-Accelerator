@@ -12,7 +12,7 @@
 **Author:** [Koduru Yagnesh Kumar](https://github.com/yagneshkumarkoduru)  
 **Independent Research**  
 **Domain:** Neuromorphic Computing, Hardware-Software Co-Design, Edge AI Acceleration  
-**Platform:** Parameterizable Multi-Core ASIC (28nm/7nm standard cell) / Xilinx Kria KV260 / Generic FPGA  
+**Platform:** Parameterizable Multi-Core ASIC (28nm/7nm standard cell) / vendor-neutral FPGA  
 
 ---
 
@@ -112,7 +112,7 @@ The accelerator features three implementation targets providing unified function
 
 | Implementation | Target Substrate | Algorithmic Formulation | Precision Mode | Primary Performance Metric | Source Code |
 | :--- | :--- | :--- | :--- | :---: | :---: |
-| **Synthesizable RTL** | ASIC (28nm/16nm) & FPGA (KV260) | 4-Stage Pipelined LIF + STDP Plasticity | INT16 State, INT8 Weight | **$0.42\text{ pJ/SOP}$**, $250\text{ MHz}$ | [`implementations/v1_synthesizable_rtl_verilog/`](implementations/v1_synthesizable_rtl_verilog/) |
+| **Synthesizable RTL** | ASIC (28nm/16nm) & FPGA (vendor-neutral) | 4-Stage Pipelined LIF + STDP Plasticity | INT16 State, INT8 Weight | **$0.42\text{ pJ/SOP}$**, $250\text{ MHz}$ | [`implementations/v1_synthesizable_rtl_verilog/`](implementations/v1_synthesizable_rtl_verilog/) |
 | **C99 Cycle-Accurate Engine** | High-Performance Simulation & SIL | Bit-Exact Fixed-Point + BRAM Profiler | INT16 State, INT8 Weight | **$59.9\text{ GSOP/s}$**, $4.43\text{ pJ/SOP}$ | [`implementations/v2_c99_cycle_accurate_engine/`](implementations/v2_c99_cycle_accurate_engine/) |
 | **.NET 9 HAL & SD-FlashAttention** | Modern Edge Host & Edge Inference | Lock-free DMA Pipe + SD-FlashAttention | Zero-Alloc Span, Ternary Attention | **$4.8\text{ Mpps}$**, **$81.9\text{ ns}$** dispatch (measured) | [`implementations/v3_csharp_net9_hal_sd_flashattention/`](implementations/v3_csharp_net9_hal_sd_flashattention/) |
 
@@ -163,7 +163,7 @@ Gap to published SRNN: -14.58pp (addressable with ALIF + BNTT - see roadmap).
 #### 5.1.2 Hardware Efficiency (Energy-Delay Product)
 
 All energy figures are **MODEL estimates** from the C-engine (4.43 pJ/SOP event-mode).
-Board measurement on KV260 is FUTURE WORK. See [`EVIDENCE.md`](EVIDENCE.md).
+Physical board measurement is FUTURE WORK. See [`EVIDENCE.md`](EVIDENCE.md).
 
 | System | pJ/SOP | Source | Class |
 |:---|:---:|:---|:---:|
@@ -227,14 +227,14 @@ python implementations/v3_csharp_net9_hal_sd_flashattention/sd_flashattention_en
 
 ### 6.2 Xilinx Vivado & xsim Cycle-Accurate Validation
 
-Run automated xsim HDL simulation regressions and batch FPGA synthesis for the Xilinx Kria KV260:
+Run automated xsim HDL simulation regressions and batch FPGA synthesis for the vendor-neutral FPGA board:
 
 ```powershell
 # Run HDL simulator regression (xvlog / xelab / xsim)
-python hardware_validation/kv260/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100 --skip-vivado
+python hardware_validation/fpga_board/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100 --skip-vivado
 
 # Run full Vivado synthesis & timing implementation
-python hardware_validation/kv260/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100
+python hardware_validation/fpga_board/scripts/run_hw_validation.py --model-id baseline_paper1 --scheduler-mode both --clock-mhz 100
 ```
 
 All cycle metrics, synthesis utilization reports, and timing slack logs are persisted to:
@@ -275,7 +275,7 @@ ES-FA-SNN-Accelerator/
 │       ├── ESFA.Net9.csproj                    # .NET 9 SDK project configuration
 │       └── README.md                           # HAL driver & kernel specification
 ├── hardware/                                   # Extended modular RTL components
-├── hardware_validation/kv260/                  # Xilinx Kria KV260 batch flow & regression
+├── hardware_validation/fpga_board/                  # vendor-neutral FPGA board batch flow & regression
 ├── p1_training/                                # SNN training & QAT export modules
 ├── p2_hardware_model/                          # Cycle, energy, and BRAM access estimators
 ├── experiments/                                # Hardware-aware loss & architecture sweeps

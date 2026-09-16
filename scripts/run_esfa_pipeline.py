@@ -120,7 +120,7 @@ def run(mode: str, clock_mhz: float, skip_vivado: bool, skip_hardware: bool) -> 
     else:
         for model_id in ["baseline_paper1", "exp5_dataflow_adaptation"]:
             _run_py(
-                project_root / "hardware_validation" / "kv260" / "scripts" / "run_hw_validation.py",
+                project_root / "hardware_validation" / "fpga_board" / "scripts" / "run_hw_validation.py",
                 [
                     "--model-id",
                     model_id,

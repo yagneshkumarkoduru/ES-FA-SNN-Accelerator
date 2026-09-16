@@ -18,7 +18,7 @@ section generation. The best current software result is
 \texttt{exp1\_hardware\_aware\_loss}, which keeps 95.70\% validation accuracy
 while reducing the energy proxy by 79.68\% compared with the dense baseline
 estimate. Fresh hardware/Vivado execution was skipped in this run; existing
-local hardware-validation rows remain available for reference, while KV260 board
+local hardware-validation rows remain available for reference, while board-level
 measurements are still pending.
 \end{abstract}
 
@@ -36,7 +36,7 @@ The repository is organized around the renamed project layout:
 \item \texttt{experiments/}: hardware-aware and adaptive dataflow experiments.
 \item \texttt{analysis/}: ranking, plots, and evidence generation.
 \item \texttt{hardware/}: Verilog RTL blocks and testbenches.
-\item \texttt{hardware\_validation/}: KV260-oriented xsim/Vivado validation flow.
+\item \texttt{hardware\_validation/}: FPGA board-oriented xsim/Vivado validation flow.
 \item \texttt{deployment/} and \texttt{system\_layer/}: CLI and adaptive routing.
 \item \texttt{output/}: generated report and presentation material.
 \end{itemize}
@@ -74,7 +74,7 @@ lower. The proxy reduction compared with the dense baseline is:
 \]
 
 \section{Hardware Status}
-The hardware side contains RTL blocks and a KV260-centered validation flow. The
+The hardware side contains RTL blocks and a FPGA board-centered validation flow. The
 latest smoke run used \texttt{-SkipVivado -SkipHardware}, so no fresh hardware
 build was executed during this run. Existing local evidence rows still include
 simulation/report data such as 5760 ns active-window latency and 576 cycles, but
@@ -87,7 +87,7 @@ The safe claim for the current presentation is:
 The local software and analysis pipeline is working end-to-end. The best
 hardware-aware software experiment preserves 95.70\% accuracy and reduces the
 energy proxy by 79.68\% against the dense baseline estimate. Hardware RTL and
-validation scripts are present, but fresh Vivado hardware execution and KV260
+validation scripts are present, but fresh Vivado hardware execution and FPGA board
 physical measurements remain pending for final hardware claims.
 \end{quote}
 
@@ -95,7 +95,7 @@ physical measurements remain pending for final hardware claims.
 \begin{itemize}
 \item Run xsim-only validation after the presentation smoke run.
 \item Run full Vivado validation when build time is available.
-\item Collect physical KV260 board measurements.
+\item Collect physical board measurements.
 \item Calibrate estimator constants against measured hardware values.
 \item Expand the model/scheduler validation matrix.
 \end{itemize}
@@ -104,6 +104,6 @@ physical measurements remain pending for final hardware claims.
 ES-FA is now presentation-ready as a local software-hardware research pipeline.
 The project can demonstrate training, hardware-aware metrics, analysis plots,
 evidence tables, and CLI routing. The remaining work is mainly hardware closure:
-fresh Vivado runs, KV260 board measurements, and estimator calibration.
+fresh Vivado runs, board measurements, and estimator calibration.
 
 \end{document}

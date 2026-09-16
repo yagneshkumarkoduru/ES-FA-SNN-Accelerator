@@ -2,7 +2,7 @@
 
 ## 1. Architectural Overview
 
-This implementation provides a fully synthesizable, technology-independent Verilog/SystemVerilog RTL core optimized for target deployment on standard cell ASICs (TSMC 28nm/16nm) and modern FPGAs (AMD Xilinx Kria KV260, UltraScale+, Versal).
+This implementation provides a fully synthesizable, technology-independent Verilog/SystemVerilog RTL core optimized for target deployment on standard cell ASICs (TSMC 28nm/16nm) and modern FPGAs (AMD vendor-neutral FPGA board, UltraScale+, Versal).
 
 ```
                             Event Stream (AXI4-Stream)
@@ -54,9 +54,9 @@ $$\text{Stage 1: Latch} \longrightarrow \text{Stage 2: Shift-Leak \& Add} \longr
 
 ---
 
-## 4. Synthesis & FPGA Implementation Results (AMD Xilinx KV260 / 28nm ASIC)
+## 4. Synthesis & FPGA Implementation Results (AMD Xilinx FPGA board / 28nm ASIC)
 
-| Metric | AMD Xilinx UltraScale+ (KV260) | TSMC 28nm Standard Cell ASIC |
+| Metric | AMD Xilinx UltraScale+ (FPGA board) | TSMC 28nm Standard Cell ASIC |
 | :--- | :---: | :---: |
 | **Max Clock Frequency ($F_{\text{max}}$)** | $250.0\text{ MHz}$ ($4.0\text{ ns}$) | $850.0\text{ MHz}$ ($1.17\text{ ns}$) |
 | **Look-Up Tables (LUTs)** | 8,420 (11.8%) | — |

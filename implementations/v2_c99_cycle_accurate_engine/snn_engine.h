@@ -75,7 +75,7 @@ typedef struct {
     uint64_t   sram_write_accesses;
     uint64_t   router_hops;
 
-    // Physical energy modeling (derived from 28nm/Kria characterization)
+    // Physical energy modeling (derived from 28nm/FPGA characterization)
     double     energy_dynamic_nj;
     double     energy_static_nj;
     double     energy_total_nj;

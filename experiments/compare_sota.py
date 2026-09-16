@@ -172,7 +172,7 @@ PUBLISHED_SOTA: List[Dict] = [
 #
 #   ES-FA energy proxy: 4.43 pJ/SOP (C-engine event-mode model,
 #   c_engine/c_benchmark_results.json; NOT board-measured).
-#   Board validation on KV260 is pending (see EVIDENCE.md).
+#   Board validation is pending (see EVIDENCE.md).
 
 HARDWARE_SOTA: List[Dict] = [
     {
@@ -219,14 +219,14 @@ HARDWARE_SOTA: List[Dict] = [
         "system": "ES-FA (this work)",
         "paper": "Koduru Yagnesh Kumar, 2026",
         "year": 2026,
-        "hardware": "ECP5 FPGA (pending KV260 validation)",
+        "hardware": "ECP5 FPGA (pending FPGA board validation)",
         "energy_pj_per_sop": None,  # filled at runtime from results
         "energy_label": "MODEL (C-engine estimator, 4.43 pJ/SOP base; NOT board-measured)",
         "class": "MODEL (C-engine estimator)",
         "note": (
             "Energy = SOP_per_inference × 4.43 pJ/SOP "
             "(c_engine/c_benchmark_results.json event-mode). "
-            "Board power on KV260 is FUTURE WORK - see EVIDENCE.md."
+            "Board power on hardware is FUTURE WORK - see EVIDENCE.md."
         ),
     },
 ]

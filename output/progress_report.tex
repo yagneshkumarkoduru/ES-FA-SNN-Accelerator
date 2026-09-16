@@ -32,7 +32,7 @@ a local working pipeline with SNN training, hardware-aware estimates, experiment
 runs, analysis plots, RTL blocks, xsim/Vivado validation scripts, a small CLI
 layer, and LaTeX documentation. The latest completed run was a software smoke
 run using \texttt{-SkipVivado -SkipHardware}. The main unfinished item is
-physical validation on the KV260 board. Local xsim/Vivado evidence already
+physical validation on the board. Local xsim/Vivado evidence already
 exists from earlier validation output, but fresh Vivado execution and board-level
 measurements still have to be added.
 
@@ -47,7 +47,7 @@ In simple terms, the work asks:
 \begin{itemize}[leftmargin=*]
 \item Can a small SNN be trained and exported in a reproducible way?
 \item Can dense and event-driven execution be compared using the same metrics?
-\item Can the RTL and validation flow produce local evidence for the KV260 path?
+\item Can the RTL and validation flow produce local evidence for the FPGA board path?
 \item Can the project be demonstrated as a runnable system instead of a loose set
 of scripts?
 \end{itemize}
@@ -63,7 +63,7 @@ Estimators & Spike cost, memory access, energy proxy, and latency proxy function
 Experiments & Hardware-aware loss and adaptive dataflow runs are present in the current results. \\
 Exports & Metrics, histories, manifests, checkpoints, INT8 weights, spike stats, and raster files are generated. \\
 RTL & Router, scheduler, event queue, BRAM, LIF PE, and top-level Verilog sources were preserved. \\
-Validation & KV260-oriented xsim and Vivado batch scripts generate local logs, reports, and parsed JSON. \\
+Validation & FPGA board-oriented xsim and Vivado batch scripts generate local logs, reports, and parsed JSON. \\
 System layer & Intent engine, task router, SNN/math/control modules, adaptive policy, and CLI are implemented. \\
 Docs & Setup guide, manual, architecture notes, checkpoints, paper source, and this report are now in the repo. \\
 \bottomrule
@@ -89,7 +89,7 @@ The newer work mainly wraps the existing pieces into a cleaner local pipeline:
 \begin{itemize}[leftmargin=*]
 \item run manifests and layer-activity exports were added so results are easier
 to trace;
-\item \path{hardware_validation/kv260/} was added for xsim regression, Vivado Tcl
+\item \path{hardware_validation/fpga_board/} was added for xsim regression, Vivado Tcl
 builds, report parsing, and hardware metric collection;
 \item \path{system_layer/} was added for intent classification and routing;
 \item \path{deployment/} was added for the CLI and adaptive runtime policy;
@@ -152,10 +152,10 @@ proxy by about 79.68 percent against the dense baseline estimate. This is still
 a proxy result, so it should not be presented as measured board power.
 
 \section{Hardware Validation}
-The hardware validation path is local and KV260-oriented. It runs:
+The hardware validation path is local and FPGA board-oriented. It runs:
 \begin{enumerate}[leftmargin=*]
 \item xsim regression for dense and event scheduler modes;
-\item Vivado synthesis/implementation through \path{hardware_validation/kv260/vivado/build.tcl};
+\item Vivado synthesis/implementation through \path{hardware_validation/fpga_board/vivado/build.tcl};
 \item parsing of utilization and timing reports;
 \item merging of xsim, Vivado, model, mode, and estimator fields into
 \path{hardware_metrics.json}.
@@ -177,7 +177,7 @@ dense and event modes. The current parsed results show:
 The dense and event modes currently report equal latency/cycle count in the
 generated evidence table. That result is useful because it keeps the comparison
 honest, but it also shows what needs work next: the sparse event path needs
-stronger hardware stimuli and real KV260 board measurements.
+stronger hardware stimuli and real board measurements.
 
 \section{System and CLI Layer}
 The system layer was added so the project can be shown through commands, not only
@@ -212,7 +212,7 @@ The documentation now has a more usable shape:
 
 \section{Open Work}
 \begin{itemize}[leftmargin=*]
-\item Run physical KV260 measurements and merge them into the same hardware
+\item Run physical FPGA board measurements and merge them into the same hardware
 metrics schema.
 \item Tune estimator constants using measured hardware data.
 \item Expand the hardware validation matrix beyond the current baseline and
@@ -226,7 +226,7 @@ version.
 
 \section{Next Steps}
 \begin{enumerate}[leftmargin=*]
-\item Boot the KV260 with the prepared Kria Ubuntu SD card.
+\item Boot the FPGA board with the prepared FPGA Ubuntu SD card.
 \item Re-run the smoke pipeline before the presentation to refresh visible
 outputs.
 \item Run xsim-only validation if Vivado implementation time is limited.
@@ -241,6 +241,6 @@ The project is now in a demonstrable state, but it should be described carefully
 the software pipeline, plots, CLI, RTL, and local validation scripts are working;
 the final board measurement stage is still pending. The current evidence supports
 the ES-FA direction, especially the hardware-aware software result, but the final
-claim should wait for KV260 physical measurements.
+claim should wait for FPGA board physical measurements.
 
 \end{document}

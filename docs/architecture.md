@@ -94,11 +94,11 @@ Success signal in simulation:
 - `advanced_ops < basic_ops`
 - Demonstrates operation reduction under sparse input activity
 
-## 4. Local Hardware Validation Stack (KV260-Centric)
+## 4. Local Hardware Validation Stack (FPGA board-Centric)
 
-The evolved project adds a wrapper stack under `hardware_validation/kv260/`:
+The evolved project adds a wrapper stack under `hardware_validation/fpga_board/`:
 
-- `tb/tb_kv260_modes.v`: mode-specific dense/event simulation harness.
+- `tb/tb_fpga_board_modes.v`: mode-specific dense/event simulation harness.
 - `scripts/run_xsim_regression.py`: runs `xvlog/xelab/xsim` and extracts cycle/latency metrics.
 - `vivado/build.tcl`: batch synthesis/implementation/timing flow.
 - `scripts/parse_vivado_reports.py`: normalizes utilization/timing into JSON.

@@ -178,7 +178,35 @@ Dataset: Cramer et al., IEEE TNNLS 2022. See [`EVIDENCE.md`](EVIDENCE.md) for fu
 **ES-FA RPLIF beats PLIF by +3.61pp** from recurrent connections.
 Gap to published SRNN: -14.58pp (addressable with ALIF + BNTT - see roadmap).
 
-#### 5.1.2 Hardware Efficiency (Energy-Delay Product)
+#### 5.1.2 Recent published results (compiled 2026-09-16)
+
+The table above is not exhaustive; recent software results are higher
+still. Compiled from the public record (arXiv:2605.16114 Table 1 and the
+referenced papers):
+
+| System | SHD Accuracy | Class |
+| :--- | :---: | :--- |
+| Sun et al. 2025 (software SNN, ~0.2M params) | 96.26% | PUBLISHED |
+| Schone et al. 2024 (software SNN, ~0.4M params) | 95.90% | PUBLISHED |
+| Baronig et al. 2024 (state-space model, ~0.45M params) | 95.81% +- 0.56% | PUBLISHED |
+| Hammouamri et al. 2023 (learned delays, ~0.2M params) | 95.07% +- 0.24% | PUBLISHED |
+| Catalyst community benchmark (adLIF, int16) | 91.0% (90.8%) | PUBLISHED (external) |
+| Matinizadeh et al. 2025 (FPGA event-graph, quantized) | 92.3% | PUBLISHED |
+| Cramer et al. 2022 (dataset-paper SNN baseline) | 83.2% +- 1.3% | PUBLISHED |
+| Biswas et al. 2024 (small LSM, 30k params) | 77.8% | PUBLISHED |
+| Carpegna et al. 2025 (FPGA SNN) | 72.99% | PUBLISHED |
+
+**What the 92-96% numbers are:** software state-of-the-art SNNs trained in
+FP32 for hundreds of epochs, several with learned synaptic delays or
+state-space parametrizations. They are not measured under ES-FA's protocol
+(INT8-aligned weights, 10 ms bins, 50-epoch training, sparsity
+regularization). A 98.43% figure in circulation is a multimodal
+N-MNIST + SHD task, not SHD alone. ES-FA's 77.87% sits above typical naive
+FPGA SNN implementations (72.99%) and small-LSM results (77.8%) while
+carrying the hardware constraints; the gap decomposition and measurement
+plan are in `EVIDENCE.md`.
+
+#### 5.1.3 Hardware Efficiency (Energy-Delay Product)
 
 All energy figures are **MODEL estimates** from the C-engine (4.43 pJ/SOP event-mode).
 Physical board measurement is FUTURE WORK. See [`EVIDENCE.md`](EVIDENCE.md).
@@ -194,7 +222,7 @@ Physical board measurement is FUTURE WORK. See [`EVIDENCE.md`](EVIDENCE.md).
 **ES-FA energy model (4.43 pJ/SOP) is between Loihi 2 and TiC-SNN** on the hardware
 efficiency table. Validation on real FPGA hardware would confirm this positioning.
 
-#### 5.1.3 Sparsity and SOP Reduction
+#### 5.1.4 Sparsity and SOP Reduction
 
 | Model | H1 Sparsity | H2 Sparsity | SOP Reduction vs Dense |
 |:---|:---:|:---:|:---:|

@@ -69,6 +69,21 @@ Source: `experiments/benchmark_shd_esfa.py`, `results/shd_esfa_v2/aggregate.json
 | snntorch Leaky (our baseline) | 70.02% ±2.10% (3 seeds) | this repo 2026-09-12 |
 
 **Gap to SOTA (PLIF reference):** ES-FA 74.26% vs PLIF-ICCV2021 92.66% = -18.4pp gap.
+
+**Recent published additions (compiled 2026-09-16 from arXiv:2605.16114
+Table 1 and the referenced papers):** Sun et al. 2025, 96.26% (software
+SNN, ~0.2M params); Schone et al. 2024, 95.90%; Baronig et al. 2024,
+95.81% +- 0.56% (state-space model); Hammouamri et al. 2023, 95.07% +-
+0.24% (learned delays); Catalyst community benchmark with adLIF, 91.0%
+(90.8% int16); Matinizadeh et al. 2025 (FPGA event-graph, quantized),
+92.3%; Cramer et al. 2022 dataset-paper SNN baseline, 83.2% +- 1.3%;
+Biswas et al. 2024 (small LSM, 30k params), 77.8%; Carpegna et al. 2025
+(FPGA SNN), 72.99%. These results use FP32 and different input encodings
+and training budgets; the 92-96% band is the software frontier, not a
+same-protocol comparison. A 98.43% figure in circulation belongs to a
+multimodal N-MNIST + SHD task, not SHD alone. ES-FA's 77.87% is measured
+under the fixed protocol in this ledger (INT8-aligned weights, 10 ms bins,
+50-epoch training, sparsity regularization).
 **Honest assessment:** ES-FA beats the snntorch Leaky baseline with identical architecture
 (+4.24pp, 6.1% relative improvement from learnable decay and sparsity regularisation)
 but is below published PLIF/SRNN performance. The remaining gap is attributable to:

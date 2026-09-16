@@ -86,6 +86,24 @@ These are known engineering gaps, not fundamental claims failures.
 | C-engine event mode energy saving | 20.81%, EDP 1.25x | MODEL (C99 cycle model) | `c_engine/c_benchmark_results.json` |
 | C-engine config | 4 cores, 128 neurons/core, 10000 timesteps, 85% sparsity | CONFIG | `c_engine/c_benchmark_results.json` |
 
+## Open-source CAD verification of the RTL core (NEW 2026-09-16)
+
+Class: DIGITAL SOURCE VERIFICATION (behavioral simulation + mapped netlist)
+
+Flow: `hardware_validation/open_cad/run_open_cad.py` (OSS CAD Suite; no
+vendor tools, no board). Report: `out/open_cad_report.json`.
+
+| Claim | Value | Class | Source |
+|---|---|---|---|
+| Testbench result | PASS: 6 spikes fired, 12 active cycles, 1 STDP weight update (weight 22 as expected) | SIMULATION (Icarus Verilog 14.0) | `out/open_cad_report.json` |
+| ECP5 synthesis | 890 cells: LUT4 308, TRELLIS_FF 395, TRELLIS_DPR16X4 48, CCU2C 97, PFUMX 37, L6MUX21 2 | TARGET BUILD (Yosys 0.68+120) | same |
+| Routed timing estimate | Fmax 132.29 MHz at a 50 MHz target (PASS) | TARGET BUILD (nextpnr-ecp5) | same |
+
+Boundary: open-source toolchain evidence only. No vendor timing signoff,
+no board measurement, no power measurement. This flow replaces the
+previous "timing does not close" status with a reproducible mapped-netlist
+timing estimate; the Vivado flow remains the vendor path when available.
+
 ## .NET v3 HAL benchmark (re-measured 2026-09-16)
 
 | Claim | Value | Class | Source |

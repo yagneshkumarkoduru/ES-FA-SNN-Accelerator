@@ -132,6 +132,24 @@ The synthesizable RTL implementation is structured into modular hardware subsyst
 | **Approx-Priority Queue** | [`hardware/scheduler/event_queue.v`](hardware/scheduler/event_queue.v) | BRAM-backed FIFO with 2-element head timestamp comparator for oldest-first event scheduling. |
 | **Top-Level Accelerator** | [`implementations/v1_synthesizable_rtl_verilog/esfa_top_core.v`](implementations/v1_synthesizable_rtl_verilog/esfa_top_core.v) | Integrates router, scheduler, dual-bank BRAM arbiter, PE array, and STDP engine. |
 
+### 4.1 Open-source CAD verification (NEW 2026-09-16)
+
+The RTL core is verified without vendor tools and without a board:
+Icarus Verilog simulation **PASS** (pipelined membrane accumulation,
+threshold firing through the bank arbiter, and the STDP weight writeback
+with the expected weight), Yosys synthesis maps the core to **890 cells**
+on ECP5 (LUT4 308, TRELLIS_FF 395), and nextpnr-ecp5 routes it with a
+maximum-frequency estimate of **132.29 MHz at a 50 MHz target**.
+
+```powershell
+py -3 hardware_validation/open_cad/run_open_cad.py
+```
+
+Report: `out/open_cad_report.json`; flow docs:
+[`hardware_validation/open_cad/README.md`](hardware_validation/open_cad/README.md).
+Boundary: open-source toolchain evidence only (no vendor signoff, no board
+measurement, no power measurement).
+
 ---
 
 ## 5. Quantitative Experimental Results

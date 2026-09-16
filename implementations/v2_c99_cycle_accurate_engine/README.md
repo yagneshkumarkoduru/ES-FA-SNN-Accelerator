@@ -32,7 +32,7 @@ This implementation is an ANSI C99 bit-exact, cycle-accurate simulation engine o
 | Component | File | Technical Implementation |
 | :--- | :--- | :--- |
 | **Engine Core Header** | [`snn_engine.h`](snn_engine.h) | Struct definitions for `LIFNeuron`, `Synapse`, `SNNCore`, and `SNNMesh` tracking up to 16 cores and 8,192 neurons with BRAM bank conflict counters. |
-| **Cycle Engine Logic** | [`snn_engine.c`](snn_engine.c) | Bit-exact fixed-point state updates, 4-stage pipeline modeling, non-blocking queue scheduling, and energy counters ($E_{\text{SOP}} = 3.89\text{ pJ}$). |
+| **Cycle Engine Logic** | [`snn_engine.c`](snn_engine.c) | Bit-exact fixed-point state updates, 4-stage pipeline modeling, non-blocking queue scheduling, and energy counters ($E_{\text{SOP}} = 3.89\text{ pJ}$ toggle-model constant; the event-mode model value is $4.43\text{ pJ/SOP}$). |
 | **SD-FlashAttention** | [`spike_attention.c`](spike_attention.c) | Event-driven Spike-Driven FlashAttention benchmarking kernel computing token-head queries and keys via sparse addition bypassing dense matrix multipliers. |
 | **Executable Benchmark** | [`spike_attn_bench.exe`](spike_attn_bench.exe) | Compiled native x86_64 binary built with GCC -O3 -std=c99 (no SIMD intrinsics). |
 | **Benchmark Runner** | [`run_c_engine_benchmark.py`](run_c_engine_benchmark.py) | Automated orchestration script executing the binary, parsing telemetry JSON, and logging EDP metrics. |

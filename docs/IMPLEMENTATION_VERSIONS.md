@@ -13,11 +13,17 @@ The **ES-FA Neuromorphic Accelerator Architecture** provides three implementatio
 | **Implementation Language** | Synthesizable Verilog / SystemVerilog | ANSI C99 (`-O3`, no SIMD intrinsics) | Modern C# 13 / .NET 9 Core Runtime |
 | **Mathematical Abstraction** | 4-Stage Fixed-Point Shift-Leak Datapath | Bit-Exact Quantized Neuron/Synapse Arrays | Softmax-Free Attention & Unmanaged Memory Buffers |
 | **Arithmetic Precision** | 16-bit State, INT8 Synapse, 16-bit Time | INT16 Membrane, INT8 Weights, FP32 Attn | INT8 Spikes, FP32 Softmax-Free Attention |
-| **Clock Frequency / Latency** | $250\text{ MHz}$ (FPGA) / $850\text{ MHz}$ (ASIC) | $59.9\text{ GSOP/s}$ Execution Rate (cycle model) | Measured Dispatch Latency (host dependent; $81.9\text{ ns}$ on the reference run) |
-| **Energy Consumption** | **$0.42\text{ pJ/SOP}$** (ASIC model) / $3.89\text{ pJ}$ (FPGA model) | Toggle-Accurate Energy Telemetry Model | Zero-Allocation GC-Free Runtime |
-| **Streaming Throughput** | 1 Event / PE Cycle ($250\text{ Mevents/s}$) | 59.9 Billion Synaptic Ops / sec (cycle model) | Packet Streaming (host dependent; see driver telemetry) |
+| **Clock Frequency / Latency** | 132.29 MHz (ECP5 routed estimate, 50 MHz target) / 850 MHz (ASIC projection) | Engine outputs cycles and toggle energy (the 59.9 GSOP/s figure is withdrawn; no verified run) | Measured Dispatch Latency: **55.7 ns** mean (ledgered 2026-09-16; host dependent) |
+| **Energy Consumption** | **$0.42\text{ pJ/SOP}$** (ASIC model) / $3.89\text{ pJ/SOP}$ (FPGA toggle model) | Toggle-Accurate Energy Telemetry Model (event-mode model constant $4.43\text{ pJ/SOP}$) | Zero-Allocation GC-Free Runtime |
+| **Streaming Throughput** | 1 Event / PE Cycle (RTL datapath) | Withdrawn (no verified throughput run) | 8.97 Mpps streaming measured on the author workstation (host dependent; see driver telemetry) |
 | **On-Chip Learning** | Synthesizable Bi-Exponential STDP Engine | Configurable Hebbian LTP/LTD Matrix | Streaming Feedback & Adaptive Weights |
 | **Attention Mechanism** | Sparse Event Accumulator Coincidence Unit | C-Optimized Spike-Driven Attention Kernel | Spike-Driven FlashAttention Kernel |
+
+> **Model-constant note (2026-09-16):** the three energy constants in this
+> document are distinct: 0.42 pJ/SOP is the 28 nm ASIC projection, 3.89
+> pJ/SOP is the FPGA toggle-model constant, and 4.43 pJ/SOP is the C-engine
+> event-mode model value used for every ledgered energy figure. All of them
+> are models; board power remains future work. See `EVIDENCE.md`.
 
 ---
 

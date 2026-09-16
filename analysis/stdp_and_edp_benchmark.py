@@ -117,7 +117,7 @@ def run_stdp_edp_benchmark():
     print("-" * 80)
     print("Benchmark Verdict:")
     print("  - On-Chip STDP Learning Window: tau_+ = 16.8ms (LTP), tau_- = 22.4ms (LTD)")
-    print("  - Average Energy-Delay Product (EDP) Reduction: 6.3x vs Synchronous Systolic Arrays")
+    print("  - Average Energy-Delay Product (EDP) Reduction: 6.3x vs Synchronous Systolic Arrays (MODEL estimate, not a board measurement)")
     print("  - Verified Synthesizable Verilog: hardware/compute/stdp_learning_engine.v")
     print("=" * 80)
 

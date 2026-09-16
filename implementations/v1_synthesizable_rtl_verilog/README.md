@@ -59,12 +59,20 @@ $$\text{Stage 1: Latch} \longrightarrow \text{Stage 2: Shift-Leak \& Add} \longr
 | Metric | AMD Xilinx UltraScale+ (FPGA board) | TSMC 28nm Standard Cell ASIC |
 | :--- | :---: | :---: |
 | **Max Clock Frequency ($F_{\text{max}}$)** | $250.0\text{ MHz}$ ($4.0\text{ ns}$) | $850.0\text{ MHz}$ ($1.17\text{ ns}$) |
-| **Look-Up Tables (LUTs)** | 8,420 (11.8%) | — |
-| **Flip-Flops (FFs)** | 11,240 (7.9%) | — |
-| **Gate Count (NAND2 Equivalent)** | — | $142.5\text{ kGates}$ |
+| **Look-Up Tables (LUTs)** | 8,420 (11.8%) | - |
+| **Flip-Flops (FFs)** | 11,240 (7.9%) | - |
+| **Gate Count (NAND2 Equivalent)** | - | $142.5\text{ kGates}$ |
 | **Block RAM (BRAM36K / SRAM)** | 16 Blocks ($576\text{ KB}$) | $128\text{ KB}$ Dual-Port SRAM |
-| **Dynamic Energy per SOP** | $3.89\text{ pJ/SOP}$ | $0.42\text{ pJ/SOP}$ |
-| **Total Dynamic Power @ 200 MHz** | $28.4\text{ mW}$ | $4.1\text{ mW}$ |
+| **Dynamic Energy per SOP** | $3.89\text{ pJ/SOP}$ (model) | $0.42\text{ pJ/SOP}$ (model) |
+| **Total Dynamic Power @ 200 MHz** | $28.4\text{ mW}$ (model) | $4.1\text{ mW}$ (model) |
+
+> **Provenance note (2026-09-16):** the table above is an architectural
+> projection for the two target substrates, not a vendor synthesis run.
+> The verified, reproducible mapping for the RTL core is the open-source
+> CAD flow: 890 cells mapped on Lattice ECP5 and a 132.29 MHz routed
+> maximum-frequency estimate at a 50 MHz target
+> (`hardware_validation/open_cad/`, `EVIDENCE.md`). Vendor signoff and
+> board measurements remain future work.
 
 ---
 

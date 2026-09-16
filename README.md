@@ -300,10 +300,11 @@ GitHub: [@yagneshkumarkoduru](https://github.com/yagneshkumarkoduru)
 Portfolio: [yagneshkumarkoduru.vercel.app](https://yagneshkumarkoduru.vercel.app/)  
 
 ```bibtex
-@article{koduru2026esfa,
+@misc{koduru2026esfa,
   author = {Koduru, Yagnesh Kumar},
-  title = {ES-FA: Parameterizable Event-Driven Spiking Neural Network Accelerator with On-Chip STDP Learning for Edge Physical Intelligence},
-  journal = {IEEE Transactions on Very Large Scale Integration (VLSI) Systems},
-  year = {2026}
+  title  = {ES-FA: Parameterizable Event-Driven Spiking Neural Network Accelerator with On-Chip STDP Learning for Edge Physical Intelligence},
+  year   = {2026},
+  note   = {Research manuscript draft; not peer reviewed},
+  url    = {https://github.com/yagneshkumarkoduru/ES-FA-SNN-Accelerator}
 }
 ```

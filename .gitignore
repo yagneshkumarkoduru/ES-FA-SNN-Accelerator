@@ -40,3 +40,5 @@ iter_*_CongestedCLBsAndNets.txt
 *.obj
 bin/
 obj/
+cloud/.state.json
+cloud/.bundle/

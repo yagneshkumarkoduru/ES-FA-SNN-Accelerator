@@ -16,6 +16,9 @@ module tb_lif_neuron_pe;
     wire [15:0] out_timestamp;
     wire signed [15:0] membrane_out;
     wire out_spike;
+    integer seen;
+    integer spikes;
+    reg ok;
 
     lif_neuron_pe dut (
         .clk(clk),
@@ -39,6 +42,9 @@ module tb_lif_neuron_pe;
         in_timestamp = 0;
         membrane_in = 0;
         syn_input = 0;
+        seen = 0;
+        spikes = 0;
+        ok = 1;
 
         repeat (2) @(posedge clk);
         rst_n <= 1;
@@ -60,8 +66,9 @@ module tb_lif_neuron_pe;
         @(posedge clk);
         in_valid <= 0;
 
-        repeat (8) begin
+        repeat (10) begin
             @(posedge clk);
+            @(negedge clk);
             if (out_valid) begin
                 $display(
                     "PE out: id=%0d ts=%0d mem=%0d spike=%0d",
@@ -70,8 +77,20 @@ module tb_lif_neuron_pe;
                     membrane_out,
                     out_spike
                 );
+                seen = seen + 1;
+                spikes = spikes + out_spike;
+                ok = ok && (out_neuron_id === 7'd3);
+                ok = ok && (membrane_out === 16'sd0);
+                if (seen == 1) ok = ok && (out_timestamp === 16'd10);
+                if (seen == 2) ok = ok && (out_timestamp === 16'd11);
             end
         end
+
+        ok = ok && (seen == 2) && (spikes == 2);
+        if (ok)
+            $display("PASS: LIF PE pipeline produced 2 threshold spikes with reset membranes");
+        else
+            $display("FAIL: LIF PE behavior mismatch (seen=%0d spikes=%0d)", seen, spikes);
 
         $finish;
     end

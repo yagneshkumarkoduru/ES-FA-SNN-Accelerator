@@ -44,8 +44,13 @@ module tb_neuron_bram;
         addr_b <= 4'd5;
 
         @(posedge clk);
+        @(negedge clk);
         $display("BRAM A[3]=0x%0h (expected 0x11)", dout_a);
         $display("BRAM B[5]=0x%0h (expected 0xAA)", dout_b);
+        if (dout_a === 16'h0011 && dout_b === 16'h00AA)
+            $display("PASS: dual-port BRAM write/read data verified");
+        else
+            $display("FAIL: BRAM readback mismatch");
 
         #20;
         $finish;

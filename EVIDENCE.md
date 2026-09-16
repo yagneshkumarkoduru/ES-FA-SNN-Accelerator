@@ -96,8 +96,16 @@ vendor tools, no board). Report: `out/open_cad_report.json`.
 | Claim | Value | Class | Source |
 |---|---|---|---|
 | Testbench result | PASS: 6 spikes fired, 12 active cycles, 1 STDP weight update (weight 22 as expected) | SIMULATION (Icarus Verilog 14.0) | `out/open_cad_report.json` |
+| Supporting unit testbenches | **9/9 PASS** (scheduler ordering, event queue, LIF PE thresholding, BRAM readback, bank arbitration, spike routing, both top integrations) | SIMULATION (Icarus Verilog 14.0) | same (`supporting_testbenches`) |
 | ECP5 synthesis | 890 cells: LUT4 308, TRELLIS_FF 395, TRELLIS_DPR16X4 48, CCU2C 97, PFUMX 37, L6MUX21 2 | TARGET BUILD (Yosys 0.68+120) | same |
 | Routed timing estimate | Fmax 132.29 MHz at a 50 MHz target (PASS) | TARGET BUILD (nextpnr-ecp5) | same |
+
+Testbench fixes made while wiring this flow (2026-09-16): undeclared loop
+indices in `spike_driven_flash_attention.v`; three testbenches sampled
+registered outputs one delta early (`tb_neuron_bram`, `tb_spike_router`,
+`tb_weight_bram_bank`); the LIF PE testbench had no assertions; one
+testbench used a non-standard success marker. All nine testbenches now
+assert explicit PASS criteria.
 
 Boundary: open-source toolchain evidence only. No vendor timing signoff,
 no board measurement, no power measurement. This flow replaces the

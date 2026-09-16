@@ -102,6 +102,8 @@ module spike_driven_flash_attention #(
     // grows by 1..4 per V event).
     reg [5:0] den_shift;
     integer   s_idx;
+    integer   d_idx;
+    integer   r_idx;
     always @(*) begin
         den_shift = 6'd0;
         for (s_idx = 1; s_idx < 2*DATA_WIDTH; s_idx = s_idx + 1) begin

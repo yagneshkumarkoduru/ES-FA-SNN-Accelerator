@@ -23,6 +23,7 @@ module tb_weight_bram_bank;
     wire req1_grant;
     wire req1_data_valid;
     wire [7:0] req1_data;
+    reg ok;
 
     weight_bram_bank #(
         .DATA_WIDTH(8),
@@ -55,6 +56,7 @@ module tb_weight_bram_bank;
         wr_en = 0; wr_bank = 0; wr_addr = 0; wr_data = 0;
         req0_valid = 0; req0_bank = 0; req0_addr = 0;
         req1_valid = 0; req1_bank = 0; req1_addr = 0;
+        ok = 1;
 
         repeat (2) @(posedge clk);
         rst_n <= 1;
@@ -73,7 +75,10 @@ module tb_weight_bram_bank;
         req1_valid <= 1; req1_bank <= 1; req1_addr <= 6'd1;
         @(posedge clk);
         req0_valid <= 0; req1_valid <= 0;
-        $display("Distinct-bank reads: req0=0x%0h req1=0x%0h", req0_data, req1_data);
+        @(negedge clk);
+        $display("Distinct-bank reads: req0=0x%0h req1=0x%0h (expect 0x12, 0x34)", req0_data, req1_data);
+        ok = ok && (req0_data === 8'h12 && req1_data === 8'h34);
+        ok = ok && (req0_grant === 1'b1 && req1_grant === 1'b1);
 
         // Conflict read: requester 0 should win.
         @(posedge clk);
@@ -81,7 +86,14 @@ module tb_weight_bram_bank;
         req1_valid <= 1; req1_bank <= 0; req1_addr <= 6'd1;
         @(posedge clk);
         req0_valid <= 0; req1_valid <= 0;
-        $display("Conflict read: req0_grant=%0d req1_grant=%0d", req0_grant, req1_grant);
+        @(negedge clk);
+        $display("Conflict read: req0_grant=%0d req1_grant=%0d (expect 1, 0)", req0_grant, req1_grant);
+        ok = ok && (req0_grant === 1'b1 && req1_grant === 1'b0);
+
+        if (ok)
+            $display("PASS: banked weight memory parallel reads and priority arbitration verified");
+        else
+            $display("FAIL: weight bank behavior mismatch");
 
         #20;
         $finish;

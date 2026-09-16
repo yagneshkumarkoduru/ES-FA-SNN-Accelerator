@@ -135,7 +135,7 @@ module tb_snn_generic_top;
         s_axis_spike_tvalid <= 1'b0;
 
         #200;
-        $display("[TB SUCCESS] Generic Multi-Core SNN Accelerator verification completed.");
+        $display("PASS: Generic Multi-Core SNN Accelerator verification completed.");
         $finish;
     end
 

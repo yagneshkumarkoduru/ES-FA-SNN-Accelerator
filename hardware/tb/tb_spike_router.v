@@ -10,6 +10,7 @@ module tb_spike_router;
     reg in_spike;
     reg [6:0] in_neuron_id;
     reg [15:0] in_timestamp;
+    reg ok;
 
     wire out_valid;
     wire out_spike;
@@ -37,6 +38,7 @@ module tb_spike_router;
         in_spike = 0;
         in_neuron_id = 0;
         in_timestamp = 0;
+        ok = 1;
 
         repeat (2) @(posedge clk);
         rst_n <= 1;
@@ -45,18 +47,29 @@ module tb_spike_router;
         @(posedge clk);
         in_valid <= 1; in_spike <= 0; in_neuron_id <= 7'd5; in_timestamp <= 16'd1;
         @(posedge clk);
+        @(negedge clk);
         $display("Dense mode out_valid=%0d (expect 1)", out_valid);
+        ok = ok && (out_valid === 1'b1);
 
         // Sparse mode forwards only active spikes.
         mode_dense <= 0;
         @(posedge clk);
         in_valid <= 1; in_spike <= 0; in_neuron_id <= 7'd6; in_timestamp <= 16'd2;
         @(posedge clk);
+        @(negedge clk);
         $display("Sparse mode out_valid=%0d (expect 0)", out_valid);
+        ok = ok && (out_valid === 1'b0);
         @(posedge clk);
         in_valid <= 1; in_spike <= 1; in_neuron_id <= 7'd7; in_timestamp <= 16'd3;
         @(posedge clk);
+        @(negedge clk);
         $display("Sparse+spike out_valid=%0d (expect 1)", out_valid);
+        ok = ok && (out_valid === 1'b1 && out_spike === 1'b1 && out_neuron_id === 7'd7);
+
+        if (ok)
+            $display("PASS: spike router dense/sparse filtering and payload verified");
+        else
+            $display("FAIL: spike router behavior mismatch");
 
         #20;
         $finish;

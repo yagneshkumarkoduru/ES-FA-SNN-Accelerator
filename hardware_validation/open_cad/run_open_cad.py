@@ -43,6 +43,23 @@ RTL_MODULES = (
 )
 TOP = "esfa_top_core"
 
+HARDWARE_DIR = PROJECT_ROOT / "hardware"
+SUPPORTING_MODULES = (
+    "compute/adaptive_leak_engine.v",
+    "compute/lif_neuron_pe.v",
+    "compute/spike_driven_flash_attention.v",
+    "compute/stdp_learning_engine.v",
+    "memory/neuron_bram.v",
+    "memory/weight_bram_bank.v",
+    "routing/spike_router.v",
+    "scheduler/basic_scheduler.v",
+    "scheduler/event_queue.v",
+    "scheduler/advanced_scheduler.v",
+    "top/snn_top.v",
+    "top/snn_accelerator_generic.v",
+)
+TESTBENCH_DIR = HARDWARE_DIR / "tb"
+
 
 def _tool_env(oss_root: Path) -> dict[str, str]:
     env = dict(os.environ)
@@ -137,6 +154,21 @@ def main() -> int:
     stdp_line = re.search(r"STDP weight updates\s*:\s*(\d+)", simulation.stdout)
     cycles_line = re.search(r"Total active cycles\s*:\s*(\d+)", simulation.stdout)
 
+    # 1b. Supporting unit testbenches under hardware/ (self-checking).
+    supporting_paths = [str(HARDWARE_DIR / name) for name in SUPPORTING_MODULES]
+    testbench_results: list[dict[str, object]] = []
+    for tb in sorted(TESTBENCH_DIR.glob("tb_*.v")):
+        tb_exe = out_dir / f"{tb.stem}.vvp"
+        _run([iverilog, "-g2012", "-o", str(tb_exe), *supporting_paths, str(tb)], env, PROJECT_ROOT)
+        tb_run = _run([vvp, str(tb_exe)], env, PROJECT_ROOT)
+        testbench_results.append(
+            {
+                "testbench": tb.name,
+                "pass": "PASS:" in (tb_run.stdout + tb_run.stderr),
+            }
+        )
+    testbenches_passed = sum(1 for entry in testbench_results if entry["pass"])
+
     # 2. Synthesis
     read_cmd = f"read_verilog {' '.join(Path(p).as_posix() for p in rtl_paths)}"
     synth_json = out_dir / "esfa_ecp5.json"
@@ -191,6 +223,11 @@ def main() -> int:
             "active_cycles": int(cycles_line.group(1)) if cycles_line else None,
             "stdp_weight_updates": int(stdp_line.group(1)) if stdp_line else None,
         },
+        "supporting_testbenches": {
+            "total": len(testbench_results),
+            "passed": testbenches_passed,
+            "results": testbench_results,
+        },
         "synthesis": {"total_cells": total_cells, "cells": cells},
         "place_and_route": {
             "fmax_mhz": fmax,
@@ -216,12 +253,13 @@ def main() -> int:
     print(f"  simulation : {'PASS' if simulation_pass else 'FAIL'} "
           f"({report['simulation']['spikes_fired']} spikes, "
           f"{report['simulation']['stdp_weight_updates']} STDP updates)")
+    print(f"  testbenches: {testbenches_passed}/{len(testbench_results)} PASS")
     print(f"  synthesis  : {total_cells} cells "
           f"({cells.get('LUT4', 0)} LUT4, {cells.get('TRELLIS_FF', 0)} FF)")
     print(f"  place/route: Fmax estimate {fmax} MHz at a {args.freq} MHz target "
           f"({'PASS' if report['place_and_route']['passed_target'] else 'FAIL'})")
     print(f"  report     : {report_path}")
-    if not simulation_pass:
+    if not simulation_pass or testbenches_passed != len(testbench_results):
         return 1
     return 0
 

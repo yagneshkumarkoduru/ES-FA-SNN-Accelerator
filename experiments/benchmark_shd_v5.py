@@ -172,8 +172,8 @@ class ESFASDNetV5(nn.Module):
             v_out = torch.zeros(batch, N_CLASSES, device=device)
             beta_out = self.lif_out.beta
 
-        for t in range(timesteps):
-            current = projected_input[:, t] + self.fc_rec(spk1_d)
+        for t, projected_t in enumerate(projected_input.unbind(dim=1)):
+            current = projected_t + self.fc_rec(spk1_d)
             v1, spk1 = self.lif1(current, v1)
             spk1_d = self.dropout(spk1) if self.training else spk1
             spike_count = spike_count + spk1
@@ -217,13 +217,17 @@ def make_loaders(data_dir: Path, batch_size: int, dt_ms: float, t_max_ms: float,
             raise FileNotFoundError(f"SHD file not found: {path}")
     x_train, y_train = load_shd_h5(train_h5, dt_ms=dt_ms, t_max_ms=t_max_ms)
     x_test, y_test = load_shd_h5(test_h5, dt_ms=dt_ms, t_max_ms=t_max_ms)
+    # Store spikes as uint8 (binary events): 4x less memory than float32,
+    # batches are cast back to float in the training/evaluation loops.
+    x_train = x_train.to(torch.uint8)
+    x_test = x_test.to(torch.uint8)
     generator = torch.Generator().manual_seed(seed)
     train_loader = DataLoader(TensorDataset(x_train, y_train), batch_size=batch_size, shuffle=True, generator=generator)
     test_loader = DataLoader(TensorDataset(x_test, y_test), batch_size=batch_size, shuffle=False)
     return train_loader, test_loader
 
 
-def evaluate(model: ESFASDNetV5, loader: DataLoader, label_smoothing: float = 0.0) -> Tuple[float, float, float]:
+def evaluate(model: ESFASDNetV5, loader: DataLoader, device: torch.device, label_smoothing: float = 0.0) -> Tuple[float, float, float]:
     model.eval()
     total_loss = 0.0
     correct = 0
@@ -232,6 +236,8 @@ def evaluate(model: ESFASDNetV5, loader: DataLoader, label_smoothing: float = 0.
     batches = 0
     with torch.no_grad():
         for x, y in loader:
+            x = x.float().to(device)
+            y = y.to(device)
             logits = model(x)
             loss = F.cross_entropy(logits, y, label_smoothing=label_smoothing)
             total_loss += float(loss.item()) * y.size(0)
@@ -243,7 +249,7 @@ def evaluate(model: ESFASDNetV5, loader: DataLoader, label_smoothing: float = 0.
     return total_loss / max(1, total), correct / max(1, total), rate_sum / max(1, batches)
 
 
-def quantize_int16(model: ESFASDNetV5) -> ESFASDNetV5:
+def quantize_int16(model: ESFASDNetV5, device: torch.device) -> ESFASDNetV5:
     """Post-training int16 quantization on a fresh copy (no module deepcopy)."""
     quantized = type(model)(
         n_hidden=model.n_hidden,
@@ -251,6 +257,7 @@ def quantize_int16(model: ESFASDNetV5) -> ESFASDNetV5:
         dual_readout=model.dual_readout,
     )
     quantized.load_state_dict(model.state_dict())
+    quantized = quantized.to(device)
     quantized.eval()
     with torch.no_grad():
         for linear in (quantized.fc1, quantized.fc_rec, quantized.fc_out):
@@ -270,6 +277,7 @@ def train_seed(
     args: argparse.Namespace,
     train_loader: DataLoader,
     test_loader: DataLoader,
+    device: torch.device,
 ) -> Dict[str, object]:
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -282,7 +290,7 @@ def train_seed(
         dual_readout=args.dual_readout,
         target_rate=args.target_rate,
         activity_lambda=activity_lambda,
-    )
+    ).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.lr * 0.01)
 
@@ -308,17 +316,31 @@ def train_seed(
         train_total = 0
         rate_sum = 0.0
         rate_batches = 0
+        time_data = 0.0
+        time_forward = 0.0
+        time_backward = 0.0
         for x, y in train_loader:
+            mark = time.perf_counter()
+            x = x.float().to(device)
+            y = y.to(device)
             if not args.no_event_drop:
                 x = event_drop(x)
+            time_data += time.perf_counter() - mark
+
+            mark = time.perf_counter()
             optimizer.zero_grad(set_to_none=True)
             logits = model(x)
             loss = F.cross_entropy(logits, y, label_smoothing=args.label_smoothing)
             if model.aux_loss is not None:
                 loss = loss + model.aux_loss
+            time_forward += time.perf_counter() - mark
+
+            mark = time.perf_counter()
             loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(), max_norm=args.clip)
             optimizer.step()
+            time_backward += time.perf_counter() - mark
+
             train_loss += float(loss.item()) * y.size(0)
             train_correct += int((logits.argmax(1) == y).sum().item())
             train_total += y.size(0)
@@ -331,7 +353,7 @@ def train_seed(
         if args.governor:
             activity_lambda = governor_update(activity_lambda, measured_rate, budget, args.governor_eta)
 
-        test_loss, test_acc, test_rate = evaluate(model, test_loader)
+        test_loss, test_acc, test_rate = evaluate(model, test_loader, device)
         epoch_time = time.perf_counter() - started
 
         if test_acc > best_acc:
@@ -371,15 +393,16 @@ def train_seed(
                 f"  seed {seed} epoch {epoch:3d}/{args.epochs} | "
                 f"train {history[-1]['train_acc']*100:.1f}% | test {test_acc*100:.2f}% | "
                 f"best {best_acc*100:.2f}% | events {measured_rate:.4f} (budget {budget:.3f}) | "
-                f"lambda {model.activity_lambda:.4f} | {epoch_time:.1f}s",
+                f"lambda {model.activity_lambda:.4f} | {epoch_time:.1f}s "
+                f"(data {time_data:.1f}s fwd {time_forward:.1f}s bwd {time_backward:.1f}s)",
                 flush=True,
             )
 
     assert best_state is not None
     model.load_state_dict(best_state)
-    _, float_acc, float_rate = evaluate(model, test_loader)
-    quantized = quantize_int16(model)
-    _, int16_acc, int16_rate = evaluate(quantized, test_loader)
+    _, float_acc, float_rate = evaluate(model, test_loader, device)
+    quantized = quantize_int16(model, device)
+    _, int16_acc, int16_rate = evaluate(quantized, test_loader, device)
 
     return {
         "seed": seed,
@@ -419,6 +442,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint-every", type=int, default=5)
     parser.add_argument("--no-event-drop", action="store_true")
     parser.add_argument("--threads", type=int, default=0)
+    parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
     parser.add_argument("--data-dir", type=Path, default=Path("./data"))
     parser.add_argument("--output-dir", type=Path, default=Path("results/shd_v5"))
     return parser.parse_args()
@@ -428,6 +452,11 @@ def main() -> int:
     args = parse_args()
     if args.threads > 0:
         torch.set_num_threads(args.threads)
+        torch.set_num_interop_threads(1)
+    if args.device == "auto":
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device(args.device)
 
     seeds = [int(s) for s in args.seeds.split(",") if s.strip()]
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -435,7 +464,7 @@ def main() -> int:
     print(
         f"ES-FA SHD v5 | hidden={args.hidden} | dt={args.dt_ms}ms "
         f"| T={int(args.t_max_ms / args.dt_ms)} | epochs={args.epochs} | seeds={seeds} "
-        f"| governor={args.governor} | dual_readout={args.dual_readout}"
+        f"| governor={args.governor} | dual_readout={args.dual_readout} | device={device}"
     )
     train_loader, test_loader = make_loaders(args.data_dir, args.batch_size, args.dt_ms, args.t_max_ms, seeds[0])
     print(f"  train batches={len(train_loader)} test batches={len(test_loader)}")
@@ -443,7 +472,7 @@ def main() -> int:
     results = []
     for seed in seeds:
         print(f"seed {seed}:")
-        result = train_seed(seed, args, train_loader, test_loader)
+        result = train_seed(seed, args, train_loader, test_loader, device)
         results.append(result)
         (args.output_dir / f"seed_{seed}.json").write_text(
             json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n"

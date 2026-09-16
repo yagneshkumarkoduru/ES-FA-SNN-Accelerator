@@ -144,6 +144,13 @@ outputs are cycles and toggle energy; see the withdrawal note in
 
 - [x] Multi-seed training runs with error bars (done 2026-09-12: 3 seeds on SHD)
 - [x] Named published SOTA baseline comparison (done 2026-09-12: snntorch head-to-head)
-- [ ] Real board power + latency (hardware_validation/fpga_board/README.md)
-- [ ] Add recurrent connections to close gap vs SRNN/PLIF published SOTA
+- [x] Open-source CAD verification of the RTL (done 2026-09-16: simulation PASS,
+      9/9 supporting testbenches, 890 cells on ECP5, 132.29 MHz routed estimate;
+      `hardware_validation/open_cad/`)
+- [x] Add recurrent connections to close gap vs SRNN/PLIF published SOTA
+      (done 2026-09-12: RPLIF, +3.61pp over the PLIF ablation; a -14.58pp gap
+      remains and is decomposed in this ledger)
 - [ ] Add BNTT (batch normalisation through time) for further accuracy improvement
+- [ ] Real board power + latency (hardware_validation/fpga_board/README.md)
+- [ ] One reconciled throughput measurement (the previous peak figures remain
+      withdrawn until a single verified run replaces them)

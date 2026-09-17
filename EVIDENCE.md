@@ -297,6 +297,38 @@ epochs x 3 seeds at ~30-35 s/epoch) plus 0.4 h bootstrap at 1.36 USD/h
 worst case at ~11 USD. v6 spent ~2.1 USD before abort; partial log and
 checkpoint are archived under results/cloud_shd_v6_aborted_20260917-144342/.
 
+## v7 run aborted (BatchNorm eval collapse), v8 relaunch (2026-09-17)
+
+The v7 cloud run (20260917-165146, two 320-wide recurrent layers with
+BatchNorm on hidden currents) collapsed at evaluation. The per-epoch log is
+unambiguous: seed 42 training accuracy climbed 6.0% -> 96.9% by epoch 60
+while test accuracy sat at 5.3-15.3%, near the 5% chance level. BatchNorm was
+the only structural change from the healthy v6 run (85% train / 74% test).
+
+Mechanism: the same BatchNorm module was invoked once per timestep, 250
+times per forward pass, so its running statistics were updated 250 times per
+batch and tracked only the trailing timesteps of recent batches. Those
+running statistics are also batch-composition dependent, which is not
+reproducible at evaluation. v7 was stopped at epoch 60 (~2 USD) instead of
+training to completion. Partial log and checkpoint archived under
+results/cloud_shd_v7_aborted_20260917-165146/.
+
+v8 (`experiments/benchmark_shd_v8.py`, launched 2026-09-17 17:52 IST):
+- LayerNorm on hidden currents replaces BatchNorm. LayerNorm normalizes each
+  sample independently with no running statistics, so train and eval
+  behavior are identical by construction.
+- Everything else retained from v7: two 320-wide recurrent layers (537k
+  params), dropout 0.1, LR warmup 5 epochs, governor v2 with soft target
+  (hinge, eta 2, budget 0.15 -> 0.12), dual-timescale readout.
+- 160 epochs, 3 seeds (42/123/999). Both topology paths (layers 1 and 2)
+  smoke-tested locally before launch.
+
+Estimated spend (recorded before the run): about 4.4 h of training (160
+epochs x 3 seeds at ~33 s/epoch) plus 0.4 h bootstrap at 1.36 USD/h
+(c6i.8xlarge on-demand, us-east-1) = ~6.5 USD; 8-hour watchdog bounds the
+worst case at ~11 USD. Running total for the day: ~4.7 (v5) + 2.9 (v6) +
+2.0 (v7) + 6.5 (v8) = ~16 USD.
+
 ## Known issues
 
 1. **SHD accuracy gap vs SOTA:** ES-FA v5 achieves 80.80% (two-seed mean,

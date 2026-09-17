@@ -173,14 +173,56 @@ ES-FA innovations implemented for the v5 run:
 - Retained recurrent PLIF backbone (learnable per-neuron decay).
 - int16 post-training quantization evaluated on the same test split.
 
-Run: hidden 512, 4 ms bins (T=250), 200 epochs, seeds 42/123, governor and
-dual readout enabled, crash-resilient checkpoints every 5 epochs. Results
-pending at the time of writing (`results/shd_v5_innovation/`).
+Run (cloud, completed 2026-09-17): c6i.8xlarge on-demand (us-east-1),
+run id 20260917-054542, hidden 512, 4 ms bins (T=250), 160 epochs, batch 256,
+seeds 42/123, governor and dual readout enabled, event-drop augmentation,
+checkpoints every 2 epochs. Launched 05:46 IST, training completed 09:07:54
+IST.
+
+Measured results (SHD test split, 2 seeds):
+- seed 42: best 80.34% (epoch 92); int16 quantized 79.86%.
+- seed 123: best 81.27% (epoch 80); int16 quantized 81.40%.
+- mean best 80.80%, max 81.27%; int16 mean 80.63% (0.17 pp mean cost).
+- final hidden event rate 0.168 mean (83.2% sparsity); train accuracy ~88%
+  versus 99.6% train in v4, so the protocol corrections reduced overfitting.
+- Versus v4 (81.18% best, seed 42 only): within run-to-run variance; the
+  two-seed mean is the honest comparable and supersedes the single-seed v4
+  reading.
+
+Governor finding (v6 candidate): activity_lambda saturated at 1.0 for both
+seeds while the event rate settled near 0.144-0.170 against an annealed
+budget down to 0.03. The auxiliary rate loss is too small relative to the
+cross-entropy term to move the rate meaningfully. Candidate v6 changes:
+larger auxiliary weight, lower eta, log-domain lambda, or rate measured on
+layer 1 only. The pair (80.80% accuracy at 0.168 events) is the ledgered
+Pareto point as measured.
+
+Infrastructure finding (root cause of all prior silent failures, now fixed):
+the instance-upload path previously used presigned S3 URLs signed with
+aws-login temporary credentials. Measured URL lifetime: valid at +10 min,
+ExpiredToken at +20 min (probe, 2026-09-17), so every upload attempted hours
+later (heartbeats, results, log) always failed. Fixed by moving the instance
+to an IAM instance profile (role esfa-shd-runner, scoped inline S3 policy),
+`aws s3 cp` transfers, 10-minute heartbeats, stop-instead-of-terminate
+shutdown, and SSM Run Command. This run's final artifacts were recovered via
+SSM from the stopped instance's volume after the run's own final uploads
+failed exactly as the diagnosis predicted.
+
+Spend (actual): about USD 4.7 total. Source of rates: AWS on-demand pricing,
+us-east-1, c6i.8xlarge at 1.36 USD/h, over about 3.4 h of training plus a
+5-minute salvage boot; S3 and EBS costs are negligible (pennies). The run
+used one instance only; no spot retries.
+
+Artifacts: results/cloud_shd_v5_20260917-054542/ (local, canonical zip plus
+console log) and s3://esfa-shd-runs-969739653654/shd/20260917-054542/.
 
 ## Known issues
 
-1. **SHD accuracy gap vs SOTA:** ES-FA achieves 74.26% vs 92.66% (PLIF-ICCV2021). The
-   gap is caused by missing recurrence and depth, not measurement errors.
+1. **SHD accuracy gap vs SOTA:** ES-FA v5 achieves 80.80% (two-seed mean,
+   cloud run 2026-09-17; 81.27% max) vs 92.66% (PLIF-ICCV2021) and about 90%
+   for the reference recipe class on the same neuron family. The gap is not
+   a measurement error; it reflects the remaining architecture and recipe
+   differences (single 512-wide recurrent layer, 160-epoch budget).
 2. exp5 adaptive mode is WORSE than exp1 on MNIST (879.68% higher energy proxy). Do not
    present exp5 as an improvement.
 3. All energy figures are MODEL estimates (C-engine 4.43 pJ/SOP). Board power on hardware

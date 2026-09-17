@@ -47,10 +47,11 @@ FATAL exits; pre-staged the SHD dataset to S3.
 
 ## Observations from the live v5 run (not code bugs)
 
-- The event-rate governor saturates: seed 42 pinned `activity_lambda` at 1.0
-  while the event rate stayed ~0.143 against an annealed budget down to 0.03;
-  seed 123 pinned lambda at 0.0 with rate ~0.148. The aux loss magnitude is
+- The event-rate governor saturates (final, full-run view): seed 42 pinned
+  `activity_lambda` at 1.0 with the event rate staying ~0.143-0.149 against an
+  annealed budget down to 0.03; seed 123 started near 0.0, ramped to 1.0 by
+  epoch 60, and stayed there with rate ~0.144-0.157. The aux loss magnitude is
   small relative to cross-entropy, so the governor cannot move the rate
   meaningfully. Candidate fixes for a v6 recipe: larger aux weight, lower eta,
-  log-domain lambda, or rate measured only over hidden layer 1. To be decided
-  after the run's aggregate numbers land.
+  log-domain lambda, or rate measured only over hidden layer 1. Final ledgered
+  pair: 80.80% mean accuracy at 0.168 mean event rate.

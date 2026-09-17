@@ -329,6 +329,37 @@ epochs x 3 seeds at ~33 s/epoch) plus 0.4 h bootstrap at 1.36 USD/h
 worst case at ~11 USD. Running total for the day: ~4.7 (v5) + 2.9 (v6) +
 2.0 (v7) + 6.5 (v8) = ~16 USD.
 
+## v8 run aborted (LayerNorm stalls learning), v9 relaunch (2026-09-17)
+
+The v8 cloud run (20260917-175004, LayerNorm on hidden currents) stalled:
+seed 42 train accuracy sat at 7-10% and test at 8-12% over 25 epochs, with
+the event rate flat at 0.016-0.017 (v6 at the same point was climbing to
+22-43% train). LayerNorm makes the drive zero-mean and unit-variance per
+sample; the membranes then sit far from the spiking threshold, and the fast-
+sigmoid surrogate gradient 1/(25|x|+1)^2 vanishes when x is far from zero, so
+the network never bootstraps into spiking. Unnormalized currents (v5, v6) do
+not have this problem because the drive can grow until the threshold is
+crossed. v8 was stopped at epoch 25 (~0.7 USD). Partial log and checkpoint
+archived under results/cloud_shd_v8_aborted_20260917-175004/.
+
+v9 (`experiments/benchmark_shd_v9.py`, launched 2026-09-17 18:22 IST): a
+disciplined return to the empirically best topology with only motivated
+changes:
+- One 512-wide recurrent layer (the v5 winner) with the now-working governor
+  v2 (hinge, log-domain lambda in [1e-3, 100], budget 0.15 -> 0.12). In v5
+  the governor was inert, so this exact pairing was never tested.
+- Dropout 0.3 -> 0.15: v5 stalled at ~88% train while the reference recipe
+  class exceeds ~95% train on SHD, indicating over-regularization of the
+  single hidden layer (spike dropout removes information).
+- 200 epochs (v5 best epochs were 80-92 of 160 with the cosine tail still
+  improving), LR warmup 5 epochs, 3 seeds (42/123/999).
+
+Estimated spend (recorded before the run): about 5.4 h of training (200
+epochs x 3 seeds at ~31 s/epoch) plus 0.4 h bootstrap at 1.36 USD/h
+(c6i.8xlarge on-demand, us-east-1) = ~8 USD; 8-hour watchdog bounds the
+worst case at ~11 USD. Running total for the day: ~4.7 (v5) + 2.9 (v6) +
+2.0 (v7) + 0.7 (v8) + 8 (v9) = ~18 USD.
+
 ## Known issues
 
 1. **SHD accuracy gap vs SOTA:** ES-FA v5 achieves 80.80% (two-seed mean,

@@ -266,6 +266,37 @@ at the on-demand list rate 1.36 USD/h (source: AWS on-demand pricing,
 us-east-1, c6i.8xlarge). Estimate ~7 USD; the 8-hour watchdog bounds the
 worst case at ~11 USD.
 
+## v6 run aborted, v7 relaunch (2026-09-17, same day)
+
+The v6 cloud run (20260917-144342, two 256-wide recurrent layers, governor
+v2 with hinge and budget 0.15 -> 0.10) was monitored live via the new
+heartbeat pipeline and stopped after seed 42 reached epoch 170:
+
+- Good: the governor v2 works as a controller. Rate tracked the budget
+  smoothly (0.172 -> 0.111 against 0.150 -> 0.108), lambda climbed smoothly
+  0.001 -> 0.47, no rail saturation. The v5 failure mode is fixed.
+- Bad: accuracy regressed. Seed 42 best was 75.44% at epoch 170 against v5's
+  80.34%, and train accuracy stalled at 84.7% (underfitting, not
+  overfitting). The regression is architectural/optimization, not sparsity
+  pressure: the governor's absolute aux magnitude stayed tiny.
+
+Diagnosis: no normalization for the deeper spike graph, spike dropout 0.2
+destroying information, and 380k parameters versus v5's 630k.
+
+v7 (`experiments/benchmark_shd_v7.py`, launched 2026-09-17 17:00 IST):
+- BatchNorm1d on each hidden layer's input current (tdBN-style), the
+  standard stabilizer for multi-layer spike networks (folds into the
+  preceding linear at deployment; int16 quantization target unchanged).
+- Dropout 0.2 -> 0.1, hidden 256 -> 320 (537k params), LR warmup 5 epochs.
+- Governor kept ON with a soft target: hinge, eta 2, budget 0.15 -> 0.12.
+- 160 epochs, 3 seeds (42/123/999).
+
+Estimated spend (recorded before the run): about 4.7 h of training (160
+epochs x 3 seeds at ~30-35 s/epoch) plus 0.4 h bootstrap at 1.36 USD/h
+(c6i.8xlarge on-demand, us-east-1) = ~7 USD; 8-hour watchdog bounds the
+worst case at ~11 USD. v6 spent ~2.1 USD before abort; partial log and
+checkpoint are archived under results/cloud_shd_v6_aborted_20260917-144342/.
+
 ## Known issues
 
 1. **SHD accuracy gap vs SOTA:** ES-FA v5 achieves 80.80% (two-seed mean,

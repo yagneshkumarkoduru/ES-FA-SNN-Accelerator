@@ -360,6 +360,40 @@ epochs x 3 seeds at ~31 s/epoch) plus 0.4 h bootstrap at 1.36 USD/h
 worst case at ~11 USD. Running total for the day: ~4.7 (v5) + 2.9 (v6) +
 2.0 (v7) + 0.7 (v8) + 8 (v9) = ~18 USD.
 
+## v9 stopped, v10 relaunch: faithful SRNN-ALIF recipe (2026-09-17)
+
+The user requirement is a headline SHD accuracy of at least 92%, versus the
+80-81% ceiling of the v5-v9 custom recipe. The gap was analyzed against the
+published adaptive-spiking recurrent network (SRNN, Yin/Corradi/Bohte 2021,
+Nature MI; MIT reference code) whose open implementation reports 90.7% test
+accuracy with only 2 x 128 neurons and 19 epochs. Recipe differences that
+explain the gap: (1) adaptive threshold (ALIF) with soft reset versus our
+fixed threshold and hard reset; (2) Multi-Gaussian surrogate versus our fast
+sigmoid; (3) plain Adam at lr 1e-2 with StepLR versus our AdamW + cosine +
+label smoothing + dropout + event-drop; (4) summed per-step softmax of a
+leaky-integrator readout versus our dual-timescale readout; (5) no rate
+governor (its sparse firing, FR ~0.11, emerges from the ALIF dynamics).
+
+v9 was stopped mid-run (seed 42 best 80.74% archived; seed 123 partial) and
+terminated to redirect budget. v10 (`experiments/benchmark_shd_v10.py`) is a
+faithful port of the SRNN-ALIF recipe: same neuron equations (b0=0.01,
+beta=1.8, learnable tau_m ~ N(20,5), tau_adp ~ N(150,10)), same surrogate
+(sigma=0.5, s=6, h=0.15, gamma=0.5), same init (orthogonal recurrent,
+xavier feedforward, biases zero), same optimizer/schedule, same decoding
+(sum of per-step softmax, skipping the first 11 steps). The ES-FA addition is
+an int16 weight-quantization evaluation at the end. 4 ms bins, T=250,
+official SHD split, as in the reference.
+
+Local smoke (hidden 32, 2 epochs): test 41.7% -> 58.5%, FR 0.126, versus the
+old recipe at ~5% after two epochs. This confirms the port learns in the
+expected regime before cloud spend.
+
+Estimated spend (recorded before the run): 19 epochs x 3 seeds at an
+estimated 30-60 s/epoch on c6i.8xlarge (much smaller network than v9) plus
+bootstrap = roughly 0.75-1.5 h = 1-2 USD; 8-hour watchdog still bounds the
+worst case. Running total for the day: ~4.7 (v5) + 2.9 (v6) + 2.0 (v7) +
+0.7 (v8) + 3.5 (v9, stopped) + 2 (v10) = ~16-18 USD.
+
 ## Known issues
 
 1. **SHD accuracy gap vs SOTA:** ES-FA v5 achieves 80.80% (two-seed mean,

@@ -427,6 +427,19 @@ Estimated spend (recorded before the run): 80 epochs x ~80 s/epoch x 3 seeds
 on-demand, us-east-1) = ~8 USD; 8-hour watchdog bounds the worst case at
 ~11 USD. Running total for the day: ~18 (previous runs) + 8 (v11) = ~26 USD.
 
+Fragility finding (2026-09-17, v10 run, mid-flight): seed 42 reached best
+87.10% (epoch 19, train 98.7%, FR 0.082) while seed 123 went silent -
+test stuck at chance (~5%), firing rate decaying 0.0037 -> 0.0020 over the
+first ten epochs with no recovery. Mechanism: the reference recipe leaves
+the learnable time constants unconstrained and uses lr=1e-2 from step one;
+if tau_adp crosses zero, rho = exp(-1/tau_adp) exceeds 1 and the adaptation
+state (and threshold) explodes geometrically, permanently silencing the
+neurons. The reference code itself notes this hazard and is exactly why the
+v11 improvement set includes the warmup schedule (small early steps cannot
+kick tau negative as easily). If any v11 seed still fails this way, v12 adds
+an explicit positive clamp on tau_m/tau_adp after each optimizer step, a
+defensible robustness improvement over the reference implementation.
+
 ## Known issues
 
 1. **SHD accuracy gap vs SOTA:** ES-FA v5 achieves 80.80% (two-seed mean,

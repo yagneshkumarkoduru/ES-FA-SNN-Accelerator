@@ -216,6 +216,50 @@ used one instance only; no spot retries.
 Artifacts: results/cloud_shd_v5_20260917-054542/ (local, canonical zip plus
 console log) and s3://esfa-shd-runs-969739653654/shd/20260917-054542/.
 
+## Governor saturation analysis (2026-09-17) and v6 design
+
+The v5 cloud run's per-epoch history shows `activity_lambda` (a) decaying to
+~0 in the first ~20 epochs, then (b) pinned at the clamp ceiling 1.0 from
+~epoch 60 onward for both seeds. From the two seed histories:
+
+- Early phase: the hidden rate starts near zero while the network learns,
+  always below the budget, so the multiplicative update drives lambda toward
+  the floor. The model then learns to fire with no sparsity pressure at all.
+- Late phase: the natural firing rate settles at ~0.144-0.157 while the
+  annexed budget falls to 0.03, so the error stays positive and lambda rides
+  the ceiling for the rest of the run.
+
+Two compounding design faults in the v5 governor:
+
+1. Gain too high for the clamp. With eta = 8, a persistent error of 0.05
+   multiplies lambda by e^0.4 ~ 1.49 per epoch, so the controller crosses its
+   entire [0, 1] range in about five epochs. It behaves as a switch, not a
+   controller.
+2. Ceiling far too low relative to the loss. At lambda = 1 the auxiliary
+   term is (rate - budget)^2 ~ 0.013 against a CE loss of ~1.5-2.5 (under 1%
+   of the gradient), so even at the ceiling the governor cannot measurably
+   move the rate. Measured: the rate fell only 0.157 -> 0.143 between epochs
+   40 and 160 while the budget fell 0.121 -> 0.030.
+
+Verdict: bad as a controller (the annealed budget was never tracked, the
+ledgered lambda column is uninformative, and the accuracy-vs-events Pareto
+was not actually controlled), and essentially neutral for accuracy (the aux
+term was ~1% of the loss either way; the measured event rate was simply the
+model's natural firing level). It is a textbook control loop saturated at
+both rails.
+
+v6 fixes (`experiments/benchmark_shd_v6.py`, launched 2026-09-17):
+- Hinge penalty lambda * mean(relu(rate - budget)): only excess firing is
+  penalized, so lambda has no reason to rise when the rate is under budget.
+- Log-domain multiplier with clamp [1e-4, 100] (was [0, 1]) and gain eta = 3
+  (was 8): the equilibrium lambda can now be large enough that the hinge
+  gradient actually balances the CE gradient.
+- Architecture: two recurrent PLIF layers (700 -> 256 -> 256 -> 20) instead
+  of one 512-wide layer, matching the SRNN/PLIF reference architecture class.
+  This is the main accuracy lever; the governor fix is a correctness fix.
+- 200 epochs, 3 seeds (42/123/999), hidden 256, dropout 0.2, budget anneal
+  0.15 -> 0.10.
+
 ## Known issues
 
 1. **SHD accuracy gap vs SOTA:** ES-FA v5 achieves 80.80% (two-seed mean,

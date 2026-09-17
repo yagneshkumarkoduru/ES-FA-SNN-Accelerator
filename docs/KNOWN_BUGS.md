@@ -54,4 +54,6 @@ FATAL exits; pre-staged the SHD dataset to S3.
   small relative to cross-entropy, so the governor cannot move the rate
   meaningfully. Candidate fixes for a v6 recipe: larger aux weight, lower eta,
   log-domain lambda, or rate measured only over hidden layer 1. Final ledgered
-  pair: 80.80% mean accuracy at 0.168 mean event rate.
+  pair: 80.80% mean accuracy at 0.168 mean event rate. Fixed in
+  `experiments/benchmark_shd_v6.py` (hinge penalty, log-domain lambda clamped
+  to [1e-4, 100], eta 3); full analysis in `EVIDENCE.md`.

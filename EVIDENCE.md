@@ -440,6 +440,59 @@ kick tau negative as easily). If any v11 seed still fails this way, v12 adds
 an explicit positive clamp on tau_m/tau_adp after each optimizer step, a
 defensible robustness improvement over the reference implementation.
 
+## Deep review and v12 fixes (2026-09-18)
+
+Two deep-read reviews covered the whole SHD training path (all experiment
+scripts, the shared loader, the training core) and the reference
+implementation diff. The root cause of the dead seed is now verified,
+reproduced, and fixed. It was an initialization hazard, not a scheduler bug.
+
+Root cause (verified and reproduced on torch 2.14.0+cpu, the same version
+the cloud runs used): ALIFNeuron draws tau_m ~ N(20, 5) with no positivity
+protection. At hidden=128, seed 123 draws tau_m[5] = -1.8396 (checked by
+constructing the model under torch.manual_seed(123)). Then
+alpha = exp(-1/tau_m) = 1.7222 > 1, so the membrane recursion
+mem <- alpha * mem + (1 - alpha) * I - B * spike diverges geometrically; the
+first backward pass writes NaN into tau_m[5], and because clamp(NaN) remains
+NaN the earlier post-step clamp could not repair it. Heaviside(NaN) is 0
+forever, so the unit was permanently dead and the run trained to chance with
+no warning (observed firing rate 0.008 -> 0.002, test accuracy 4-5% for 80
+epochs). The hazard is inherited from the reference recipe (~0.8 percent of
+2x128 seeds draw a negative tau_m on this torch build); the reference trained
+a single seed and never demonstrated robustness.
+
+Fixes applied (v12 unless noted):
+- Time constants are sigmoid-reparameterized into bounded ranges (tau_m and
+  tau_m_o in [2, 100], tau_adp in [2, 1000]), so alpha and rho provably stay
+  in the stable open interval (0, 1) regardless of initialization draw or
+  optimizer behavior. Initial values still follow the reference
+  distributions, so the healthy recipe is unchanged.
+- A non-finite guard skips and counts non-finite loss/gradient steps; a seed
+  that cannot recover aborts loudly while the remaining seeds continue.
+- Evaluation is deterministic (fixed evaluation generator), so best-epoch
+  tracking is not driven by random-init noise; training stays stochastic.
+- Committee decoding is quality-gated (members with collapsed firing rates
+  are excluded), member outputs are normalized before averaging, and the
+  member count is reported.
+- Best-so-far checkpoints are written every 8 epochs (crashes cannot lose a
+  completed seed) and EMA states are saved per seed.
+- v10/v11 initialization draws are clamped (post-run safety fix).
+- The shared loader allocates the raster as uint8 directly (4x lower peak
+  memory; v12 uses it) and the train/test fallback pairs files by name (the
+  old sorted() fallback swapped the sets).
+
+Canary validation (local, the exact previously-fatal configuration): seed
+123 at hidden=128 now trains healthy - epoch 1 test 43.33% at FR 0.0624,
+epoch 2 test 75.71% at FR 0.0629 - versus 4.37% at FR 0.0080 when dead. The
+committee path was smoke-tested with two healthy seeds (hidden 32): gated
+2-member committee evaluated, all result fields written, no non-finite steps.
+
+Next cloud run (launched after these fixes): v12 bounded backbone, hidden
+160, 64 epochs, seeds 42/123/999, train-drop on, TTA 4, 3-seed committee,
+deterministic evaluation. Estimated 6.0 h at 1.36 USD/h = ~9 USD; the 8-hour
+watchdog still bounds the worst case. Running total for the campaign:
+~20 (previous runs) + 9 (v12) = ~29 USD.
+
 ## Known issues
 
 1. **SHD accuracy gap vs SOTA:** ES-FA v5 achieves 80.80% (two-seed mean,

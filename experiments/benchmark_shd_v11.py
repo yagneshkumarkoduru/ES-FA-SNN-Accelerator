@@ -107,8 +107,18 @@ class ALIFNeuron(nn.Module):
         super().__init__()
         self.beta = beta
         self.b0 = b0
-        self.tau_m = nn.Parameter(torch.normal(tau_m_mean, tau_m_std, size=(size,)))
-        self.tau_adp = nn.Parameter(torch.normal(tau_adp_mean, tau_adp_std, size=(size,)))
+        # Safety fix (post-run, 2026-09-18): clamp the initialization draws.
+        # tau_m ~ N(20,5) has a 4-sigma tail (P ~ 3.2e-5 per neuron); a
+        # negative draw makes alpha = exp(-1/tau_m) > 1 and the membrane
+        # recursion diverges, poisoning the parameters with NaN. Seed 123 at
+        # hidden=128 drew tau_m[5] = -1.84 and trained to chance silently.
+        # Clamping only alters draws that would otherwise be fatal.
+        self.tau_m = nn.Parameter(
+            torch.normal(tau_m_mean, tau_m_std, size=(size,)).clamp(2.0, 100.0)
+        )
+        self.tau_adp = nn.Parameter(
+            torch.normal(tau_adp_mean, tau_adp_std, size=(size,)).clamp(2.0, 1000.0)
+        )
 
     def initial_state(
         self, batch: int, device: torch.device

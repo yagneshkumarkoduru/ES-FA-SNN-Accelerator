@@ -54,6 +54,23 @@ FATAL exits; pre-staged the SHD dataset to S3.
   small relative to cross-entropy, so the governor cannot move the rate
   meaningfully. Candidate fixes for a v6 recipe: larger aux weight, lower eta,
   log-domain lambda, or rate measured only over hidden layer 1. Final ledgered
-  pair: 80.80% mean accuracy at 0.168 mean event rate. Fixed in
+  pair: 80.80% mean accuracy at 0.168 mean event rate.
+
+## Deep review 2026-09-18 (fixed in v12 unless noted)
+
+| Location | Severity | Finding and status |
+| :--- | :--- | :--- |
+| `benchmark_shd_v12.py` ALIFNeuron (also v10/v11) | CRITICAL | `tau_m ~ N(20,5)` can draw negative (4-sigma tail); then `alpha = exp(-1/tau_m) > 1` diverges and the first backward writes NaN; `clamp(NaN) = NaN` so post-step clamping could not repair it, and `Heaviside(NaN) = 0` silenced the unit permanently. Seed 123 at hidden=128 drew tau_m[5] = -1.84 and trained to chance silently. FIXED in v12 by sigmoid-bounded reparameterization; v10/v11 get initialization clamping. |
+| `benchmark_shd_v12.py` training loop | CRITICAL | No non-finite detection anywhere: a NaN network continued for 80 epochs producing chance-level results. FIXED: non-finite loss/gradient guard skips and counts bad steps, aborts poisoned seeds loudly, other seeds continue. |
+| `benchmark_shd_v12.py` committee | MODERATE | Committee summed raw outputs and included dead members, which is why v11's committee (87.50%) scored below its best single seed (87.81%). FIXED: quality gate (exclude collapsed members), output normalization, member count reported. |
+| `benchmark_shd_v12.py` evaluate | MODERATE | Evaluation draws random membrane states on every eval; best-epoch selection was therefore noisy. FIXED in v12: fixed evaluation generator (deterministic eval; training unchanged). |
+| `benchmark_shd_v12.py` int16_quantize | MODERATE | Rebuilt the model with default dynamics, silently dropping non-default beta/b0/sum_start from the quantized evaluation. FIXED: full dynamics passed through. |
+| `benchmark_shd_esfa.py` `get_shd_loaders` | MODERATE | Fallback paired h5 files by sort order; "shd_test.h5" sorts before "shd_train.h5", swapping train and test. FIXED: name-based pairing. |
+| `benchmark_shd_esfa.py` `load_shd_h5` | LOW | float32 raster allocation peaked around 9 GB before the uint8 copy. FIXED: `as_uint8` option (v12 uses it; peak drops by 4x). Defaults (2 ms / 100 ms) retained for the legacy PLIF baseline script which deliberately uses that window; v10-v12 always pass explicit 4 ms/1000 ms. |
+| `benchmark_shd_v12.py` output-dir default | LOW | Defaulted to `results/shd_v11`, silently overwriting v11 artifacts. FIXED: `results/shd_v12`. |
+| v12 print strings | LOW | Summary lines still said "v11" after the copy. FIXED in the v12 rewrite. |
+| All SHD scripts | LOW | Test-set best-epoch selection matches the reference protocol (no validation split); kept, documented, and headline numbers also reported for final-epoch, EMA, TTA, and deterministic evaluation. |
+| Port vs reference | LOW | Port zeros `h2o.bias`; the reference leaves it at its random default. Kept as a deliberate deviation. |
+| Port vs reference | LOW | Port bins with floor(t/dt); the reference uses right-edge bins (~1 bin shift) with reversed channels and unit-0 filtering. Kept (input permutation is absorbed by the learned first layer; alignment is preserved). | Fixed in
   `experiments/benchmark_shd_v6.py` (hinge penalty, log-domain lambda clamped
   to [1e-4, 100], eta 3); full analysis in `EVIDENCE.md`.

@@ -55,11 +55,14 @@ def set_seed(seed: int) -> None:
 # ---------------------------------------------------------------------------
 
 def load_shd_h5(path: Path, n_input: int = 700, dt_ms: float = 2.0,
-                t_max_ms: float = 100.0) -> Tuple[torch.Tensor, torch.Tensor]:
+                t_max_ms: float = 100.0, as_uint8: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
     """Load SHD HDF5 file into dense spike tensors.
 
+    as_uint8=True allocates the raster as uint8 directly (4x lower peak
+    memory; spike values are always 0/1). The ES-FA v10-v12 pipelines use it.
+
     Returns:
-        spikes: (N, T, n_input) float32 spike raster
+        spikes: (N, T, n_input) spike raster (float32, or uint8 if as_uint8)
         labels: (N,) int64 class labels
     """
     import h5py
@@ -72,7 +75,8 @@ def load_shd_h5(path: Path, n_input: int = 700, dt_ms: float = 2.0,
         labels_raw = np.array(f["labels"], dtype=np.int64)
 
     n_samples = len(labels_raw)
-    spikes = np.zeros((n_samples, T, n_input), dtype=np.float32)
+    dtype = np.uint8 if as_uint8 else np.float32
+    spikes = np.zeros((n_samples, T, n_input), dtype=dtype)
 
     for i in range(n_samples):
         ts = np.array(spike_times_list[i], dtype=np.float32)
@@ -82,7 +86,7 @@ def load_shd_h5(path: Path, n_input: int = 700, dt_ms: float = 2.0,
         mask = (bin_idx >= 0) & (bin_idx < T) & (us >= 0) & (us < n_input)
         bin_idx = bin_idx[mask]
         unit_idx = us[mask]
-        spikes[i, bin_idx, unit_idx] = 1.0
+        spikes[i, bin_idx, unit_idx] = 1
 
     return torch.from_numpy(spikes), torch.from_numpy(labels_raw)
 
@@ -107,12 +111,15 @@ def get_shd_loaders(data_dir: Path, batch_size: int,
     test_h5  = shd_dir / "shd_test.h5"
 
     if not train_h5.exists():
-        # Fallback: look for any .h5 files
+        # Fallback: look for any .h5 files, but pair them by NAME (the old
+        # sorted() fallback picked shd_test.h5 as "train" because "test"
+        # sorts before "train" lexicographically).
         h5_files = list(shd_dir.glob("*.h5")) + list(shd_dir.glob("**/*.h5"))
-        if len(h5_files) >= 2:
-            h5_files = sorted(h5_files)
-            train_h5 = h5_files[0]
-            test_h5  = h5_files[1]
+        train_candidates = [p for p in h5_files if "train" in p.name.lower()]
+        test_candidates = [p for p in h5_files if "test" in p.name.lower()]
+        if train_candidates and test_candidates:
+            train_h5 = sorted(train_candidates)[0]
+            test_h5 = sorted(test_candidates)[0]
         else:
             raise FileNotFoundError(
                 f"SHD HDF5 files not found in {shd_dir}. "

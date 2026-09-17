@@ -17,7 +17,7 @@ The instance:
     on the EBS volume until the operator runs 'terminate'.
 
 Instance preference: g5.xlarge (NVIDIA A10G, CUDA torch) first, then
-c6i.8xlarge / c7i.8xlarge (CPU) as fallbacks. A 6-hour watchdog bounds the run.
+c6i.8xlarge / c7i.8xlarge (CPU) as fallbacks. An 8-hour watchdog bounds the run.
 
 IAM setup is idempotent and performed by 'launch': creates the
 esfa-shd-runner role, its inline S3 policy (cloud/iam/esfa-shd-runner-policy.json
@@ -114,8 +114,8 @@ set -uo pipefail
 exec > /var/log/shd.log 2>&1
 echo "ES-FA SHD v5 cloud run __RUN_ID__ starting $(date -u +%FT%TZ)"
 
-# Hard watchdog: shut down after 6 hours even if training hangs.
-shutdown -h +360 "watchdog" || true
+# Hard watchdog: shut down after 8 hours even if training hangs.
+shutdown -h +480 "watchdog" || true
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
@@ -436,7 +436,7 @@ def cmd_launch(_args) -> None:
     print(f"  AMI     : {ami}")
     print(f"  profile : {profile_name} (S3 access via IMDS; SSM Run Command enabled)")
     print(f"  SHD     : s3://{BUCKET}/{SHD_S3_TRAIN_KEY} + {SHD_S3_TEST_KEY}")
-    print("Watchdog: 6 hours. Heartbeat (log + results) every 10 min.")
+    print("Watchdog: 8 hours. Heartbeat (log + results) every 10 min.")
     print("Check:   .venv-cloud\\Scripts\\python.exe cloud\\run_shd_train.py status")
     print(f"SSM:     aws ssm describe-instance-information --filters Key=InstanceIds,Values={instance_id}")
 

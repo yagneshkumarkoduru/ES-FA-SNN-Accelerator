@@ -260,6 +260,12 @@ v6 fixes (`experiments/benchmark_shd_v6.py`, launched 2026-09-17):
 - 200 epochs, 3 seeds (42/123/999), hidden 256, dropout 0.2, budget anneal
   0.15 -> 0.10.
 
+Estimated spend (recorded before the run): bootstrap ~0.4 h plus training
+3 seeds x 200 epochs at ~25-30 s per epoch on c6i.8xlarge, about 5.2 h total
+at the on-demand list rate 1.36 USD/h (source: AWS on-demand pricing,
+us-east-1, c6i.8xlarge). Estimate ~7 USD; the 8-hour watchdog bounds the
+worst case at ~11 USD.
+
 ## Known issues
 
 1. **SHD accuracy gap vs SOTA:** ES-FA v5 achieves 80.80% (two-seed mean,

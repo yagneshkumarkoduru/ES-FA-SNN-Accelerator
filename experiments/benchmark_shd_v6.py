@@ -307,14 +307,16 @@ def governor_update(
     measured_rate: float,
     budget: float,
     eta: float,
-    lo: float = 1e-4,
+    lo: float = 1e-3,
     hi: float = 100.0,
 ) -> float:
     """ES-FA event-rate governor v2: log-domain multiplier with a usable range.
 
     lambda *= exp(eta * (measured - budget)), clamped to [lo, hi]. The v5
     version clamped to [0, 1] and saturated at the ceiling because the
-    auxiliary term (lambda * error) was ~1% of the CE loss at lambda=1.
+    auxiliary term (lambda * error) was ~1% of the CE loss at lambda=1. The
+    floor is kept at 1e-3 (not ~0) so the controller can climb back within a
+    few dozen epochs after the early under-budget decay.
     """
     updated = lambda_value * math.exp(eta * (measured_rate - budget))
     return float(min(max(updated, lo), hi))

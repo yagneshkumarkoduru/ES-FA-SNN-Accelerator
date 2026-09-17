@@ -219,6 +219,11 @@ def run_epoch(
         logits, batch_stats = model(images)
         ce_loss = F.cross_entropy(logits, labels)
 
+        # NOTE: spike_reg is derived from detached floats (.item() in BatchStats),
+        # so sparsity_lambda * spike_reg adds a constant to the loss each step
+        # with zero gradient w.r.t. model parameters. The optimizer is NOT guided
+        # toward sparser activations by this term. A proper fix requires the model
+        # to return a differentiable spike-rate tensor from forward().
         spike_reg = (batch_stats.layer1_spikes + batch_stats.layer2_spikes) / max(
             1.0, float(batch_stats.total_samples * batch_stats.total_steps * (128 + 64))
         )

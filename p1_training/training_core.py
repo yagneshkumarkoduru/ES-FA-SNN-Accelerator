@@ -238,7 +238,13 @@ def run_epoch(
 
         ce_loss = F.cross_entropy(logits, labels)
 
-        # Hardware-aware objective components.
+        # NOTE: hw["energy_proxy"], hw["latency_proxy"], and sparsity_penalty are
+        # all Python floats returned by the hardware estimator functions. Multiplying
+        # them by Python float loss weights and adding to the CE loss tensor creates
+        # terms with zero gradient w.r.t. model parameters. These terms affect the
+        # reported loss value but do NOT guide the optimizer. A proper fix requires
+        # the model forward pass to return differentiable spike-rate tensors and the
+        # estimators to operate on those tensors.
         energy_norm = max(1.0, hw["dense_energy_reference"])
         latency_norm = max(1.0, float(cfg["hardware_estimator"]["temporal_multiplexing_factor"]))
         sparsity_penalty = max(0.0, sparsity_target - hw["hidden_sparsity"])

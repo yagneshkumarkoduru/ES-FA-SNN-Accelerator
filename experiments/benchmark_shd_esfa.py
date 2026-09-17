@@ -353,7 +353,14 @@ def run_epoch(
         logits, stats = model(x)
         ce = F.cross_entropy(logits, y)
 
-        # Sparsity regularisation: penalise dense firing (encourage sparsity)
+        # Sparsity regularisation: penalise dense firing (encourage sparsity).
+        # NOTE: stats["hidden1_sparsity"] is a Python float derived from
+        # .item() calls in ESFASHDModel.forward(), so sparsity_lambda *
+        # spike_density adds a constant offset to the loss with zero gradient
+        # w.r.t. model parameters. It still influences the reported loss value
+        # but does NOT guide the optimizer toward sparser activations.
+        # A proper fix requires ESFASHDModel.forward() to return a differentiable
+        # spike-rate tensor instead of detached floats.
         spike_density = (1.0 - stats["hidden1_sparsity"] +
                          1.0 - stats["hidden2_sparsity"]) / 2.0
         loss = ce + sparsity_lambda * spike_density

@@ -169,7 +169,12 @@ class ESFARPLIFModel(nn.Module):
         for t in range(T):
             x_t = spikes_in[:, t, :]
 
-            # Apply fake-quant to feedforward weights if enabled
+            # Apply fake-quant to feedforward weights if enabled.
+            # BUG (latent, quant_enabled=False by default): assigning to
+            # weight.data inside the timestep loop modifies the weights T times
+            # per forward pass and bypasses the STE trick in _fake_quant.
+            # Fix: compute the quantized weight tensor once before the loop and
+            # use it in F.linear() directly rather than mutating weight.data.
             if self.quant_enabled:
                 with torch.no_grad():
                     self.rplif1.fc_in.weight.data = _fake_quant(
@@ -242,6 +247,10 @@ def run_epoch(
 
         logits, stats = model(x)
         ce  = F.cross_entropy(logits, y)
+        # NOTE: stats["hidden1_sparsity"] / "hidden2_sparsity" are Python floats
+        # derived from .item() calls, so sparsity_lambda * reg has zero gradient
+        # w.r.t. model parameters. This term influences reported loss but does NOT
+        # guide the optimizer toward sparser activations.
         reg = ((1.0 - stats["hidden1_sparsity"]) +
                (1.0 - stats["hidden2_sparsity"])) / 2.0
         loss = ce + sparsity_lambda * reg

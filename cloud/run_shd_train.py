@@ -1,16 +1,20 @@
 """
 ES-FA SHD v5 cloud training orchestrator.
 
-Runs the SHD v5 experiment (ES-FA innovations on the protocol-corrected
-backbone) on a single EC2 instance with no IAM instance profile. The
-instance receives time-limited presigned S3 URLs via user data for the code
-bundle (GET) and the results archive and console log (PUTs); the SHD dataset
-is downloaded on the instance from the public source (compneuro.net). The
-instance self-terminates when training finishes.
+Runs the SHD v5 experiment on a single EC2 instance. The instance receives
+time-limited presigned S3 URLs via user data for the code bundle (GET), the
+pre-staged SHD dataset (GET), and the results archive + console log (PUTs).
+The instance self-terminates when training finishes.
 
 Instance preference: g5.xlarge (NVIDIA A10G, CUDA torch) first, then
-c6i.8xlarge / c7i.8xlarge (CPU) as fallbacks if GPU capacity or quota is
-unavailable. A 6-hour watchdog bounds the run.
+c6i.8xlarge / c7i.8xlarge (CPU) as fallbacks. A 6-hour watchdog bounds the run.
+
+SHD dataset is pre-staged to S3 during the launch step (sourced from the local
+data/SHD/ directory). This avoids depending on the external compneuro.net server
+at training time, which was the root cause of previous silent failures.
+
+A background heartbeat uploads /var/log/shd.log to S3 every 30 minutes so the
+run is always diagnosable even if the final upload fails.
 
 Usage:
     py -3 cloud/run_shd_train.py package
@@ -48,13 +52,24 @@ SUBNETS = [
     "subnet-0de53e7b6d7caa40b",
 ]
 INSTANCE_TYPES = ["g5.xlarge", "c6i.8xlarge", "c7i.8xlarge"]
-PRESIGN_EXPIRY = 604800
+PRESIGN_EXPIRY = 604800  # 7 days
+
+# Stable S3 keys for the pre-staged SHD dataset (reused across runs).
+SHD_S3_TRAIN_KEY = "data/shd_train.h5"
+SHD_S3_TEST_KEY = "data/shd_test.h5"
+
+# Local SHD dataset paths (must exist before launch).
+SHD_LOCAL_TRAIN = ROOT / "data" / "SHD" / "shd_train.h5"
+SHD_LOCAL_TEST = ROOT / "data" / "SHD" / "shd_test.h5"
 
 BUNDLE_FILES = [
     "experiments/benchmark_shd_v5.py",
     "experiments/benchmark_shd_esfa.py",
 ]
 
+# Driver script written into the bundle as run_shd.sh.
+# --data-dir is explicit so the training script always finds the dataset
+# regardless of Python working-directory resolution.
 DRIVER_SH = """#!/bin/bash
 DEVICE="$1"
 THREADS="$2"
@@ -63,43 +78,108 @@ python3 -u experiments/benchmark_shd_v5.py \\
   --hidden 512 --batch-size 256 --epochs 160 --seeds 42,123 \\
   --governor --dual-readout --device "$DEVICE" --threads "$THREADS" \\
   --checkpoint-every 2 --log-every 5 \\
+  --data-dir ./data \\
   --output-dir results/shd_v5_innovation
 """
 
+# __MARKERS__ replaced at launch time; double-quoted URLs are safe in bash
+# because & inside double quotes is treated as a literal character.
 USER_DATA_TEMPLATE = """#!/bin/bash
 set -uo pipefail
 exec > /var/log/shd.log 2>&1
 echo "ES-FA SHD v5 cloud run __RUN_ID__ starting $(date -u +%FT%TZ)"
+
+# Hard watchdog: shut down after 6 hours even if training hangs.
 shutdown -h +360 "watchdog" || true
+
+# Background heartbeat: snapshot and upload the log to S3 every 30 minutes.
+# This guarantees log visibility even if the final upload fails.
+(
+  while true; do
+    sleep 1800
+    cp /var/log/shd.log /tmp/shd_heartbeat.log 2>/dev/null || true
+    curl -fsSL -T /tmp/shd_heartbeat.log "__PUT_LOG__" 2>/dev/null || true
+  done
+) &
+HEARTBEAT_PID=$!
+
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y python3-pip curl gzip zip ca-certificates
+
 mkdir -p /opt/shd && cd /opt/shd
-curl -fsSL -o bundle.tgz "__GET_URL__" && tar xzf bundle.tgz || echo "bundle download/extract failed"
-echo "downloading SHD dataset"
-curl -fsSL -o shd_train.h5.gz https://compneuro.net/datasets/shd_train.h5.gz && gzip -d shd_train.h5.gz || echo "train download failed"
-curl -fsSL -o shd_test.h5.gz https://compneuro.net/datasets/shd_test.h5.gz && gzip -d shd_test.h5.gz || echo "test download failed"
+
+# -- Code bundle (from S3, same-region, reliable) ----------------------------
+if ! curl -fsSL -o bundle.tgz "__GET_URL__"; then
+  echo "FATAL: code bundle download failed"
+  kill "$HEARTBEAT_PID" 2>/dev/null || true
+  exit 1
+fi
+if ! tar xzf bundle.tgz; then
+  echo "FATAL: code bundle extract failed"
+  kill "$HEARTBEAT_PID" 2>/dev/null || true
+  exit 1
+fi
+echo "Code bundle extracted OK"
+
+# -- SHD dataset (from S3, pre-staged, reliable) ------------------------------
+echo "Downloading SHD dataset from S3"
 mkdir -p data/SHD
-mv shd_train.h5 shd_test.h5 data/SHD/ 2>/dev/null || echo "dataset move failed"
+if ! curl -fsSL -o data/SHD/shd_train.h5 "__GET_TRAIN__"; then
+  echo "FATAL: SHD train set download failed"
+  kill "$HEARTBEAT_PID" 2>/dev/null || true
+  exit 1
+fi
+if ! curl -fsSL -o data/SHD/shd_test.h5 "__GET_TEST__"; then
+  echo "FATAL: SHD test set download failed"
+  kill "$HEARTBEAT_PID" 2>/dev/null || true
+  exit 1
+fi
+TRAIN_SIZE=$(du -sh data/SHD/shd_train.h5 | cut -f1)
+TEST_SIZE=$(du -sh data/SHD/shd_test.h5 | cut -f1)
+echo "SHD dataset ready: train=${TRAIN_SIZE}, test=${TEST_SIZE}"
+
+# -- PyTorch + dependencies ---------------------------------------------------
 if command -v nvidia-smi >/dev/null 2>&1; then
   echo "GPU present; installing CUDA torch"
-  pip3 install --break-system-packages --quiet torch --index-url https://download.pytorch.org/whl/cu121 || echo "torch install failed"
   DEVICE=cuda
   THREADS=0
+  pip3 install --break-system-packages --quiet torch --index-url https://download.pytorch.org/whl/cu121
 else
-  echo "no GPU; installing CPU torch"
-  pip3 install --break-system-packages --quiet torch --index-url https://download.pytorch.org/whl/cpu || echo "torch install failed"
+  echo "No GPU; installing CPU torch"
   DEVICE=cpu
   THREADS=$(nproc)
+  pip3 install --break-system-packages --quiet torch --index-url https://download.pytorch.org/whl/cpu
 fi
-pip3 install --break-system-packages --quiet numpy h5py || echo "deps install failed"
-bash run_shd.sh "$DEVICE" "$THREADS" || echo "driver exited nonzero"
+if [ $? -ne 0 ]; then
+  echo "FATAL: torch install failed"
+  kill "$HEARTBEAT_PID" 2>/dev/null || true
+  exit 1
+fi
+if ! pip3 install --break-system-packages --quiet numpy h5py; then
+  echo "FATAL: numpy/h5py install failed"
+  kill "$HEARTBEAT_PID" 2>/dev/null || true
+  exit 1
+fi
+python3 -c "import torch, numpy, h5py; print('imports OK: torch', torch.__version__)"
+
+# -- Training (non-fatal: upload whatever results exist if training fails) ---
+bash run_shd.sh "$DEVICE" "$THREADS" || echo "WARNING: training driver exited nonzero"
+
+# -- Package and upload results -----------------------------------------------
 mkdir -p /opt/out
-cp -r results /opt/out/ 2>/dev/null || echo "no results dir"
-cd /opt/out && zip -qr /opt/shd_results.zip results 2>/dev/null || echo "zip failed"
+cp -r results /opt/out/ 2>/dev/null || echo "WARNING: no results directory to copy"
+cd /opt/out && zip -qr /opt/shd_results.zip results 2>/dev/null || echo "WARNING: zip failed"
 cp /var/log/shd.log /opt/shd_console.log
-curl -fsSL -T /opt/shd_results.zip "__PUT_RESULTS__" || echo "results upload failed"
-curl -fsSL -T /opt/shd_console.log "__PUT_LOG__" || echo "log upload failed"
+
+curl -fsSL -T /opt/shd_results.zip "__PUT_RESULTS__" || echo "WARNING: results upload failed"
+
+# Kill heartbeat and do the final complete log upload.
+kill "$HEARTBEAT_PID" 2>/dev/null || true
+sleep 2
+cp /var/log/shd.log /opt/shd_console.log
+curl -fsSL -T /opt/shd_console.log "__PUT_LOG__" || echo "WARNING: final log upload failed"
+
 echo "ES-FA SHD v5 done $(date -u +%FT%TZ)"
 shutdown -h now
 """
@@ -145,6 +225,41 @@ def ensure_bucket(s3) -> None:
             raise
 
 
+def ensure_shd_staged(s3) -> None:
+    """Upload SHD h5 files to S3 if not already present. Sourced from local data/SHD/.
+
+    Uses stable S3 keys (data/shd_train.h5 and data/shd_test.h5) shared across
+    all runs, so the upload is a one-time cost.
+    """
+    pairs = [
+        (SHD_LOCAL_TRAIN, SHD_S3_TRAIN_KEY, "train"),
+        (SHD_LOCAL_TEST,  SHD_S3_TEST_KEY,  "test"),
+    ]
+    for local_path, s3_key, label in pairs:
+        # Check if already in S3.
+        try:
+            head = s3.head_object(Bucket=BUCKET, Key=s3_key)
+            size_mb = head["ContentLength"] / 1024 / 1024
+            print(f"SHD {label} already staged in S3 ({size_mb:.0f} MB): s3://{BUCKET}/{s3_key}")
+            continue
+        except ClientError as exc:
+            code = exc.response.get("Error", {}).get("Code", "")
+            if code not in ("404", "NoSuchKey", "403"):
+                raise
+
+        # Upload from local data directory.
+        if not local_path.exists():
+            raise SystemExit(
+                f"SHD {label} set not found locally at {local_path} and not in S3.\n"
+                "Download from https://compneuro.net/datasets/ (shd_train.h5 and shd_test.h5)\n"
+                "and place in data/SHD/ before launching."
+            )
+        size_mb = local_path.stat().st_size / 1024 / 1024
+        print(f"Staging SHD {label} to S3 ({size_mb:.0f} MB) - this is a one-time upload...")
+        s3.upload_file(str(local_path), BUCKET, s3_key)
+        print(f"  Staged: s3://{BUCKET}/{s3_key}")
+
+
 def resolve_ami(ssm) -> str:
     try:
         return ssm.get_parameter(
@@ -161,18 +276,34 @@ def cmd_launch(_args) -> None:
     run_id = time.strftime("%Y%m%d-%H%M%S")
     prefix = f"shd/{run_id}"
     keys = {
-        "bundle_key": f"{prefix}/shd_bundle.tgz",
+        "bundle_key":  f"{prefix}/shd_bundle.tgz",
         "results_key": f"{prefix}/shd_results.zip",
-        "log_key": f"{prefix}/shd_console.log",
+        "log_key":     f"{prefix}/shd_console.log",
     }
 
     s3 = boto3.client("s3", region_name=REGION)
     ensure_bucket(s3)
+
+    # Stage SHD dataset to S3 (no-op if already there).
+    ensure_shd_staged(s3)
+
+    # Upload code bundle.
     s3.upload_file(str(BUNDLE_PATH), BUCKET, keys["bundle_key"])
 
+    # Generate presigned URLs.
     get_url = s3.generate_presigned_url(
         "get_object",
         Params={"Bucket": BUCKET, "Key": keys["bundle_key"]},
+        ExpiresIn=PRESIGN_EXPIRY,
+    )
+    get_train = s3.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": BUCKET, "Key": SHD_S3_TRAIN_KEY},
+        ExpiresIn=PRESIGN_EXPIRY,
+    )
+    get_test = s3.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": BUCKET, "Key": SHD_S3_TEST_KEY},
         ExpiresIn=PRESIGN_EXPIRY,
     )
     put_results = s3.generate_presigned_url(
@@ -185,11 +316,15 @@ def cmd_launch(_args) -> None:
         Params={"Bucket": BUCKET, "Key": keys["log_key"]},
         ExpiresIn=PRESIGN_EXPIRY,
     )
+
     user_data = (
-        USER_DATA_TEMPLATE.replace("__RUN_ID__", run_id)
-        .replace("__GET_URL__", get_url)
+        USER_DATA_TEMPLATE
+        .replace("__RUN_ID__", run_id)
+        .replace("__GET_URL__",    get_url)
+        .replace("__GET_TRAIN__",  get_train)
+        .replace("__GET_TEST__",   get_test)
         .replace("__PUT_RESULTS__", put_results)
-        .replace("__PUT_LOG__", put_log)
+        .replace("__PUT_LOG__",    put_log)
     )
 
     ec2 = boto3.client("ec2", region_name=REGION)
@@ -223,7 +358,7 @@ def cmd_launch(_args) -> None:
                         {
                             "ResourceType": "instance",
                             "Tags": [
-                                {"Key": "Name", "Value": f"esfa-shd-v5-{run_id}"},
+                                {"Key": "Name",    "Value": f"esfa-shd-v5-{run_id}"},
                                 {"Key": "Project", "Value": "ES-FA"},
                                 {"Key": "Purpose", "Value": "shd-v5-innovation"},
                             ],
@@ -248,17 +383,17 @@ def cmd_launch(_args) -> None:
         if resp is not None:
             break
     if resp is None:
-        raise SystemExit(f"No spot capacity / quota for any instance type: {last_error}")
+        raise SystemExit(f"No capacity / quota for any instance type: {last_error}")
 
     instance_id = resp["Instances"][0]["InstanceId"]
     STATE_PATH.write_text(
         json.dumps(
             {
-                "run_id": run_id,
-                "instance_id": instance_id,
+                "run_id":        run_id,
+                "instance_id":   instance_id,
                 "instance_type": chosen_type,
-                "subnet": chosen_subnet,
-                "bucket": BUCKET,
+                "subnet":        chosen_subnet,
+                "bucket":        BUCKET,
                 **keys,
                 "launched_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             },
@@ -269,18 +404,29 @@ def cmd_launch(_args) -> None:
     print(f"Launched {chosen_type} on-demand instance: {instance_id} (subnet {chosen_subnet})")
     print(f"  run id : {run_id}")
     print(f"  AMI    : {ami}")
-    print("Watchdog: 6 hours. Check progress: py -3 cloud/run_shd_train.py status")
+    print(f"  SHD    : s3://{BUCKET}/{SHD_S3_TRAIN_KEY} + {SHD_S3_TEST_KEY}")
+    print("Watchdog: 6 hours. Heartbeat log: every 30 min. Check: py -3 cloud/run_shd_train.py status")
 
 
 def cmd_status(_args) -> None:
     state = load_state()
     ec2 = boto3.client("ec2", region_name=REGION)
-    inst = ec2.describe_instances(InstanceIds=[state["instance_id"]])["Reservations"][0]["Instances"][0]
-    print(f"Instance {state['instance_id']} ({state['instance_type']}): {inst['State']['Name']}")
+    try:
+        inst = ec2.describe_instances(
+            InstanceIds=[state["instance_id"]]
+        )["Reservations"][0]["Instances"][0]
+        print(f"Instance {state['instance_id']} ({state['instance_type']}): {inst['State']['Name']}")
+    except (ClientError, IndexError, KeyError):
+        print(f"Instance {state['instance_id']}: gone (terminated and cleaned up)")
     s3 = boto3.client("s3", region_name=REGION)
     resp = s3.list_objects_v2(Bucket=state["bucket"], Prefix=f"shd/{state['run_id']}/")
-    for obj in resp.get("Contents", []):
-        print(f"  {obj['Key']} ({obj['Size']} bytes, {obj['LastModified']})")
+    objects = resp.get("Contents", [])
+    if objects:
+        for obj in objects:
+            size_kb = obj["Size"] / 1024
+            print(f"  {obj['Key']:<60} {size_kb:>8.1f} KB   {obj['LastModified']}")
+    else:
+        print("  (no output files in S3 yet)")
 
 
 def cmd_collect(_args) -> None:
@@ -294,15 +440,17 @@ def cmd_collect(_args) -> None:
     out_dir = ROOT / "results" / f"cloud_shd_v5_{state['run_id']}"
     out_dir.mkdir(parents=True, exist_ok=True)
     zip_path = BUNDLE_DIR / f"shd_results_{state['run_id']}.zip"
+    print(f"Downloading results to {out_dir} ...")
     s3.download_file(state["bucket"], state["results_key"], str(zip_path))
     with zipfile.ZipFile(zip_path) as zf:
         zf.extractall(out_dir)
     print(f"Extracted to: {out_dir}")
     try:
-        s3.download_file(state["bucket"], state["log_key"], str(out_dir / "shd_console.log"))
-        print(f"Console log: {out_dir / 'shd_console.log'}")
+        log_dest = out_dir / "shd_console.log"
+        s3.download_file(state["bucket"], state["log_key"], str(log_dest))
+        print(f"Console log: {log_dest}")
     except ClientError:
-        print("Console log not uploaded (yet).")
+        print("Console log not yet uploaded.")
     for json_file in sorted(out_dir.rglob("*.json")):
         print(f"  {json_file.relative_to(out_dir)}")
 
@@ -310,7 +458,13 @@ def cmd_collect(_args) -> None:
 def cmd_terminate(_args) -> None:
     state = load_state()
     ec2 = boto3.client("ec2", region_name=REGION)
-    name = ec2.describe_instances(InstanceIds=[state["instance_id"]])["Reservations"][0]["Instances"][0]["State"]["Name"]
+    try:
+        name = ec2.describe_instances(
+            InstanceIds=[state["instance_id"]]
+        )["Reservations"][0]["Instances"][0]["State"]["Name"]
+    except (ClientError, IndexError, KeyError):
+        print("Instance already gone.")
+        return
     if name in ("terminated", "shutting-down"):
         print(f"Instance already {name}.")
         return
@@ -328,10 +482,10 @@ def main() -> None:
     sub.add_parser("terminate")
     args = parser.parse_args()
     handlers = {
-        "package": cmd_package,
-        "launch": cmd_launch,
-        "status": cmd_status,
-        "collect": cmd_collect,
+        "package":   cmd_package,
+        "launch":    cmd_launch,
+        "status":    cmd_status,
+        "collect":   cmd_collect,
         "terminate": cmd_terminate,
     }
     handlers[args.command](args)

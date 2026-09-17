@@ -139,6 +139,11 @@ def run_epoch(
 
         logits, stats = model(x)
         ce  = F.cross_entropy(logits, y)
+        # NOTE: reg is derived from detached .item() floats, so
+        # sparsity_lambda * reg adds a constant offset with zero gradient
+        # w.r.t. model parameters: the sparsity penalty does not train the
+        # model. Fixing requires the model to return a differentiable
+        # spike-rate tensor from forward().
         reg = ((1.0 - stats["hidden1_sparsity"]) +
                (1.0 - stats["hidden2_sparsity"])) / 2.0
         loss = ce + sparsity_lambda * reg

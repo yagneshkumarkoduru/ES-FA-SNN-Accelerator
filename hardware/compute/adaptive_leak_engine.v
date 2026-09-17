@@ -46,7 +46,10 @@ module adaptive_leak_engine #(
     // the exact window boundary was previously discarded).
     wire [15:0] acc_including_boundary = spike_accumulator + (spike_in ? 16'd1 : 16'd0);
     // Q0.8 rate = window count / 2^WINDOW_SHIFT * 256 = count << RATE_FRAC_BITS
-    wire [7:0]  rate_next_q8           = acc_including_boundary[WINDOW_SHIFT-1:0] << RATE_FRAC_BITS;
+    // (the count is zero-extended to 8 bits BEFORE the shift: a 6-bit
+    // part-select shifted in its own width would drop the high bits, e.g.
+    // count 32 produced 0 instead of 128 and inverted the adaptation sign).
+    wire [7:0]  rate_next_q8           = {2'b00, acc_including_boundary[WINDOW_SHIFT-1:0]} << RATE_FRAC_BITS;
 
     // This cycle's homeostatic decision, computed combinationally so the
     // threshold and leak registered this cycle reflect THIS window's rate.

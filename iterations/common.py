@@ -10,6 +10,7 @@ sparsity target.
 from __future__ import annotations
 
 import json
+import sys
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -77,7 +78,21 @@ def find_experiment_config(experiments_root: Path, run_name: str) -> Path:
 
 
 def _load_config(path: Path) -> Dict[str, Any]:
-    return _load_json(path)
+    """Load an experiment config with the full training defaults merged in.
+
+    Experiment config.json files declare only their overrides; the training
+    entry point requires the complete default_config() structure (device,
+    batch_size, quantization, hardware_estimator, ...). Reusing
+    training_core.load_config keeps the defaults defined in one place and
+    fixes both the missing-key crash in train_from_config and the
+    quantization KeyError in _merge_for_combined.
+    """
+    project_root = Path(__file__).resolve().parents[1]
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    from p1_training.training_core import load_config
+
+    return load_config(config_path=path)
 
 
 def _merge_for_combined(cfg_a: Dict[str, Any], cfg_b: Dict[str, Any]) -> Dict[str, Any]:

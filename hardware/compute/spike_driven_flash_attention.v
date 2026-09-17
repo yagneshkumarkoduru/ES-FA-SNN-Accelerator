@@ -178,10 +178,14 @@ module spike_driven_flash_attention #(
                 for (d_idx = 0; d_idx < HEAD_DIM; d_idx = d_idx + 1) begin
                     num_acc[d_idx] <= {DATA_WIDTH{1'b0}};
                 end
-                // Query-row tags are reset so a key whose tag no longer
-                // matches the incoming q_token_idx is treated as score zero.
+                // Query-row tags AND scores are reset so a key whose tag no
+                // longer matches the incoming q_token_idx is treated as score
+                // zero. The scores must be cleared too: with tags reset to 0,
+                // a re-run whose first query row is token 0 would otherwise
+                // accumulate onto the previous run's scores.
                 for (r_idx = 0; r_idx < SEQ_LEN; r_idx = r_idx + 1) begin
                     score_row_tag[r_idx] <= 0;
+                    attn_map_acc[r_idx]  <= {DATA_WIDTH{1'b0}};
                 end
                 cur_q_row <= 0;
             end

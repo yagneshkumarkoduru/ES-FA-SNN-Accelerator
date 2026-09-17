@@ -183,9 +183,9 @@ def _plot_raster(run: Dict[str, Any], plots_dir: Path, suffix: str) -> None:
     raster_npz = export_dir / "spike_raster.npz"
     if not raster_npz.exists():
         return
-    data = np.load(raster_npz)
-    l1 = data["layer1"]
-    l2 = data["layer2"]
+    with np.load(raster_npz) as data:
+        l1 = data["layer1"]
+        l2 = data["layer2"]
 
     # Use binary image for compact raster visualization.
     plt.figure(figsize=(10, 4))

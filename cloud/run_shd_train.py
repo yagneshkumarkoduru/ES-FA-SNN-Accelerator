@@ -85,7 +85,7 @@ SHD_LOCAL_TRAIN = ROOT / "data" / "SHD" / "shd_train.h5"
 SHD_LOCAL_TEST = ROOT / "data" / "SHD" / "shd_test.h5"
 
 BUNDLE_FILES = [
-    "experiments/benchmark_shd_v10.py",
+    "experiments/benchmark_shd_v11.py",
     "experiments/benchmark_shd_esfa.py",
 ]
 
@@ -96,13 +96,13 @@ DRIVER_SH = """#!/bin/bash
 DEVICE="$1"
 THREADS="$2"
 cd /opt/shd || exit 1
-python3 -u experiments/benchmark_shd_v10.py \\
-  --hidden 128 --layers 2 --batch-size 64 --epochs 19 --seeds 42,123,999 \\
-  --lr 1e-2 --eps 1e-5 --step-size 10 --gamma 0.5 \\
+python3 -u experiments/benchmark_shd_v11.py \\
+  --hidden 128 --layers 2 --batch-size 64 --epochs 80 --seeds 42,123,999 \\
+  --lr 1e-2 --lr-min 1e-4 --eps 1e-5 --warmup-epochs 5 --ema-decay 0.999 \\
+  --tta 4 --tta-drop-time 0.05 --tta-drop-neuron 0.03 \\
   --device "$DEVICE" --threads "$THREADS" \\
-  --checkpoint-every 5 --log-every 1 \\
   --data-dir ./data \\
-  --output-dir results/shd_v10_srnn
+  --output-dir results/shd_v11_esfa
 """
 
 # __RUN_ID__, __BUCKET__, __REGION__ are substituted at launch time.

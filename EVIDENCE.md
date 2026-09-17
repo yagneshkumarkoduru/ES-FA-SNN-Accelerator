@@ -394,6 +394,39 @@ bootstrap = roughly 0.75-1.5 h = 1-2 USD; 8-hour watchdog still bounds the
 worst case. Running total for the day: ~4.7 (v5) + 2.9 (v6) + 2.0 (v7) +
 0.7 (v8) + 3.5 (v9, stopped) + 2 (v10) = ~16-18 USD.
 
+## v11: ES-FA improvements on the ALIF backbone (2026-09-17)
+
+Requirement: the headline must beat the published reference implementation,
+not merely reproduce it. v10 (running) is the fair-reproduction baseline of
+the published recipe (19 epochs, best-epoch selection, single forward pass).
+v11 (`experiments/benchmark_shd_v11.py`) keeps the same attributed backbone
+and adds five ES-FA improvements, none of which exist in the reference:
+
+1. Extended optimization: 80 epochs, 5-epoch linear warmup, cosine decay to
+   1e-4 (reference: 19 epochs, StepLR halving). The reference code itself
+   comments a 150-epoch variant, so longer training is in the spirit of the
+   recipe but not practiced in its released defaults.
+2. EMA weight averaging (decay 0.999, started after warmup): the deployed
+   weights are an exponential moving average, a standard variance-reduction
+   technique the reference does not use.
+3. Event-loss test-time augmentation: the decoded output averages several
+   forward passes over inputs with random event dropouts (5% time bins, 3%
+   channels). This directly models the accelerator's event-loss robustness
+   story: the network tolerates dropped events at inference.
+4. Committee decoding: the three seeds' EMA models are averaged in output
+   space into one predictor (reference reports per-run results only).
+5. int16 deployment: all matrix weights quantized to int16, evaluated on the
+   frozen test split (reference is float-only).
+
+Local smoke test (hidden 32, 2 seeds x 2 epochs) exercised every path (EMA,
+TTA, committee, int16) without errors; per-epoch logs show the schedule
+engaging.
+
+Estimated spend (recorded before the run): 80 epochs x ~80 s/epoch x 3 seeds
+= about 5.4 h of training plus 0.4 h bootstrap at 1.36 USD/h (c6i.8xlarge
+on-demand, us-east-1) = ~8 USD; 8-hour watchdog bounds the worst case at
+~11 USD. Running total for the day: ~18 (previous runs) + 8 (v11) = ~26 USD.
+
 ## Known issues
 
 1. **SHD accuracy gap vs SOTA:** ES-FA v5 achieves 80.80% (two-seed mean,

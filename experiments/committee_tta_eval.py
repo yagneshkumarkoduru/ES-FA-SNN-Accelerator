@@ -12,8 +12,8 @@ CPU (no cloud compute):
 
 Usage:
     py -3 experiments/committee_tta_eval.py \
-        --run-dir results/cloud_shd_v5_20260918-031418/results/shd_v12_bounded \
-        --hidden 160 --seeds 42,123,999 --tta 4,8 --min-fr 0.02
+        --run-dirs results/cloud_shd_v5_20260918-031418/results/shd_v12_bounded,results/cloud_shd_v5_NEW/results/shd_v12_committee \
+        --hidden 160 --seeds 42,123,999,7,2026 --tta 4,8 --min-fr 0.02
 """
 
 from __future__ import annotations
@@ -38,12 +38,12 @@ from benchmark_shd_v12 import (  # noqa: E402
 )
 
 
-def _load_ema(run_dir: Path, seed: int) -> Dict[str, torch.Tensor]:
-    path = run_dir / f"seed_{seed}_ema.pt"
-    if not path.exists():
-        raise FileNotFoundError(f"EMA state not found: {path}")
-    state = torch.load(path, map_location="cpu")
-    return state
+def _load_ema(run_dirs: List[Path], seed: int) -> Dict[str, torch.Tensor]:
+    for run_dir in run_dirs:
+        path = run_dir / f"seed_{seed}_ema.pt"
+        if path.exists():
+            return torch.load(path, map_location="cpu")
+    raise FileNotFoundError(f"EMA state for seed {seed} not found in {[str(d) for d in run_dirs]}")
 
 
 def _build_model(state: Dict[str, torch.Tensor], args: argparse.Namespace, device: torch.device) -> SRNNv12:
@@ -137,7 +137,8 @@ def soup_eval(models: List[SRNNv12], loader: DataLoader, device: torch.device, a
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Offline committee + TTA evaluation")
-    parser.add_argument("--run-dir", type=Path, required=True)
+    parser.add_argument("--run-dirs", type=str, required=True,
+                        help="comma-separated run directories to search for seed_<seed>_ema.pt files")
     parser.add_argument("--seeds", type=str, default="42,123,999")
     parser.add_argument("--hidden", type=int, default=160)
     parser.add_argument("--layers", type=int, default=2)
@@ -165,14 +166,15 @@ def main() -> int:
     device = torch.device("cpu")
 
     seeds = [int(s) for s in args.seeds.split(",") if s.strip()]
+    run_dirs = [Path(p) for p in args.run_dirs.split(",") if p.strip()]
     members: List[SRNNv12] = []
     member_frs: List[float] = []
-    report: Dict[str, object] = {"run_dir": str(args.run_dir), "seeds": []}
+    report: Dict[str, object] = {"run_dirs": [str(d) for d in run_dirs], "seeds": []}
 
     _, test_loader = make_loaders(args.data_dir, args.batch_size, args.dt_ms, args.t_max_ms, seeds[0])
 
     for idx, seed in enumerate(seeds):
-        state = _load_ema(args.run_dir, seed)
+        state = _load_ema(run_dirs, seed)
         model = _build_model(state, args, device)
         acc, fr = evaluate_member(model, test_loader, device, FIXED_EVAL_SEED + 10 + idx)
         members.append(model)
@@ -213,7 +215,7 @@ def main() -> int:
         print(f"weight soup ({len(members)} members): {soup_acc*100:.2f}%", flush=True)
         report["soup_acc"] = round(soup_acc, 4)
 
-    out_path = args.run_dir / "offline_committee_tta.json"
+    out_path = run_dirs[0] / "offline_committee_tta.json"
     out_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     print(f"written: {out_path}")
     return 0

@@ -24,6 +24,7 @@ clockInfo.txt
 dfx_runtime.txt
 tight_setup_hold_pins.txt
 iter_*_CongestedCLBsAndNets.txt
+out/
 
 # LaTeX build by-products
 *.aux

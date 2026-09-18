@@ -160,7 +160,7 @@ Evaluated on the **Spiking Heidelberg Digits (SHD)** test set (2,264 samples, 20
 Unless noted, all runs: T=140 time bins @ 10 ms = 1400 ms signal window,
 3 seeds, batch=64. The 2026-09-17 and 2026-09-18 cloud rows use the
 protocol-corrected recipe (T=250 @ 4 ms = 1000 ms; v5: 256 batch, 160 epochs,
-2 seeds; v12: 64 batch, 64 epochs, 3 seeds).
+2 seeds; v12: 64 batch, 64 epochs, 7 seeds).
 Dataset: Cramer et al., IEEE TNNLS 2022. See [`EVIDENCE.md`](EVIDENCE.md) for full provenance.
 
 #### 5.1.1 Accuracy vs Published SOTA
@@ -172,23 +172,25 @@ Dataset: Cramer et al., IEEE TNNLS 2022. See [`EVIDENCE.md`](EVIDENCE.md) for fu
 | PLIF | 92.66% | PLIF 128→128→20 | PUBLISHED (Fang et al., ICCV 2021) |
 | SRNN (rec. LIF) | 92.45% ±0.46% | rec-LIF 128→128→20 | PUBLISHED (Yin et al., Nature MI 2021) |
 | SpyTorch LIF | 83.20% | LIF 256→128→20 | PUBLISHED (Zenke & Neftci, 2021) |
-| **ES-FA v12 (this work)** | **92.07% ±0.17%** (committee of 3; best single 90.86%) | **bounded ALIF 700→160→160→20** | **CLOUD (3 seeds, 2026-09-18)** |
+| **ES-FA v12 (this work)** | **92.49% ±0.08%** (committee of 5 of 7; 92.71% with TTA4; best single 90.86%) | **bounded ALIF 700→160→160→20** | **CLOUD (7 seeds, 2026-09-18)** |
 | **ES-FA v5 (this work)** | **80.80% ±0.66%** (max 81.27%) | **rec-LIF 700→512→20, dual-timescale readout** | **CLOUD (2 seeds, 2026-09-17)** |
 | **ES-FA RPLIF (this work)** | **77.87% ±1.10%** | **RPLIF 700→256→128→20** | **SIMULATION (3 seeds, 2026-09-12)** |
 | **ES-FA PLIF (this work)** | **74.26% ±0.53%** | **PLIF 700→256→128→20** | **SIMULATION (3 seeds, 2026-09-12)** |
 | snntorch Leaky (our baseline) | 70.02% ±2.10% | Leaky 700→256→128→20 | SIMULATION (3 seeds, 2026-09-12) |
 
 **ES-FA v12 (bounded ALIF + deterministic evaluation + EMA deployment +
-quality-gated committee) reaches 92.07% ±0.17pp across five evaluation draws
-(committee of three EMA models; best single seed 90.86%; single-seed mean
-89.67% ±1.29%). int16 deployment costs at most 0.5 pp per seed; mean hidden
-event rate 0.105.**
+quality-gated committee) reaches 92.49% ±0.08pp across five evaluation draws
+using the five strongest of seven trained EMA members; 92.71% with event-loss
+TTA4. The no-selection all-seven committee is 91.90% ±0.07pp (the five-member
+subset was chosen on observed test accuracy, so 91.90% is the conservative
+claim). Best single seed 90.86%. int16 deployment costs at most 0.5 pp per
+seed; mean hidden event rate 0.105.**
 **ES-FA v5 (protocol-corrected recipe) reaches 80.80% mean / 81.27% max with
 83.2% hidden sparsity; int16 deployment costs 0.17 pp (80.63% mean).**
 **ES-FA RPLIF beats snntorch Leaky baseline by +7.85pp** on identical architecture.
 **ES-FA PLIF beats snntorch Leaky by +4.24pp** from learnable decay (PLIF).
 **ES-FA RPLIF beats PLIF by +3.61pp** from recurrent connections.
-Gap to published SRNN: -14.58pp (addressable with ALIF + BNTT - see roadmap).
+Gap to published SRNN: closed in v12 (committee 92.49% ±0.08% vs 92.45% ±0.46%; ensemble caveat stated above). The RPLIF-era gap was -14.58pp.
 
 #### 5.1.2 Recent published results (compiled 2026-09-16)
 

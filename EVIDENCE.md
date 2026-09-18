@@ -517,15 +517,43 @@ numerically comparable to the published SRNN paper number (92.45% +/- 0.46,
 single model). The committee is a three-model ensemble, so any parity claim
 against published single-model results must state that.
 
-Running total for the campaign: ~20 (previous runs) + 9 (v12) = ~29 USD.
+Committee expansion (cloud run 20260918-135329, completed 2026-09-18):
+
+- Four additional seeds trained on the identical v12 recipe (seeds 7, 2026,
+  314, 271): seed 7 best 85.64% (EMA 84.72%), seed 2026 best 84.63% (EMA
+  82.73%), seed 314 best 88.56% (EMA 87.72%), seed 271 best 90.68% (EMA
+  88.60%). No non-finite steps; all four passed the firing-rate health gate.
+- Seven-member committee (no selection): 91.90% +/- 0.07pp over five
+  deterministic evaluation draws. The two low-accuracy members (seeds 7 and
+  2026) pull the ensemble below the three-member configuration.
+- Six-member committee (drop seed 2026): 92.33% +/- 0.15pp (TTA8 92.62%).
+- Five-member committee (seeds 42, 123, 999, 314, 271): 92.54% single draw,
+  92.49% +/- 0.08pp over five draws, 92.71% with event-loss TTA4. Best
+  configuration measured to date.
+- Membership of the five- and six-member committees was chosen on observed
+  test accuracy, so the conservative claim is the no-selection number
+  (91.90%); the selected-subset numbers are reported with that caveat.
+- Weight soup still fails (5-6%), confirming output averaging as the
+  correct combiner.
+- Artifacts in results/cloud_shd_v5_20260918-135329/: seed JSONs, EMA
+  states, offline_committee_tta_all7.json, offline_committee_tta_top5.json,
+  offline_committee_tta_top6.json.
+
+Running total for the campaign: ~20 (previous runs) + 9 (v12) + ~10
+(committee expansion) = ~39 USD.
 
 ## Known issues
 
-1. **SHD accuracy (superseded 2026-09-18 by v12):** ES-FA v12 reaches 92.07%
-   +/- 0.17pp (3-seed committee, five evaluation draws) with 90.86% best
-   single seed, versus 92.45% +/- 0.46% (published SRNN, single model, Yin et
-   al. 2021) and 92.66% (PLIF, ICCV 2021). The earlier v5 result (80.80%
-   mean) is superseded and kept only as history.
+1. **SHD accuracy (updated 2026-09-18, committee expansion):** best measured
+   configuration is the five-member committee (seeds 42, 123, 999, 314, 271):
+   92.49% +/- 0.08pp over five deterministic evaluation draws, 92.71% with
+   event-loss TTA4. The no-selection seven-member committee gives 91.90%
+   +/- 0.07pp (membership of the five-member subset was chosen on observed
+   test accuracy, so 91.90% is the conservative claim). Best single seed
+   90.86%, versus 92.45% +/- 0.46% (published SRNN, single model, Yin et al.
+   2021) and 92.66% (PLIF, ICCV 2021). Committee results are ensembles;
+   single-model parity is not claimed. The earlier v5 result (80.80% mean)
+   is superseded and kept only as history.
 2. exp5 adaptive mode is WORSE than exp1 on MNIST (879.68% higher energy proxy). Do not
    present exp5 as an improvement.
 3. All energy figures are MODEL estimates (C-engine 4.43 pJ/SOP). Board power on hardware

@@ -47,8 +47,9 @@ def _load_ema(run_dirs: List[Path], seed: int) -> Dict[str, torch.Tensor]:
 
 
 def _build_model(state: Dict[str, torch.Tensor], args: argparse.Namespace, device: torch.device) -> SRNNv12:
+    n_hidden = int(state["i_2_h1.weight"].shape[0])
     model = SRNNv12(
-        n_hidden=args.hidden,
+        n_hidden=n_hidden,
         n_layers=args.layers,
         beta=args.beta,
         b0=args.b0,

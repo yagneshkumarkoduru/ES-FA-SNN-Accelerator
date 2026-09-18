@@ -97,13 +97,13 @@ DEVICE="$1"
 THREADS="$2"
 cd /opt/shd || exit 1
 python3 -u experiments/benchmark_shd_v12.py \\
-  --hidden 160 --layers 2 --batch-size 64 --epochs 64 --seeds 7,2026,314,271 \\
+  --hidden 192 --layers 2 --batch-size 64 --epochs 64 --seeds 5,777,4096 \\
   --lr 1e-2 --lr-min 1e-4 --eps 1e-5 --warmup-epochs 5 --ema-decay 0.999 \\
   --train-drop --tta 4 --tta-drop-time 0.05 --tta-drop-neuron 0.03 \\
   --checkpoint-every 8 \\
   --device "$DEVICE" --threads "$THREADS" \\
   --data-dir ./data \\
-  --output-dir results/shd_v12_committee
+  --output-dir results/shd_v12_w192
 """
 
 # __RUN_ID__, __BUCKET__, __REGION__ are substituted at launch time.

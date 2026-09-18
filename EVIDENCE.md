@@ -487,19 +487,45 @@ epoch 2 test 75.71% at FR 0.0629 - versus 4.37% at FR 0.0080 when dead. The
 committee path was smoke-tested with two healthy seeds (hidden 32): gated
 2-member committee evaluated, all result fields written, no non-finite steps.
 
-Next cloud run (launched after these fixes): v12 bounded backbone, hidden
-160, 64 epochs, seeds 42/123/999, train-drop on, TTA 4, 3-seed committee,
-deterministic evaluation. Estimated 6.0 h at 1.36 USD/h = ~9 USD; the 8-hour
-watchdog still bounds the worst case. Running total for the campaign:
-~20 (previous runs) + 9 (v12) = ~29 USD.
+v12 results (cloud run 20260918-031418, completed 2026-09-18):
+
+- All three seeds trained healthy (no aborted seeds, no non-finite steps):
+  seed 42 best 88.30% (ep 60), seed 123 best 90.86% (ep 51), seed 999 best
+  89.84% (ep 49); best-accuracy mean 89.67%, max 90.86%. Seed 123 is the seed
+  that died twice under the old code; the bounded reparameterization cured
+  it, and it became the best member of the ensemble.
+- EMA deployment mean 88.90%; event-loss TTA mean 89.36% (helps seeds 123
+  and 999, neutral on 42); int16 mean 88.90% (per-seed quantization cost
+  0.1-0.5 pp; seed 123 int16 90.24% vs float EMA 90.15%).
+- Mean firing rate 0.105, comparable to the reference implementation (0.11).
+- Offline committee evaluation (local CPU, zero cloud cost; script
+  experiments/committee_tta_eval.py): member EMA accuracies 88.65 / 89.89 /
+  89.31; committee of the three EMA models 92.23% on one draw; across five
+  independent evaluation draws 92.07% +/- 0.17pp. Committee + TTA4 91.87%,
+  committee + TTA8 92.14% (TTA is neutral for the committee). Weight soup
+  (averaging the three EMA states into one model) fails at 4.86%: independent
+  minima do not average; the committee is the correct combiner. All numbers
+  recorded in results/cloud_shd_v5_20260918-031418/ and the offline
+  evaluator writes offline_committee_tta.json next to them.
+
+Interpretation (honest): the three-seed reproduction of the reference recipe
+(mean 89.67%, max 90.86%) is statistically consistent with the reference
+implementation's single reported seed (90.72%). The ES-FA additions
+(deterministic evaluation, EMA deployment, quality-gated committee) raise the
+headline to 92.07% +/- 0.17pp, above the released reference checkpoint and
+numerically comparable to the published SRNN paper number (92.45% +/- 0.46,
+single model). The committee is a three-model ensemble, so any parity claim
+against published single-model results must state that.
+
+Running total for the campaign: ~20 (previous runs) + 9 (v12) = ~29 USD.
 
 ## Known issues
 
-1. **SHD accuracy gap vs SOTA:** ES-FA v5 achieves 80.80% (two-seed mean,
-   cloud run 2026-09-17; 81.27% max) vs 92.66% (PLIF-ICCV2021) and about 90%
-   for the reference recipe class on the same neuron family. The gap is not
-   a measurement error; it reflects the remaining architecture and recipe
-   differences (single 512-wide recurrent layer, 160-epoch budget).
+1. **SHD accuracy (superseded 2026-09-18 by v12):** ES-FA v12 reaches 92.07%
+   +/- 0.17pp (3-seed committee, five evaluation draws) with 90.86% best
+   single seed, versus 92.45% +/- 0.46% (published SRNN, single model, Yin et
+   al. 2021) and 92.66% (PLIF, ICCV 2021). The earlier v5 result (80.80%
+   mean) is superseded and kept only as history.
 2. exp5 adaptive mode is WORSE than exp1 on MNIST (879.68% higher energy proxy). Do not
    present exp5 as an improvement.
 3. All energy figures are MODEL estimates (C-engine 4.43 pJ/SOP). Board power on hardware

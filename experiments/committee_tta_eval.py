@@ -124,9 +124,18 @@ def committee_tta(
     return correct / max(1, total)
 
 
-def soup_eval(models: List[SRNNv12], loader: DataLoader, device: torch.device, args: argparse.Namespace, seed: int) -> float:
-    """Average the member state dicts into one model and evaluate it."""
+def soup_eval(models: List[SRNNv12], loader: DataLoader, device: torch.device, args: argparse.Namespace, seed: int) -> Optional[float]:
+    """Average the member state dicts into one model and evaluate it.
+
+    Returns None when member widths differ (mixed-width committees cannot
+    be weight-averaged; the committee is the combiner in that case).
+    """
     keys = models[0].state_dict().keys()
+    shapes = {k: models[0].state_dict()[k].shape for k in keys}
+    for m in models[1:]:
+        for k in keys:
+            if m.state_dict()[k].shape != shapes[k]:
+                return None
     soup: Dict[str, torch.Tensor] = {}
     for k in keys:
         vals = [m.state_dict()[k].float() for m in models]
@@ -211,12 +220,18 @@ def main() -> int:
             print(f"committee + TTA{copies}: {acc*100:.2f}%", flush=True)
             report[f"committee_tta{copies}"] = round(acc, 4)
 
+    out_path = run_dirs[0] / "offline_committee_tta.json"
+    out_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
+
     if len(members) >= 2:
         soup_acc = soup_eval(members, test_loader, device, args, FIXED_EVAL_SEED + 200)
-        print(f"weight soup ({len(members)} members): {soup_acc*100:.2f}%", flush=True)
-        report["soup_acc"] = round(soup_acc, 4)
+        if soup_acc is None:
+            print("weight soup skipped: mixed member widths", flush=True)
+            report["soup_acc"] = None
+        else:
+            print(f"weight soup ({len(members)} members): {soup_acc*100:.2f}%", flush=True)
+            report["soup_acc"] = round(soup_acc, 4)
 
-    out_path = run_dirs[0] / "offline_committee_tta.json"
     out_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     print(f"written: {out_path}")
     return 0

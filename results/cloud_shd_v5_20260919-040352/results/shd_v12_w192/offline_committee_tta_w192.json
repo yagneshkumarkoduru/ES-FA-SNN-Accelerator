@@ -1,0 +1,32 @@
+{
+  "committee_eval_repeats_mean": 0.9125,
+  "committee_eval_repeats_n": 5,
+  "committee_eval_repeats_std": 0.0025,
+  "committee_members": 3,
+  "committee_plain": 0.9086,
+  "committee_tta4": 0.913,
+  "committee_tta8": 0.9148,
+  "run_dirs": [
+    "results\\cloud_shd_v5_20260919-040352\\results\\shd_v12_w192",
+    "results\\cloud_shd_v5_20260918-135329\\results\\shd_v12_committee",
+    "results\\cloud_shd_v5_20260918-031418\\results\\shd_v12_bounded"
+  ],
+  "seeds": [
+    {
+      "acc": 0.8785,
+      "fr": 0.1247,
+      "seed": 5
+    },
+    {
+      "acc": 0.8944,
+      "fr": 0.0801,
+      "seed": 777
+    },
+    {
+      "acc": 0.8481,
+      "fr": 0.05,
+      "seed": 4096
+    }
+  ],
+  "soup_acc": 0.0667
+}

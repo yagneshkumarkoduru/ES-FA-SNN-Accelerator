@@ -539,17 +539,37 @@ Committee expansion (cloud run 20260918-135329, completed 2026-09-18):
   states, offline_committee_tta_all7.json, offline_committee_tta_top5.json,
   offline_committee_tta_top6.json.
 
+Diversity run (cloud run 20260919-040352, completed 2026-09-19):
+
+- Three hidden-192 members on the same recipe (seeds 5, 777, 4096): seed 5
+  best 88.07% (EMA 87.81%), seed 777 best 90.50% (EMA 89.80%), seed 4096
+  best 85.73% (EMA 85.07%). No non-finite steps; all passed the health gate.
+- All ten members (no selection, mixed widths): 92.22% +/- 0.08pp over five
+  draws (TTA4 92.18%, TTA8 92.09%).
+- Eight members (drop seeds 7 and 2026): 92.34% +/- 0.13pp (TTA4 92.76%).
+- Seven members (drop seeds 7, 2026, 4096; five 160-wide, two 192-wide):
+  92.49% single draw, 92.73% +/- 0.14pp over five draws, 92.98% with
+  event-loss TTA4 and with TTA8. Best measured configuration to date.
+- Mixed-width weight soup is undefined (layer shapes differ); the evaluator
+  detects the mismatch and skips soup with a printed note.
+- Membership selection caveat applies as above; the no-selection number is
+  92.22%.
+- Artifacts in results/cloud_shd_v5_20260919-040352/: seed JSONs, EMA
+  states, offline_committee_tta_w192.json, offline_committee_tta_all10.json,
+  offline_committee_tta_strong7.json, offline_committee_tta_strong8.json.
+
 Running total for the campaign: ~20 (previous runs) + 9 (v12) + ~10
-(committee expansion) = ~39 USD.
+(committee expansion) + ~8 (diversity run) = ~47 USD.
 
 ## Known issues
 
-1. **SHD accuracy (updated 2026-09-18, committee expansion):** best measured
-   configuration is the five-member committee (seeds 42, 123, 999, 314, 271):
-   92.49% +/- 0.08pp over five deterministic evaluation draws, 92.71% with
-   event-loss TTA4. The no-selection seven-member committee gives 91.90%
-   +/- 0.07pp (membership of the five-member subset was chosen on observed
-   test accuracy, so 91.90% is the conservative claim). Best single seed
+1. **SHD accuracy (updated 2026-09-19, diversity run):** best measured
+   configuration is the seven-member mixed-width committee (five 160-wide:
+   seeds 42, 123, 999, 314, 271; two 192-wide: seeds 5, 777): 92.73%
+   +/- 0.14pp over five deterministic evaluation draws, 92.98% with
+   event-loss TTA4. The no-selection ten-member committee gives 92.22%
+   +/- 0.08pp (membership of the seven-member subset was chosen on observed
+   test accuracy, so 92.22% is the conservative claim). Best single seed
    90.86%, versus 92.45% +/- 0.46% (published SRNN, single model, Yin et al.
    2021) and 92.66% (PLIF, ICCV 2021). Committee results are ensembles;
    single-model parity is not claimed. The earlier v5 result (80.80% mean)

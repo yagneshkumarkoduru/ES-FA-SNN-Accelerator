@@ -36,6 +36,13 @@ the remaining items are the ES-FA method additions:
    reported. A dead member can no longer drag the ensemble down.
 5. Checkpointing: best-so-far model states are written every
    --checkpoint-every epochs so a crash cannot lose a completed seed.
+6. Validation-based selection: a class-stratified fraction of the training
+   file (--val-fraction, default 0.05) is held out under one deterministic
+   split (--split-seed) shared by every seed. Best-epoch selection uses the
+   validation accuracy, the EMA deployment model records validation metrics
+   for committee-member selection, and the test split is only read for
+   reporting, never for selection. Pass --val-fraction 0 to reproduce the
+   legacy test-selected protocol.
 
 Method additions over the reference implementation:
 6. Extended optimization: 64 epochs with a 5-epoch linear warmup followed by
@@ -79,7 +86,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, Subset, TensorDataset
 
 sys.path.insert(0, str(Path(__file__).parent))
 from benchmark_shd_esfa import load_shd_h5  # noqa: E402
@@ -91,8 +98,11 @@ N_CLASSES = 20
 TAU_M_RANGE = (2.0, 100.0)
 TAU_ADP_RANGE = (2.0, 1000.0)
 
-# Fixed generator seeds for deterministic evaluation (training stays random).
+# Fixed generator seeds for deterministic evaluation (training stays random)
+# and for the deterministic train/validation split (identical for every
+# training seed, so member selection is comparable across seeds).
 FIXED_EVAL_SEED = 1234567
+SPLIT_SEED = 20260919
 
 
 def _bounded_param(init_values: torch.Tensor, lo: float, hi: float) -> nn.Parameter:
@@ -333,7 +343,41 @@ def event_drop(
     return spikes * mask
 
 
-def make_loaders(data_dir: Path, batch_size: int, dt_ms: float, t_max_ms: float, seed: int) -> Tuple[DataLoader, DataLoader]:
+def _split_train_val_indices(
+    labels: torch.Tensor,
+    val_fraction: float,
+    split_seed: int,
+) -> Tuple[List[int], List[int]]:
+    """Deterministic class-stratified train/validation index split.
+
+    The split depends only on ``split_seed``, never on the training seed, so
+    every member of a committee selects on the same held-out data and the
+    test split is never consulted for model or member selection.
+    """
+
+    if not 0.0 < val_fraction < 1.0:
+        raise ValueError(f"val_fraction must be in (0, 1), got {val_fraction}")
+    generator = torch.Generator().manual_seed(split_seed)
+    train_indices: List[int] = []
+    val_indices: List[int] = []
+    for class_id in torch.unique(labels).tolist():
+        class_indices = (labels == class_id).nonzero(as_tuple=False).flatten()
+        permuted = class_indices[torch.randperm(class_indices.numel(), generator=generator)]
+        n_val = int(round(class_indices.numel() * val_fraction))
+        val_indices.extend(permuted[:n_val].tolist())
+        train_indices.extend(permuted[n_val:].tolist())
+    return sorted(train_indices), sorted(val_indices)
+
+
+def make_loaders(
+    data_dir: Path,
+    batch_size: int,
+    dt_ms: float,
+    t_max_ms: float,
+    seed: int,
+    val_fraction: float = 0.0,
+    split_seed: int = SPLIT_SEED,
+) -> Tuple[DataLoader, Optional[DataLoader], DataLoader]:
     train_h5 = data_dir / "SHD" / "shd_train.h5"
     test_h5 = data_dir / "SHD" / "shd_test.h5"
     for path in (train_h5, test_h5):
@@ -344,9 +388,20 @@ def make_loaders(data_dir: Path, batch_size: int, dt_ms: float, t_max_ms: float,
     x_train = x_train.to(torch.uint8)
     x_test = x_test.to(torch.uint8)
     generator = torch.Generator().manual_seed(seed)
-    train_loader = DataLoader(TensorDataset(x_train, y_train), batch_size=batch_size, shuffle=True, generator=generator)
+    base = TensorDataset(x_train, y_train)
+    if val_fraction > 0.0:
+        train_indices, val_indices = _split_train_val_indices(y_train, val_fraction, split_seed)
+        train_loader = DataLoader(
+            Subset(base, train_indices), batch_size=batch_size, shuffle=True, generator=generator
+        )
+        val_loader: Optional[DataLoader] = DataLoader(
+            Subset(base, val_indices), batch_size=batch_size, shuffle=False
+        )
+    else:
+        train_loader = DataLoader(base, batch_size=batch_size, shuffle=True, generator=generator)
+        val_loader = None
     test_loader = DataLoader(TensorDataset(x_test, y_test), batch_size=batch_size, shuffle=False)
-    return train_loader, test_loader
+    return train_loader, val_loader, test_loader
 
 
 def evaluate(
@@ -453,6 +508,7 @@ def train_seed(
     seed: int,
     args: argparse.Namespace,
     train_loader: DataLoader,
+    val_loader: Optional[DataLoader],
     test_loader: DataLoader,
     device: torch.device,
 ) -> Tuple[Dict[str, object], Dict[str, torch.Tensor]]:
@@ -460,6 +516,8 @@ def train_seed(
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
     random.seed(seed)
+
+    selection = "val" if val_loader is not None else "test"
 
     model = SRNNv12(
         n_hidden=args.hidden,
@@ -551,10 +609,16 @@ def train_seed(
             train_total += y.size(0)
 
         test_loss, test_acc, test_fr = evaluate(model, test_loader, device)
+        if val_loader is not None:
+            val_loss, val_acc, val_fr = evaluate(model, val_loader, device)
+            sel_acc = val_acc
+        else:
+            val_loss, val_acc, val_fr = None, None, None
+            sel_acc = test_acc
         epoch_time = time.perf_counter() - started
 
-        if test_acc > best_acc:
-            best_acc = test_acc
+        if sel_acc > best_acc:
+            best_acc = sel_acc
             best_epoch = epoch + 1
             best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
 
@@ -566,15 +630,19 @@ def train_seed(
                 "test_loss": round(test_loss, 4),
                 "test_acc": round(test_acc, 4),
                 "test_firing_rate": round(test_fr, 4),
+                "val_loss": round(val_loss, 4) if val_loss is not None else None,
+                "val_acc": round(val_acc, 4) if val_acc is not None else None,
+                "val_firing_rate": round(val_fr, 4) if val_fr is not None else None,
                 "lr": lr_now,
                 "nonfinite_steps": skips_this_epoch,
                 "elapsed_s": round(epoch_time, 2),
             }
         )
+        val_text = f"val {val_acc*100:.2f}% | " if val_acc is not None else ""
         print(
             f"  seed {seed} epoch {epoch+1:3d}/{args.epochs} | "
-            f"train {history[-1]['train_acc']*100:.1f}% | test {test_acc*100:.2f}% | "
-            f"best {best_acc*100:.2f}% | FR {test_fr:.4f} | lr {lr_now:.2e} | {epoch_time:.1f}s",
+            f"train {history[-1]['train_acc']*100:.1f}% | {val_text}test {test_acc*100:.2f}% | "
+            f"best {best_acc*100:.2f}% ({selection}) | FR {test_fr:.4f} | lr {lr_now:.2e} | {epoch_time:.1f}s",
             flush=True,
         )
 
@@ -585,7 +653,9 @@ def train_seed(
                 {
                     "seed": seed,
                     "epoch": epoch + 1,
+                    "selection": selection,
                     "test_acc": float(test_acc),
+                    "val_acc": float(val_acc) if val_acc is not None else None,
                     "best_acc": float(best_acc),
                     "best_state": best_state,
                     "ema": ema,
@@ -613,22 +683,43 @@ def train_seed(
     ema_model.eval()
 
     _, ema_acc, ema_fr = evaluate(ema_model, test_loader, device)
+    if val_loader is not None:
+        _, ema_val_acc, ema_val_fr = evaluate(ema_model, val_loader, device)
+    else:
+        ema_val_acc, ema_val_fr = None, None
     _, raw_final_acc, raw_final_fr = evaluate(model, test_loader, device)
     tta_acc = tta_accuracy(ema_model, test_loader, device, args.tta, args.tta_drop_time, args.tta_drop_neuron)
     q = int16_quantize(ema_model, device)
     _, int16_acc, int16_fr = evaluate(q, test_loader, device)
 
+    assert best_state is not None, "no epoch completed; cannot evaluate the selected state"
+    sel_model = SRNNv12(
+        n_hidden=args.hidden,
+        n_layers=args.layers,
+        beta=args.beta,
+        b0=args.b0,
+        sum_start=args.sum_start,
+    ).to(device)
+    sel_model.load_state_dict(best_state)
+    sel_model.eval()
+    _, sel_test_acc, _ = evaluate(sel_model, test_loader, device)
+
     print(
-        f"  seed {seed} FINAL | best {best_acc*100:.2f}% (ep {best_epoch}) | raw_final {raw_final_acc*100:.2f}% | "
-        f"ema {ema_acc*100:.2f}% | ema+tta{args.tta} {tta_acc*100:.2f}% | int16(ema) {int16_acc*100:.2f}% | FR {ema_fr:.4f}",
+        f"  seed {seed} FINAL | best({selection}) {best_acc*100:.2f}% (ep {best_epoch}) | sel test {sel_test_acc*100:.2f}% | "
+        f"raw_final {raw_final_acc*100:.2f}% | ema {ema_acc*100:.2f}% | ema+tta{args.tta} {tta_acc*100:.2f}% | "
+        f"int16(ema) {int16_acc*100:.2f}% | FR {ema_fr:.4f}",
         flush=True,
     )
 
     result = {
         "seed": seed,
         "n_params": n_params,
-        "best_test_acc": round(best_acc, 4),
+        "selection": selection,
         "best_epoch": best_epoch,
+        "best_sel_acc": round(best_acc, 4),
+        "best_test_acc": round(sel_test_acc, 4),
+        "ema_val_acc": round(ema_val_acc, 4) if ema_val_acc is not None else None,
+        "ema_val_firing_rate": round(ema_val_fr, 4) if ema_val_fr is not None else None,
         "final_test_acc": round(raw_final_acc, 4),
         "ema_test_acc": round(ema_acc, 4),
         "tta_test_acc": round(tta_acc, 4),
@@ -712,6 +803,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--tta-drop-neuron", type=float, default=0.03)
     parser.add_argument("--dt-ms", type=float, default=4.0)
     parser.add_argument("--t-max-ms", type=float, default=1000.0)
+    parser.add_argument("--val-fraction", type=float, default=0.05,
+                        help="class-stratified fraction of the training file held out for model and member selection (0 = legacy test-set selection)")
+    parser.add_argument("--split-seed", type=int, default=SPLIT_SEED,
+                        help="seed of the deterministic train/validation split (identical for every training seed)")
     parser.add_argument("--checkpoint-every", type=int, default=10)
     parser.add_argument("--threads", type=int, default=0)
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
@@ -737,10 +832,14 @@ def main() -> int:
         f"ES-FA SHD v12 | bounded ALIF backbone + ES-FA improvements | hidden={args.hidden} | layers={args.layers} "
         f"| T={int(args.t_max_ms / args.dt_ms)} @ {args.dt_ms}ms | epochs={args.epochs} (warmup {args.warmup_epochs}) "
         f"| seeds={seeds} | batch={args.batch_size} | lr={args.lr}->{args.lr_min} cosine | ema={args.ema_decay} "
-        f"| tta={args.tta} | train_drop={args.train_drop} | device={device}"
+        f"| tta={args.tta} | train_drop={args.train_drop} | val_fraction={args.val_fraction} | device={device}"
     )
-    train_loader, test_loader = make_loaders(args.data_dir, args.batch_size, args.dt_ms, args.t_max_ms, seeds[0])
-    print(f"  train batches={len(train_loader)} test batches={len(test_loader)}")
+    train_loader, val_loader, test_loader = make_loaders(
+        args.data_dir, args.batch_size, args.dt_ms, args.t_max_ms, seeds[0],
+        args.val_fraction, args.split_seed,
+    )
+    val_batches = len(val_loader) if val_loader is not None else 0
+    print(f"  train batches={len(train_loader)} val batches={val_batches} test batches={len(test_loader)}")
 
     results: List[Dict[str, object]] = []
     ema_states: List[Dict[str, torch.Tensor]] = []
@@ -749,7 +848,7 @@ def main() -> int:
     for seed in seeds:
         print(f"seed {seed}:")
         try:
-            result, ema_state = train_seed(seed, args, train_loader, test_loader, device)
+            result, ema_state = train_seed(seed, args, train_loader, val_loader, test_loader, device)
         except RuntimeError as exc:
             print(f"  seed {seed} ABORTED: {exc}", flush=True)
             aborted.append(seed)
@@ -757,7 +856,10 @@ def main() -> int:
             continue
         results.append(result)
         ema_states.append(ema_state)
-        ema_frs.append(float(result["ema_firing_rate"]))
+        gate_fr = result.get("ema_val_firing_rate")
+        if gate_fr is None:
+            gate_fr = result["ema_firing_rate"]
+        ema_frs.append(float(gate_fr))
         (args.output_dir / f"seed_{seed}.json").write_text(
             json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n"
         )
@@ -798,6 +900,9 @@ def main() -> int:
             "tta": args.tta,
             "tta_drop_time": args.tta_drop_time,
             "tta_drop_neuron": args.tta_drop_neuron,
+            "val_fraction": args.val_fraction,
+            "split_seed": args.split_seed,
+            "selection": "val" if args.val_fraction > 0 else "test",
         },
         "seeds": seeds,
         "aborted_seeds": aborted,
@@ -807,6 +912,11 @@ def main() -> int:
         "tta_acc_mean": _mean("tta_test_acc"),
         "int16_acc_mean": _mean("int16_test_acc"),
         "ema_firing_rate_mean": _mean("ema_firing_rate"),
+        "ema_val_acc_mean": (
+            round(float(np.mean([r["ema_val_acc"] for r in ok if r.get("ema_val_acc") is not None])), 4)
+            if any(r.get("ema_val_acc") is not None for r in ok)
+            else None
+        ),
         "committee_acc": round(committee_acc, 4) if committee_acc is not None else None,
         "committee_members": committee_members,
         "results": results,

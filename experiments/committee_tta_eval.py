@@ -14,6 +14,13 @@ Usage:
     py -3 experiments/committee_tta_eval.py \
         --run-dirs results/cloud_shd_v5_20260918-031418/results/shd_v12_bounded,results/cloud_shd_v5_NEW/results/shd_v12_committee \
         --hidden 160 --seeds 42,123,999,7,2026 --tta 4,8 --min-fr 0.02
+
+Member selection can follow the recorded validation metrics instead of an
+explicit seed list (the clean protocol; no test-set selection):
+
+    py -3 experiments/committee_tta_eval.py \
+        --run-dirs results/cloud_shd_v5_NEW/results/shd_v12_valclean \
+        --select-by val --select-top-k 5 --tta 4,8
 """
 
 from __future__ import annotations
@@ -149,7 +156,14 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Offline committee + TTA evaluation")
     parser.add_argument("--run-dirs", type=str, required=True,
                         help="comma-separated run directories to search for seed_<seed>_ema.pt files")
-    parser.add_argument("--seeds", type=str, default="42,123,999")
+    parser.add_argument("--seeds", type=str, default="",
+                        help="explicit member seeds; leave empty with --select-by val to select from recorded validation metrics")
+    parser.add_argument("--select-by", choices=["none", "val"], default="none",
+                        help="auto-select members from recorded validation metrics (clean protocol)")
+    parser.add_argument("--select-top-k", type=int, default=0,
+                        help="keep at most this many eligible members (0 = all)")
+    parser.add_argument("--min-val-fr", type=float, default=0.02,
+                        help="minimum recorded EMA validation firing rate for member eligibility")
     parser.add_argument("--hidden", type=int, default=160)
     parser.add_argument("--layers", type=int, default=2)
     parser.add_argument("--beta", type=float, default=1.8)
@@ -175,13 +189,57 @@ def main() -> int:
     torch.set_num_interop_threads(1)
     device = torch.device("cpu")
 
-    seeds = [int(s) for s in args.seeds.split(",") if s.strip()]
     run_dirs = [Path(p) for p in args.run_dirs.split(",") if p.strip()]
+    selection_report: Optional[Dict[str, object]] = None
+    if args.seeds.strip():
+        seeds = [int(s) for s in args.seeds.split(",") if s.strip()]
+    elif args.select_by == "val":
+        candidates: List[Dict[str, float]] = []
+        for run_dir in run_dirs:
+            for ema_path in sorted(run_dir.glob("seed_*_ema.pt")):
+                seed = int(ema_path.stem.split("_")[1])
+                json_path = run_dir / f"seed_{seed}.json"
+                if not json_path.exists():
+                    continue
+                record = json.loads(json_path.read_text(encoding="utf-8"))
+                val_acc = record.get("ema_val_acc")
+                val_fr = record.get("ema_val_firing_rate")
+                if val_acc is None or val_fr is None:
+                    continue
+                candidates.append({"seed": seed, "val_acc": float(val_acc), "val_fr": float(val_fr)})
+        eligible = [c for c in candidates if c["val_fr"] >= args.min_val_fr]
+        eligible.sort(key=lambda c: (-c["val_acc"], c["seed"]))
+        if args.select_top_k > 0:
+            eligible = eligible[: args.select_top_k]
+        seeds = [int(c["seed"]) for c in eligible]
+        selection_report = {
+            "mode": "val",
+            "metric": "ema_val_acc",
+            "min_val_fr": args.min_val_fr,
+            "top_k": args.select_top_k,
+            "candidates": candidates,
+            "selected": seeds,
+        }
+        print(
+            "selection (val): "
+            + ", ".join(
+                f"{int(c['seed'])}={c['val_acc']:.4f}/fr{c['val_fr']:.4f}" for c in candidates
+            )
+            + f" -> {seeds}",
+            flush=True,
+        )
+    else:
+        raise SystemExit("provide --seeds or --select-by val")
+    if len(seeds) < 2:
+        raise SystemExit(f"need at least two members, got {seeds}")
+
     members: List[SRNNv12] = []
     member_frs: List[float] = []
     report: Dict[str, object] = {"run_dirs": [str(d) for d in run_dirs], "seeds": []}
+    if selection_report is not None:
+        report["selection"] = selection_report
 
-    _, test_loader = make_loaders(args.data_dir, args.batch_size, args.dt_ms, args.t_max_ms, seeds[0])
+    _, _, test_loader = make_loaders(args.data_dir, args.batch_size, args.dt_ms, args.t_max_ms, 0, 0.0, 0)
 
     for idx, seed in enumerate(seeds):
         state = _load_ema(run_dirs, seed)

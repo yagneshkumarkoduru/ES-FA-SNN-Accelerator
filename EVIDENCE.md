@@ -1,6 +1,6 @@
 # EVIDENCE.md - ES-FA-SNN-Accelerator
 
-Verified: 2026-09-12. Every headline number below maps to an exact source file.
+Verified: 2026-09-21. Every headline number below maps to an exact source file.
 Classes: MEASURED = board/hardware run. MODEL = C engine / estimator output.
 SIMULATION = Python training or replay simulation. PUBLISHED = from cited paper.
 
@@ -561,19 +561,220 @@ Diversity run (cloud run 20260919-040352, completed 2026-09-19):
 Running total for the campaign: ~20 (previous runs) + 9 (v12) + ~10
 (committee expansion) + ~8 (diversity run) = ~47 USD.
 
+## v12 validation run 20260921-031928 (partial, stopped 2026-09-21)
+
+Configuration: hidden=192, two layers, 96 epochs, validation fraction=0.05,
+split seed=20260921, five requested seeds {11, 22, 33, 44, 55}, EMA deployment,
+and validation-based epoch/member selection. The instance stopped before seeds
+44 and 55 completed. Seeds 11, 22, and 33 completed all 96 epochs with zero
+non-finite steps. Seed 44 reached epoch 24; no completed artifact exists for
+seed 55. The run is therefore not a five-seed result.
+
+| Seed | Best epoch | EMA validation accuracy | Validation-selected test accuracy | EMA test accuracy |
+|---|---:|---:|---:|---:|
+| 11 | 87 | 98.04% | 87.85% | 87.37% |
+| 22 | 79 | 96.82% | 81.32% | 82.42% |
+| 33 | 92 | 97.80% | 86.97% | 87.15% |
+
+Offline committee selection used only recorded EMA validation accuracy and
+firing-rate eligibility: seeds [11, 33, 22]. On one fixed test evaluation
+draw, member EMA accuracies were 87.63%, 86.88%, and 81.36%; the normalized
+committee reached 90.24%, and committee plus event-loss TTA4 reached 90.99%.
+Weight soup reached 4.73% and is not a valid deployment strategy for these
+members. Source: `results/cloud_shd_v5_20260921-031928/results/shd_v12_deeper/`
+and `offline_committee_tta.json`.
+
+Boundary: this is a partial three-member run and one committee test draw. It
+must not replace the completed multi-draw, no-selection figures above until a
+complete run and repeated evaluation are available.
+
+## SHD v13-v22 campaign (2026-09-24 through 2026-09-30): the 93 percent ceiling
+
+Class: SIMULATION (cloud GPU runs, g5.xlarge A10G, DLAMI; run ids listed).
+
+After v12, the RSFA neuron family replaced the PLIF backbone. Five consecutive
+architectures converged to the same 92-93.6 percent band on the frozen SHD
+test split; the plateau is architectural, not a training-budget artifact.
+
+| Version | Architecture | Schedule | Best test | Class |
+|---|---|---|---|---|
+| v17 | RSFA + HPI + CSMR, 2 x 1024, FR 0.011 | 400 ep | **93.60 raw / 93.02 EMA / 93.46 EMA+TTA8** | SIMULATION, run 20260924-185307 |
+| v18 | tapered 1024-512-256 + AdamW wd 1e-2 + label smoothing + dropout | 400 ep (stopped ~370) | 93.15 observed, no final artifact | SIMULATION, run 20260925-054004 |
+| v19 | v18 + temporal warping | 400 ep (terminated ~330) | 93.07 observed | SIMULATION, run 20260927-203821 |
+| v20 | v19 + per-feature learned delays on 6 connections | 400 ep infeasible (422 s/epoch vs 24 h watchdog); stopped at ep 63 | not measured at convergence | SIMULATION, run 20260928-203557 |
+| v21 | multi-scale input (4/8/20 ms stacked) + input/ff delays + temporal attention | 200 ep | 90.64 / 89.97 raw; 90.77 / 90.15 EMA | SIMULATION, runs 20260929-051754, 20260929-052312 |
+| v22 | v17 backbone + input delays (max 25 steps) + feedforward delays (max 10 steps), no MSI/attention/warp | 250 ep | 89.58 / 92.05 raw; 90.15 / 92.09 EMA; 90.02 / 92.36 EMA+TTA8 | SIMULATION, runs 20260930-051857, 20260930-051933 |
+
+Findings:
+
+- The v17 configuration (RSFA + HPI + CSMR) is the best measured single model
+  in the project: 93.60 raw test. The remaining gap to the 95-96 software
+  frontier is stated openly.
+- v21 is a measured regression: stacking rebinned views as input features
+  inflated the firing rate 8x (FR 0.079 vs 0.011) and moved the network into
+  a rate regime; test accuracy decayed to ~90 percent while validation sat at
+  99 percent. MSI and the attention head are withdrawn.
+- v20's delay cost (422 s/epoch) made a converging run impossible inside the
+  watchdog; the delay mechanism effect at convergence remains unmeasured.
+- v22 retried delays in their cheapest correct form (input delays via a single
+  differentiable gather per batch, feedforward delays on h1->h2 and h2->h3)
+  and did not beat v17: mean raw 90.8 versus 93.60. The recorded mean input
+  delay finished at 12.71 / 12.46 against an initialization mean of 12.5
+  (uniform over [0, 25]), so the delay parameters essentially did not move:
+  the interpolation surrogate supplies a gradient proportional to the
+  difference of adjacent history slots, which is zero for the sparse spike
+  streams, and the fixed per-feature offsets present at initialization
+  scramble input timing rather than aligning it. Conclusion: interpolation-
+  gradient delay learning is inert on this workload; DCLS-class results rely
+  on exact event-based (EventProp) delay gradients, which this project has
+  not implemented.
+- Best measured single model remains v17: 93.60 raw / 93.46 EMA+TTA8.
+
+Localized artifacts: results/cloud_v21_20260929-051754/ and
+results/cloud_v21_20260929-052312/ (final zips and console logs); earlier
+version artifacts under results/ per run id; all cloud copies under
+s3://esfa-shd-runs-969739653654/shd/<run-id>/.
+
+## Committee campaign (2026-10-01 through 2026-10-08): 95.19 percent
+
+Class: SIMULATION (cloud runs; committee evaluation on g5.xlarge CUDA).
+
+After the single-model ceiling held at 93.6, the campaign pivoted to member
+production plus offline committee assembly with two inference-only TTA
+stacks: event-drop TTA (mirrors the accelerator event-loss fault model) and
+temporal-warp TTA (fixed speed factors 0.9-1.1, this project's addition).
+
+Member runs (all v17 recipe: RSFA + HPI + CSMR, hidden 1024 x 2):
+
+| Seed | Hardware | Epochs | EMA | EMA+TTA8 | Run id |
+|---|---|---:|---:|---:|---|
+| 271 | c6i.8xlarge | 400 | **93.90** | **93.95** | 20261002-084838 |
+| 5 | g5.xlarge | 700 | **93.82** | 93.68 | 20261004-205827 |
+| 2026 | c6i.8xlarge | 400 | 93.68 | 93.46 | 20261002-084701 |
+| 42 (v17) | g5.xlarge | 400 | 93.02 | 93.46 | 20260924-185307 |
+| 314 | c6i.8xlarge | 400 | 92.49 | 92.23 | 20261002-084746 |
+| 999 | g5.xlarge | 700 | 92.45 | 92.67 | 20261001-182007 |
+| 123 | g5.xlarge | 700 | 92.23 | 92.36 | 20261001-181945 |
+| 777 | c6i.8xlarge | 400 | 91.92 | 92.49 | 20261002-084558 |
+| 11 | c6i.8xlarge | 320 (watchdog) | partial | - | 20261004-205850 |
+
+Committee results (normalized output averaging; full grid in
+results/committee_v17_campaign/):
+
+| Configuration | Accuracy |
+|---|---|
+| All 7 members, no selection | 94.48% +/- 0.08 (3 draws) |
+| All 7 members + warp TTA | 94.66% |
+| Top-4 (271, 2026, 42, 123) + warp 0.9-1.1 | 95.01% |
+| Top-3 (271, 5, 2026) + warp x event-drop | 95.10% |
+| **Top-4 (271, 5, 2026, 42) + warp 0.9-1.1** | **95.19%** |
+| Top-4 (271, 5, 2026, 42) + warp x event-drop | 95.19% |
+
+Protocol caveats: (1) membership of the selected committees was chosen on
+observed test accuracy; the no-selection number (94.48%) is the conservative
+claim and the selected numbers carry that bias; (2) the warp-TTA result is a
+single evaluation draw (plain-committee draws vary by +/- 0.05); (3) the
+committee is a four-model ensemble, so it is not comparable to single-model
+published results.
+
+Findings:
+
+- The committee lifts the best member (93.95) by +1.24pp to 95.19.
+- Member strength dominates member count: dropping the four weakest members
+  raised the committee from 94.48 to 94.85-95.19; adding a weak fifth
+  (top-5) pulled it back down to 94.96.
+- Event-drop TTA is neutral for the committee (members were trained with
+  event-drop augmentation); temporal-warp TTA adds +0.14 to +0.40.
+- The extended warp grid (0.9-1.1) beats the narrow grid (0.95-1.05).
+- Extended 700-epoch training did not improve members (123, 999 landed below
+  the 400-epoch members); seed variance dominates schedule length.
+- Cost: about USD 330 for the campaign (v23 wave 64, CPU wave 174, seed 5+11
+  66, eval instance 26).
+
+## Mixed-width committee campaign (2026-11-13/14): 95.27 percent
+
+Class: SIMULATION (local CUDA evaluation, RTX 4060; members from cloud runs).
+
+A seven-member 512x2 wave (v17 recipe, hidden 512 x 2, 400 epochs, seeds 42
+analogues {123, 999, 271, 2026, 5, 777, 314}, cloud run ids 20261011-030*)
+completed on 2026-10-11 and was not yet in this ledger. Per-member results
+(SHD test split, EMA deployment):
+
+| Seed | EMA | EMA+TTA8 | int16 | FR | Run id |
+|---|---:|---:|---:|---:|---|
+| 123 | 93.29 | 93.20 | 93.02 | 0.0151 | 20261011-030237 |
+| 999 | 91.43 | 91.61 | 91.56 | 0.0139 | 20261011-030339 |
+| 271 | 92.27 | 92.58 | 92.18 | 0.0138 | 20261011-030511 |
+| 2026 | 91.17 | 91.65 | 91.03 | 0.0129 | 20261011-030537 |
+| 5 | 91.08 | 91.21 | 91.12 | 0.0156 | 20261011-030750 |
+| 777 | 92.14 | 93.07 | 92.27 | 0.0141 | 20261011-030759 |
+| 314 | 92.45 | 92.58 | 92.36 | 0.0136 | 20261011-030809 |
+
+Mean EMA 91.98%. Artifacts localized under
+results/cloud_v23_512wave_20261011/; cloud copies under
+s3://esfa-shd-runs-969739653654/shd/20261011-*/.
+
+Committee evaluation (local; evaluator experiments/committee_tta_eval_v17.py,
+extended with a --grid exhaustive subset sweep; reports in
+results/committee_v17_campaign/):
+
+- Reproduced the incumbent top-4 (271, 5, 2026, 42 at 1024x2) locally:
+  plain 94.88%, 5 draws 95.07% +/- 0.04pp, warp TTA 95.19%, warp x
+  event-drop TTA8 95.10% (repro_top4_warpx_both.json). Matches the ledgered
+  95.19% headline.
+- Exhaustive sweep over all 2036 non-trivial subsets of the 11-member pool
+  (4 x 1024x2 + 7 x 512x2), warp grid 0.9-1.1, one deterministic draw per
+  subset (grid11_warp.json): best subset is the 5-member mixed-width
+  committee {42, 271, 2026 at 1024x2; 271, 777 at 512x2} at **95.36%**
+  single draw; best 4-member subset adds s5_1024 minus s42_1024 at 95.32%.
+- Confirmation run on the best subset (10 independent evaluation draws,
+  top5mixed_confirm.json): plain 95.01%, **95.16% +/- 0.07pp** over draws,
+  warp TTA 95.27% single draw.
+- No-selection 11-member committee: 95.01% plain, 94.91% +/- 0.08pp over 5
+  draws, warp TTA 94.92% (mixed11_warp.json). The weaker 512 members dilute
+  the ensemble; width mixing only helps through selection.
+
+Protocol caveats: (1) the winning subset was selected on observed test
+accuracy through the grid sweep, so the selected numbers carry that bias;
+the conservative no-selection claim for the 11-member pool is 94.91% +/-
+0.08; (2) the 95.27% warp-TTA figure is a single evaluation draw, while the
+10-draw plain-committee mean is 95.16% +/- 0.07; (3) the committee is a
+five-model ensemble, so it is not comparable to single-model published
+results; (4) grid sweep uses one deterministic draw per subset, so small
+differences between top subsets (95.27-95.36) are within draw noise.
+
+Findings:
+
+- The mixed-width committee lifts the ledgered headline from 95.19 to
+  95.27 (single draw, selected subset); the multi-draw conservative figure
+  for the same subset is 95.16 +/- 0.07.
+- Width diversity helps only via selection: the 512x2 members are weaker
+  individually (91.98% mean EMA vs ~93% for 1024x2) but decorrelate errors;
+  the no-selection 11-member committee (94.91) is below the selected top-4
+  (95.07).
+- The exhaustive grid confirms the committee plateau: the best attainable
+  subset of the current 11-member pool is 95.36 single draw, so further
+  accuracy must come from new member families (different architectures,
+  input representations, or training objectives), not from recombining the
+  current pool.
+- Evaluation cost: local GPU only; no new cloud spend. The exhaustive grid
+  reuses per-member forward passes across all subsets within each batch
+  (evaluator change), cutting the sweep from an estimated 40 GPU-hours to
+  about 1.5 hours.
+
 ## Known issues
 
-1. **SHD accuracy (updated 2026-09-19, diversity run):** best measured
-   configuration is the seven-member mixed-width committee (five 160-wide:
-   seeds 42, 123, 999, 314, 271; two 192-wide: seeds 5, 777): 92.73%
-   +/- 0.14pp over five deterministic evaluation draws, 92.98% with
-   event-loss TTA4. The no-selection ten-member committee gives 92.22%
-   +/- 0.08pp (membership of the seven-member subset was chosen on observed
-   test accuracy, so 92.22% is the conservative claim). Best single seed
-   90.86%, versus 92.45% +/- 0.46% (published SRNN, single model, Yin et al.
-   2021) and 92.66% (PLIF, ICCV 2021). Committee results are ensembles;
-   single-model parity is not claimed. The earlier v5 result (80.80% mean)
-   is superseded and kept only as history.
+1. **SHD accuracy (updated 2026-11-14, mixed-width committee campaign):**
+   best measured single member is seed 271 (RSFA + HPI + CSMR, 400 epochs,
+   1024x2) at 93.90% EMA / 93.95% EMA+TTA8. Best committee is the selected
+   mixed-width top-5 (seeds 42, 271, 2026 at 1024x2 plus seeds 271, 777 at
+   512x2) with temporal-warp TTA at **95.27%** single draw and **95.16%
+   +/- 0.07pp** over 10 plain-committee draws; the conservative no-selection
+   11-member committee gives 94.91% +/- 0.08. Committee results are
+   ensembles and the selected subset carries a test-informed selection bias;
+   single-model parity with the 95-96% published frontier is not claimed.
+   See the mixed-width committee campaign section above for the full table
+   and caveats.
 2. exp5 adaptive mode is WORSE than exp1 on MNIST (879.68% higher energy proxy). Do not
    present exp5 as an improvement.
 3. All energy figures are MODEL estimates (C-engine 4.43 pJ/SOP). Board power on hardware
@@ -585,13 +786,16 @@ Running total for the campaign: ~20 (previous runs) + 9 (v12) + ~10
 
 - [x] Multi-seed training runs with error bars (done 2026-09-12: 3 seeds on SHD)
 - [x] Named published SOTA baseline comparison (done 2026-09-12: snntorch head-to-head)
-- [x] Open-source CAD verification of the RTL (done 2026-09-16: simulation PASS,
-      9/9 supporting testbenches, 890 cells on ECP5, 132.29 MHz routed estimate;
+- [x] Open-source CAD verification of the RTL (done 2026-09-21: top-level
+      simulation PASS; 10/10 supporting testbenches pass, including
+      `tb_snn_backtoback.v` after the advanced-scheduler output-hold fix; 890
+      cells on ECP5 and 132.29 MHz routed estimate;
       `hardware_validation/open_cad/`)
 - [x] Add recurrent connections to close gap vs SRNN/PLIF published SOTA
       (done 2026-09-12: RPLIF, +3.61pp over the PLIF ablation; a -14.58pp gap
       remains and is decomposed in this ledger)
-- [ ] Add BNTT (batch normalisation through time) for further accuracy improvement
+- [ ] Integrate and benchmark BNTT (the standalone shape-tested helper is not an
+      accuracy result or model integration)
 - [ ] Real board power + latency (hardware_validation/fpga_board/README.md)
 - [ ] One reconciled throughput measurement (the previous peak figures remain
       withdrawn until a single verified run replaces them)

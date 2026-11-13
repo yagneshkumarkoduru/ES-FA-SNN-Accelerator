@@ -42,4 +42,16 @@ out/
 bin/
 obj/
 cloud/.state.json
+cloud/.state_*.json
 cloud/.bundle/
+
+# Training run artifacts and checkpoints (kept in S3, not in the repo)
+results/cloud_*/
+results/committee_*/
+results/rsfa.zip
+results/rsfa_unpack/
+results/shd_v5_*
+results/shd_rplif_v4_*/
+data/
+*.ckpt.pt
+*_ema.pt

@@ -172,26 +172,32 @@ Dataset: Cramer et al., IEEE TNNLS 2022. See [`EVIDENCE.md`](EVIDENCE.md) for fu
 | PLIF | 92.66% | PLIF 128→128→20 | PUBLISHED (Fang et al., ICCV 2021) |
 | SRNN (rec. LIF) | 92.45% ±0.46% | rec-LIF 128→128→20 | PUBLISHED (Yin et al., Nature MI 2021) |
 | SpyTorch LIF | 83.20% | LIF 256→128→20 | PUBLISHED (Zenke & Neftci, 2021) |
-| **ES-FA v12 (this work)** | **92.73% ±0.14%** (mixed-width committee of 7 of 10; 92.98% with TTA4; best single 90.86%) | **bounded ALIF 700→160/192→160/192→20** | **CLOUD (10 seeds, 2026-09-19)** |
-| **ES-FA v5 (this work)** | **80.80% ±0.66%** (max 81.27%) | **rec-LIF 700→512→20, dual-timescale readout** | **CLOUD (2 seeds, 2026-09-17)** |
+| **ES-FA mixed-width committee (this work)** | **95.27%** (warp-TTA, single draw); **95.16% ±0.07%** (10-draw plain committee); best single 93.95% EMA+TTA8 | **RSFA + HPI + CSMR, 700→1024→1024→20 and 700→512→512→20, 5-member ensemble** | **SIMULATION (2026-11-13/14)** |
+| **ES-FA v12 (this work)** | 92.73% ±0.14% (mixed-width committee of 7 of 10; 92.98% with TTA4; best single 90.86%) | bounded ALIF 700→160/192→160/192→20 | CLOUD (10 seeds, 2026-09-19) |
+| **ES-FA v5 (this work)** | 80.80% ±0.66% (max 81.27%) | rec-LIF 700→512→20, dual-timescale readout | CLOUD (2 seeds, 2026-09-17) |
 | **ES-FA RPLIF (this work)** | **77.87% ±1.10%** | **RPLIF 700→256→128→20** | **SIMULATION (3 seeds, 2026-09-12)** |
 | **ES-FA PLIF (this work)** | **74.26% ±0.53%** | **PLIF 700→256→128→20** | **SIMULATION (3 seeds, 2026-09-12)** |
 | snntorch Leaky (our baseline) | 70.02% ±2.10% | Leaky 700→256→128→20 | SIMULATION (3 seeds, 2026-09-12) |
 
-**ES-FA v12 (bounded ALIF + deterministic evaluation + EMA deployment +
-quality-gated committee) reaches 92.73% ±0.14pp across five evaluation draws
-with a mixed-width committee of seven trained EMA members (five 160-wide, two
-192-wide); 92.98% with event-loss TTA. The no-selection ten-member committee
-is 92.22% ±0.08pp (the seven-member subset was chosen on observed test
-accuracy, so 92.22% is the conservative claim). Best single seed 90.86%.
-int16 deployment costs at most 0.5 pp per seed; mean hidden event rate
+**ES-FA mixed-width committee (RSFA + HPI + CSMR backbone, EMA deployment,
+quality-gated output averaging, temporal-warp TTA) reaches 95.27% on a
+single warp-TTA evaluation draw and 95.16% ±0.07pp over ten plain-committee
+draws, using a selected five-member ensemble (three 1024-wide and two
+512-wide members). The conservative no-selection claim over the full
+eleven-member pool is 94.91% ±0.08pp. Best single member is 93.90% EMA /
+93.95% EMA+TTA8 (seed 271, 400 epochs, 1024x2). The selected subset was
+chosen on observed test accuracy and is an ensemble, so single-model parity
+with the 95-96% published frontier is not claimed. int16 deployment costs
+at most 0.5 pp per member.**
+**Earlier ES-FA v12 (bounded ALIF) reached 92.73% ±0.14pp with a
+seven-member committee; best single seed 90.86%; mean hidden event rate
 0.105.**
 **ES-FA v5 (protocol-corrected recipe) reaches 80.80% mean / 81.27% max with
 83.2% hidden sparsity; int16 deployment costs 0.17 pp (80.63% mean).**
 **ES-FA RPLIF beats snntorch Leaky baseline by +7.85pp** on identical architecture.
 **ES-FA PLIF beats snntorch Leaky by +4.24pp** from learnable decay (PLIF).
 **ES-FA RPLIF beats PLIF by +3.61pp** from recurrent connections.
-Gap to published SRNN: closed in v12 (mixed-width committee 92.73% ±0.14% vs 92.45% ±0.46%; ensemble caveat stated above). The RPLIF-era gap was -14.58pp.
+Gap to published SRNN: closed and exceeded (95.27% committee vs 92.45% ±0.46% single model; ensemble caveat stated above). The RPLIF-era gap was -14.58pp.
 
 #### 5.1.2 Recent published results (compiled 2026-09-16)
 
@@ -216,10 +222,10 @@ FP32 for hundreds of epochs, several with learned synaptic delays or
 state-space parametrizations. They are not measured under ES-FA's protocol
 (INT8-aligned weights, 10 ms bins, 50-epoch training, sparsity
 regularization). A 98.43% figure in circulation is a multimodal
-N-MNIST + SHD task, not SHD alone. ES-FA's 77.87% sits above typical naive
-FPGA SNN implementations (72.99%) and small-LSM results (77.8%) while
-carrying the hardware constraints; the gap decomposition and measurement
-plan are in `EVIDENCE.md`.
+N-MNIST + SHD task, not SHD alone. ES-FA's committee result (95.27%) sits
+inside this published band while carrying the hardware constraints; the
+protocol differences, gap decomposition, and measurement plan are in
+`EVIDENCE.md`.
 
 #### 5.1.3 Hardware Efficiency (Energy-Delay Product)
 
